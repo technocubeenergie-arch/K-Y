@@ -77,6 +77,32 @@ petite marge égale à la moitié de la largeur de tuile), soit c'est un
 échec. C'est ce qui rend le timing et la précision importants, comme
 dans Tiles Hop.
 
+## Les étoiles : récompenser la précision
+
+Toucher une tuile suffit pour marquer un point, mais atterrir **pile au
+centre** rapporte en plus une **étoile** ⭐ — la monnaie du jeu, prévue
+pour être dépensée plus tard dans une boutique (voir
+`docs/FUTURE_INTEGRATIONS.md`).
+
+- Une tuile touchée est dite **"parfaite"** si la balle est à moins de
+  `perfectZoneRatio × (largeur de tuile / 2)` du centre de la tuile
+  (réglage dans `gameConfig.js`, `tile.perfectZoneRatio`, actuellement
+  0,4 — soit une tolérance de 24px autour du centre).
+- Une tuile parfaite est dessinée en **doré** au lieu de vert, et joue un
+  petit carillon distinct du son d'atterrissage normal.
+- Les étoiles gagnées existent à deux niveaux :
+  - **pendant la partie en cours** (`runStars`, remis à zéro à chaque
+    nouvelle tentative, affiché dans le HUD) ;
+  - **au total, toutes parties confondues** (`starBalance`, sauvegardé
+    sur l'appareil via `src/storage/localStore.js`, jamais remis à
+    zéro — même après un échec, les étoiles déjà gagnées sont gardées).
+- Les écrans d'échec et de victoire affichent les deux : le nombre
+  d'étoiles gagnées pendant cette partie, et le total cumulé.
+
+Contrairement au score (qui redémarre à zéro à chaque nouvelle partie),
+les étoiles forment une progression qui **persiste dans le temps** —
+c'est ce qui permettra plus tard d'acheter des choses dans le jeu.
+
 ## Le rebond visuel de la balle
 
 Indépendamment de la détection de collision, la balle fait un petit
@@ -114,7 +140,9 @@ Résultat : la musique "raconte" le chemin des tuiles. Un joueur qui
 
 Le score correspond simplement au nombre de tuiles touchées avec
 succès. Le meilleur score est sauvegardé localement sur l'appareil (voir
-`src/storage/localStore.js`) et comparé à chaque fin de partie.
+`src/storage/localStore.js`) et comparé à chaque fin de partie. Les
+étoiles (voir plus haut) suivent une logique différente : c'est un
+cumul qui ne redémarre jamais à zéro.
 
 ## Sensations à préserver dans les prochaines évolutions
 

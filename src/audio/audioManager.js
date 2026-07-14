@@ -84,6 +84,14 @@
       this._playBlip(660, 0.1, 'sine');
     }
 
+    // Son distinct pour un atterrissage "parfait" (voir engine.js) :
+    // deux notes rapides et aiguës, pour bien le distinguer d'un simple
+    // atterrissage réussi.
+    playStarSound() {
+      this._playBlip(880, 0.08, 'triangle');
+      setTimeout(() => this._playBlip(1318.51, 0.12, 'triangle'), 60);
+    }
+
     playFailSound() {
       this._playBlip(110, 0.4, 'sawtooth');
     }

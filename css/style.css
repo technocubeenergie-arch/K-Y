@@ -69,6 +69,13 @@ h1 {
   opacity: 0.8;
 }
 
+#stars {
+  font-size: 15px;
+  font-weight: 600;
+  color: #facc15;
+  margin-top: 2px;
+}
+
 #btn-pause {
   pointer-events: auto;
   visibility: hidden;

@@ -25,6 +25,7 @@
   const domRefs = {
     scoreEl: document.getElementById('score'),
     progressEl: document.getElementById('progress'),
+    starsEl: document.getElementById('stars'),
     startScreen: document.getElementById('screen-start'),
     pauseScreen: document.getElementById('screen-pause'),
     failScreen: document.getElementById('screen-fail'),
@@ -36,14 +37,16 @@
     retryCompleteButton: document.getElementById('btn-retry-complete'),
     failScore: document.getElementById('fail-score'),
     failHighscore: document.getElementById('fail-highscore'),
+    failStars: document.getElementById('fail-stars'),
     completeScore: document.getElementById('complete-score'),
     completeHighscore: document.getElementById('complete-highscore'),
+    completeStars: document.getElementById('complete-stars'),
   };
 
   // --- 2. Briques du jeu ---------------------------------------------------
   const eventBus = new TH.EventBus();
   const audioManager = new TH.AudioManager();
-  const localStore = new TH.LocalStore(config.storage.highscoreKey);
+  const localStore = new TH.LocalStore(config.storage);
 
   const sequence = TH.LevelSequencer.buildSequence(TH.Levels.training, config);
   const camera = new TH.Camera(sequence.scrollSpeed, config.hitLine.y);
@@ -62,7 +65,10 @@
   });
 
   // --- 3. Réactions audio (le son ne dirige jamais le jeu, il réagit) -----
-  eventBus.on('tile:hit', () => audioManager.playLandSound());
+  eventBus.on('tile:hit', ({ isPerfect }) => {
+    if (isPerfect) audioManager.playStarSound();
+    else audioManager.playLandSound();
+  });
   eventBus.on('game:over', () => audioManager.stopMusic());
   eventBus.on('game:over', () => audioManager.playFailSound());
   eventBus.on('game:complete', () => audioManager.playCompleteSound());

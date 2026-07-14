@@ -46,25 +46,71 @@ n'ont pas encore de logique associée :
 - **Écran de démarrage illustré, HUD stylisé** : uniquement du CSS/HTML à
   enrichir dans `index.html` / `css/style.css`, aucun changement JS
   nécessaire.
-- **Collectibles / skins / bonus** : n'existent pas du tout aujourd'hui.
-  Si ajoutés, prévoir un nouveau module `entities/collectible.js` et un
-  état dédié dans `engine.js`, sans mélanger cette logique avec celle
-  des tuiles.
+- **Collectibles / skins / bonus** : n'existent pas encore, mais la
+  **monnaie pour les acheter existe déjà** (les étoiles, voir
+  `docs/GAMEPLAY.md`). Voir section 2 ci-dessous pour la suite.
 
-## 2. Brancher Supabase (authentification + base de données)
+## 2. Construire la boutique (dépenser les étoiles)
 
-**Pas encore fait, volontairement.** Aujourd'hui, seul le meilleur score
-est sauvegardé, en local, via `src/storage/localStore.js`
-(`window.localStorage`).
+**Pas encore fait, volontairement.** Le joueur gagne des étoiles
+(atterrissage parfait sur une tuile), et elles sont sauvegardées de
+façon persistante via `src/storage/localStore.js`
+(`getStarBalance()` / `addStars(amount)`). Il n'existe **pas encore**
+d'endroit où les dépenser.
+
+### Ce qu'il faudra construire
+
+- **Un catalogue d'objets achetables** : nouveau fichier de données,
+  par exemple `src/shop/shopData.js` (même esprit que
+  `level/levelData.js` : une liste simple, facile à modifier). Chaque
+  objet aura au minimum un identifiant, un nom, un prix en étoiles.
+- **Un état "possédé" par objet** : à sauvegarder aussi via
+  `localStore.js` (nouvelle méthode à ajouter, par exemple
+  `getOwnedItems()` / `setOwnedItems(ids)`), avec la même logique que
+  `getStarBalance()`.
+- **Un écran boutique** : un nouveau fichier `src/ui/shopScreen.js`
+  (même famille que `ui/screens.js`), accessible depuis l'écran de
+  démarrage (par exemple un bouton "Boutique"). Il affichera le
+  catalogue, le solde d'étoiles (`localStore.getStarBalance()`), et
+  gérera le clic "Acheter" (vérifier le solde, débiter, marquer
+  l'objet comme possédé).
+- **Appliquer l'objet acheté** : dépend de ce qu'on vend en premier.
+  Le plus simple pour commencer serait une **couleur de balle** ou une
+  **couleur de tuile parfaite** différente (juste une valeur à lire
+  dans `config.ball.color` / `config.tile.perfectColor` au lieu de la
+  valeur fixe actuelle).
+
+### Points de vigilance
+
+- Ne pas mélanger la logique de la boutique avec `engine.js` : le
+  moteur de jeu n'a pas besoin de savoir ce que le joueur a acheté,
+  seulement lire la config qui en résulte (couleur, skin...).
+- Garder la même règle que pour les étoiles : l'inventaire "objets
+  possédés" doit être écrit dès maintenant pour être **facile à
+  migrer vers Supabase** plus tard (voir section 3), donc passer par
+  `localStore.js`, jamais par un accès direct à `localStorage` ailleurs
+  dans le code.
+
+## 3. Brancher Supabase (authentification + base de données)
+
+**Pas encore fait, volontairement.** Aujourd'hui, le meilleur score et
+le solde d'étoiles sont sauvegardés, en local, via
+`src/storage/localStore.js` (`window.localStorage`).
 
 ### Pourquoi c'est facile à brancher plus tard
 
-`localStore.js` expose exactement 2 méthodes :
+`localStore.js` expose ces méthodes :
 
 ```js
-getHighScore()        // renvoie un nombre
-setHighScore(score)    // enregistre un nombre
+getHighScore()          // renvoie un nombre
+setHighScore(score)      // enregistre un nombre
+getStarBalance()          // renvoie le total d'étoiles du joueur
+addStars(amount)           // ajoute des étoiles au total, renvoie le nouveau total
 ```
+
+(Si la boutique de la section 2 est construite avant Supabase, elle
+ajoutera probablement `getOwnedItems()` / `setOwnedItems(ids)` ici
+aussi, en suivant le même principe.)
 
 `main.js` est le seul endroit qui crée une instance de ce module
 (`new TH.LocalStore(...)`) et la passe à `engine.js`. Le jour où
@@ -76,16 +122,19 @@ Supabase est prêt :
 2. Dans `main.js`, remplacer `new TH.LocalStore(...)` par
    `new TH.SupabaseStore(...)`.
 3. `engine.js` n'a besoin d'aucune modification : il appelle
-   `localStore.getHighScore()` / `setHighScore()` sans savoir ce qu'il y
-   a derrière.
+   `localStore.getHighScore()` / `setHighScore()` / `getStarBalance()` /
+   `addStars()` sans savoir ce qu'il y a derrière.
 
 ### Prérequis techniques à prévoir avant le branchement
 
-- Authentification des joueurs (pour savoir à qui appartient un score) :
-  probablement `supabase.auth`, à décider avec le reste de l'équipe/
-  utilisateur avant implémentation.
+- Authentification des joueurs (pour savoir à qui appartiennent un
+  score et des étoiles) : probablement `supabase.auth`, à décider avec
+  le reste de l'équipe/utilisateur avant implémentation.
 - Une table `scores` (ou équivalent) côté Supabase : `user_id`,
   `level_id`, `score`, `created_at` au minimum.
+- Une table (ou colonne) pour le solde d'étoiles, et potentiellement
+  une table `owned_items` si la boutique (section 2) existe déjà à ce
+  moment-là.
 - Gérer le cas hors-ligne / erreur réseau : `SupabaseStore` devra
   définir un comportement de repli raisonnable (par exemple, retomber
   sur `LocalStore` en cas d'échec réseau) plutôt que de faire planter le
@@ -96,7 +145,8 @@ Supabase est prêt :
 
 ### Points de vigilance au moment du branchement final
 
-- Le score actuel (`engine.score`) est un simple entier ; vérifier que
+- Le score (`engine.score`) et les étoiles (`engine.runStars` /
+  `localStore.getStarBalance()`) sont de simples entiers ; vérifier que
   le schéma Supabase choisi correspond bien à ce type de donnée avant
   de committer un modèle de données définitif.
 - Le `localStorage` restera utile même après Supabase, comme solution

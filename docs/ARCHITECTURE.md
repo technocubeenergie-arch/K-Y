@@ -40,12 +40,12 @@ src/
   core/
     eventBus.js             Messagerie entre modules (pub/sub)
     clock.js                 Le temps qui passe (chrono, pause), rien d'autre
-    engine.js                 Le cerveau : règles du jeu, score, victoire/échec
+    engine.js                 Le cerveau : règles du jeu, score, étoiles, victoire/échec
     gameLoop.js                La boucle requestAnimationFrame (input → engine → rendu)
     input.js                   Traduit souris/doigt/clavier en "va vers X" (déplacement clavier fluide, image par image)
   entities/
     ball.js                  La balle : position, rebond visuel
-    tile.js                   Une tuile : position, état (pending/hit/missed)
+    tile.js                   Une tuile : position, état (pending/hit/missed), atterrissage parfait
   level/
     levelData.js              La "recette" du niveau (motif de lettres)
     levelSequencer.js          Transforme la recette en vraies tuiles + timing
@@ -56,10 +56,10 @@ src/
     musicGenerator.js           Compose la musique du niveau (Web Audio)
     audioManager.js               Seul fichier qui touche à l'API audio
   ui/
-    hud.js                      Score et progression affichés pendant la partie
+    hud.js                      Score, progression et étoiles affichés pendant la partie
     screens.js                   Écrans démarrage / pause / échec / fin
   storage/
-    localStore.js               Sauvegarde du meilleur score (temporaire, local)
+    localStore.js               Sauvegarde du meilleur score et de la tirelire d'étoiles (temporaire, local)
   assets/
     assetManifest.js             Registre central de tous les assets (voir plus bas)
   main.js                    Chef d'orchestre : crée et relie tous les modules
@@ -102,14 +102,17 @@ Plutôt que d'appeler les autres modules directement (ce qui créerait des
 dépendances emmêlées), `engine.js` **annonce** ce qu'il se passe :
 
 ```js
-eventBus.emit('tile:hit', { index, score });
-eventBus.emit('game:over', { score, highscore, isNewHighscore });
+eventBus.emit('tile:hit', { index, score, isPerfect, runStars, starBalance });
+eventBus.emit('game:over', { score, highscore, isNewHighscore, runStars, starBalance });
 ```
 
 Et les autres modules **s'abonnent** à ce qui les intéresse :
 
 ```js
-eventBus.on('tile:hit', () => audioManager.playLandSound());
+eventBus.on('tile:hit', ({ isPerfect }) => {
+  if (isPerfect) audioManager.playStarSound();
+  else audioManager.playLandSound();
+});
 ```
 
 Événements existants aujourd'hui : `game:start`, `game:pause`,

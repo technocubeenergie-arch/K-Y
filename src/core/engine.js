@@ -26,6 +26,9 @@
 
       this.state = 'idle'; // idle | playing | paused | gameover | complete
       this.score = 0;
+      // Étoiles gagnées PENDANT LA PARTIE EN COURS (remise à zéro à chaque
+      // start()). Le total cumulé, lui, vit dans localStore (voir plus bas).
+      this.runStars = 0;
       this._nextHopIndex = 0;
     }
 
@@ -35,13 +38,15 @@
     start(syncStartTime) {
       this.state = 'playing';
       this.score = 0;
+      this.runStars = 0;
       this._nextHopIndex = 0;
       this.sequence.tiles.forEach((tile) => {
         tile.state = 'pending';
+        tile.isPerfect = false;
       });
       this.ball.reset(this.config);
       this.clock.start(syncStartTime);
-      this.events.emit('game:start', {});
+      this.events.emit('game:start', { starBalance: this.localStore.getStarBalance() });
     }
 
     togglePause() {
@@ -81,13 +86,32 @@
     _processHop(tile) {
       const tileCenterX = tile.getCenterX(this.config.canvas.width, this.config.tile.width);
       const halfTile = this.config.tile.width / 2;
-      const isAligned = Math.abs(this.ball.x - tileCenterX) <= halfTile;
+      const distanceFromCenter = Math.abs(this.ball.x - tileCenterX);
+      const isAligned = distanceFromCenter <= halfTile;
 
       if (isAligned) {
         tile.state = 'hit';
         this.score += 1;
         this.ball.playImpactSquash();
-        this.events.emit('tile:hit', { index: tile.index, score: this.score });
+
+        // Atterrissage "parfait" : la balle est tout près du centre de la
+        // tuile, pas juste quelque part dessus. Ça rapporte une étoile.
+        const perfectZone = halfTile * this.config.tile.perfectZoneRatio;
+        tile.isPerfect = distanceFromCenter <= perfectZone;
+
+        let starBalance = this.localStore.getStarBalance();
+        if (tile.isPerfect) {
+          this.runStars += this.config.stars.perfectReward;
+          starBalance = this.localStore.addStars(this.config.stars.perfectReward);
+        }
+
+        this.events.emit('tile:hit', {
+          index: tile.index,
+          score: this.score,
+          isPerfect: tile.isPerfect,
+          runStars: this.runStars,
+          starBalance,
+        });
       } else {
         tile.state = 'missed';
         this.events.emit('tile:miss', { index: tile.index });
@@ -95,36 +119,34 @@
       }
     }
 
+    // Score, étoiles et record : les infos communes à la fin d'une partie,
+    // qu'elle se termine par un échec ou une réussite.
+    _buildRunSummaryPayload() {
+      const previousHighscore = this.localStore.getHighScore();
+      const isNewHighscore = this.score > previousHighscore;
+      if (isNewHighscore) this.localStore.setHighScore(this.score);
+
+      return {
+        score: this.score,
+        highscore: isNewHighscore ? this.score : previousHighscore,
+        isNewHighscore,
+        runStars: this.runStars,
+        starBalance: this.localStore.getStarBalance(),
+      };
+    }
+
     _fail() {
       if (this.state !== 'playing') return;
       this.state = 'gameover';
       this.ball.isAlive = false;
       this.clock.pause();
-
-      const previousHighscore = this.localStore.getHighScore();
-      const isNewHighscore = this.score > previousHighscore;
-      if (isNewHighscore) this.localStore.setHighScore(this.score);
-
-      this.events.emit('game:over', {
-        score: this.score,
-        highscore: isNewHighscore ? this.score : previousHighscore,
-        isNewHighscore,
-      });
+      this.events.emit('game:over', this._buildRunSummaryPayload());
     }
 
     _complete() {
       this.state = 'complete';
       this.clock.pause();
-
-      const previousHighscore = this.localStore.getHighScore();
-      const isNewHighscore = this.score > previousHighscore;
-      if (isNewHighscore) this.localStore.setHighScore(this.score);
-
-      this.events.emit('game:complete', {
-        score: this.score,
-        highscore: isNewHighscore ? this.score : previousHighscore,
-        isNewHighscore,
-      });
+      this.events.emit('game:complete', this._buildRunSummaryPayload());
     }
 
     // Position (0 à 1) de la balle dans son cycle de saut courant,

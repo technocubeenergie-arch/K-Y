@@ -17,6 +17,9 @@
       this.xFraction = xFraction; // 0 = bord gauche, 1 = bord droit
       // 'pending' -> pas encore atteinte, 'hit' -> réussie, 'missed' -> ratée
       this.state = 'pending';
+      // true si la tuile a été touchée pile au centre (voir engine.js) :
+      // ça rapporte une étoile en plus du point normal.
+      this.isPerfect = false;
     }
 
     getCenterX(canvasWidth, tileWidth) {
