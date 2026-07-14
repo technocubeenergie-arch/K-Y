@@ -6,6 +6,79 @@
 
 ---
 
+## BUG-007 — La musique continuait pendant la pause (signalé par Ylonna)
+
+- **Problème observé** : en mettant le jeu en pause puis en reprenant,
+  le son n'était plus du tout synchronisé avec ce qui s'affichait
+  ("tout est décalé").
+- **Contexte** : Ylonna a soupçonné que le rythme de la musique et la
+  génération des tuiles n'étaient pas liés. En creusant, ce n'était
+  pas ça : les tuiles et la musique utilisent bien la même horloge et
+  les mêmes formules de tempo (voir `docs/GAMEPLAY.md`, "Musique et
+  tuiles : un seul et même rythme") — le souci était ailleurs.
+- **Cause identifiée** : `engine.togglePause()` mettait bien en pause
+  l'horloge du JEU (`core/clock.js`, qui gèle correctement les calculs
+  de tuiles), mais **rien ne mettait en pause l'audio**. La musique,
+  programmée à l'avance avec des horaires absolus sur l'horloge de
+  l'`AudioContext`, continuait donc de jouer normalement pendant que
+  le jeu était figé à l'écran. Au moment de reprendre, le son avait
+  "couru en avance" de toute la durée de la pause : la note qu'on
+  entendait ne correspondait plus à la tuile affichée.
+- **Solution appliquée** :
+  - `audio/audioManager.js` : nouvelle méthode `pause()`, qui appelle
+    `AudioContext.suspend()`. C'est la méthode native du navigateur qui
+    gèle à la fois le son ET l'horloge audio elle-même
+    (`audioContext.currentTime` n'avance plus du tout tant que le
+    contexte est suspendu).
+  - `main.js` : `eventBus.on('game:pause', ...)` appelle
+    `audioManager.pause()`, et `eventBus.on('game:resume', ...)`
+    réutilise `audioManager.resumeIfNeeded()` (déjà utilisée au
+    lancement de la partie) pour relancer l'audio.
+- **Effets secondaires** : aucun. `core/clock.js` n'a pas eu besoin
+  d'être modifié : puisque l'horloge audio elle-même est maintenant
+  gelée pendant la pause, son mécanisme de compensation existant
+  (`_pauseAccumulated`) devient simplement inutile pendant ce laps de
+  temps (rien à compenser), sans jamais causer de double correction.
+- **Point de vigilance** : toute nouvelle action qui met le jeu en
+  pause doit systématiquement geler l'audio de la même façon (passer
+  par l'eventBus, jamais appeler `audioContext` directement ailleurs
+  que dans `audioManager.js`).
+- **Vérifié** : testé en navigateur réel (Playwright), en interceptant
+  les appels à `suspend()`/`resume()` : le temps audio mesuré est
+  strictement identique juste avant la pause et juste après la reprise
+  (aucune avance pendant les 2 secondes de pause simulées), et le jeu
+  continue ensuite à un rythme normal, sans échec ni saut de tuile.
+
+### Note sur une proposition de refonte complète (BeatmapEngine)
+
+Ylonna a proposé, pour corriger ce bug, de s'inspirer d'une architecture
+plus large de type "BeatmapEngine" (liste d'événements `{time, xNorm}`,
+position de la balle interpolée entre deux événements, horloge basée sur
+`AudioContext`, jugement par fenêtre de tolérance). Après relecture, les
+bonnes pratiques utiles à notre jeu **étaient déjà en place** :
+
+- horloge de jeu basée sur `AudioContext.currentTime`, jamais sur
+  `Date.now()`/`performance.now()`/`setInterval()` comme référence
+  principale (voir `core/clock.js`) ;
+- une donnée structurée de type "liste d'événements avec position et
+  horaire" : c'est exactement le rôle de `level/levelSequencer.js`, qui
+  transforme le tracé du niveau en tuiles (chacune avec un `worldY`
+  correspondant à un horaire précis, et une position latérale) ;
+  chaque tuile est déjà l'équivalent de son `BeatEvent {time, xNorm}` ;
+- jugement une seule fois par tuile, avec une fenêtre de tolérance
+  configurable (`hitZoneRatio`, `perfectZoneRatio` dans
+  `gameConfig.js`), jamais rejugée après coup.
+
+En revanche, l'idée de faire **suivre** à la balle une position
+interpolée automatiquement entre deux événements n'a pas été reprise :
+dans un jeu type Tiles Hop, c'est le **joueur** qui contrôle la
+position latérale de la balle (glisser le doigt/la souris), pas une
+trajectoire pré-calculée. Adopter cette partie de la proposition
+aurait supprimé le contrôle du joueur, ce qui n'est pas ce qui est
+recherché ici.
+
+---
+
 ## BUG-006 — Zone morte sur la tuile : on perdait en atterrissant sur du bleu (signalé par Ylonna)
 
 - **Problème observé** : en jouant, atterrir sur la partie bleue d'une

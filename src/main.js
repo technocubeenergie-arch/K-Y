@@ -72,6 +72,8 @@
   eventBus.on('game:over', () => audioManager.stopMusic());
   eventBus.on('game:over', () => audioManager.playFailSound());
   eventBus.on('game:complete', () => audioManager.playCompleteSound());
+  eventBus.on('game:pause', () => audioManager.pause());
+  eventBus.on('game:resume', () => audioManager.resumeIfNeeded());
 
   // --- 4. Actions déclenchées par les boutons ------------------------------
   async function handleStart() {
