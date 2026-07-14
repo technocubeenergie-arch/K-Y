@@ -36,6 +36,17 @@
       }
     }
 
+    // Gèle complètement l'audio (plus aucun son, et le temps audio
+    // lui-même arrête d'avancer). C'est ce qui garde la musique et le
+    // jeu parfaitement synchronisés pendant une pause : sans ça, la
+    // musique continuerait de jouer "en avance" pendant que le jeu est
+    // figé, et tout serait décalé au retour (voir docs/BUGS.md, BUG-007).
+    pause() {
+      if (this._audioCtx && this._audioCtx.state === 'running') {
+        this._audioCtx.suspend();
+      }
+    }
+
     // Horloge audio précise, utilisée par core/clock.js pour rester
     // parfaitement synchronisé avec la musique.
     getAudioTime() {
