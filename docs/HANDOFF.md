@@ -32,11 +32,18 @@ modulaire, bien documenté, expliqué simplement.
 ## État actuel du prototype
 
 Jouable de bout en bout : écran de démarrage → jeu (défilement
-automatique, contrôle de la balle, musique procédurale rythmée
-d'environ 60s) → écran d'échec (avec meilleur score) ou écran de
+automatique, contrôle de la balle au clavier/souris/tactile, musique
+procédurale rythmée d'environ 60s, étoiles gagnées sur atterrissage
+parfait) → écran d'échec (avec meilleur score et étoiles) ou écran de
 victoire → possibilité de rejouer. Testé en conditions automatisées
-(Playwright) : défilement, collisions, échec, retry, pause et fin de
-niveau fonctionnent tous correctement, sans erreur console.
+(Playwright) : défilement, collisions, échec, retry, pause, fin de
+niveau, mouvement clavier continu et gain/persistance des étoiles
+fonctionnent tous correctement, sans erreur console.
+
+Historique des retours déjà pris en compte : mouvement clavier rendu
+fluide (BUG-004), vitesse clavier ralentie (480 → 260px/s) suite au
+retour "trop réactif" de Ylonna, ajout du système d'étoiles (voir
+`docs/GAMEPLAY.md`).
 
 ## Architecture en place
 
@@ -51,17 +58,20 @@ ouvrable sans installation).
 - Config centralisée (`config/gameConfig.js`)
 - Horloge synchronisée sur l'audio (`core/clock.js`)
 - Messagerie entre modules (`core/eventBus.js`)
-- Moteur de règles (`core/engine.js`) : score, collision, échec, victoire
+- Moteur de règles (`core/engine.js`) : score, étoiles, collision,
+  échec, victoire
 - Boucle de jeu (`core/gameLoop.js`)
-- Entrées joueur souris/tactile/clavier (`core/input.js`)
+- Entrées joueur souris/tactile/clavier, mouvement clavier fluide
+  image par image (`core/input.js`)
 - Balle (`entities/ball.js`), Tuile (`entities/tile.js`)
 - Données de niveau en "lettres" + séquenceur (`level/levelData.js`,
   `level/levelSequencer.js`)
 - Caméra/défilement (`render/camera.js`), rendu canvas (`render/renderer.js`)
 - Musique procédurale + gestionnaire audio (`audio/musicGenerator.js`,
   `audio/audioManager.js`)
-- HUD et écrans (`ui/hud.js`, `ui/screens.js`)
-- Sauvegarde locale du meilleur score (`storage/localStore.js`)
+- HUD et écrans, avec affichage des étoiles (`ui/hud.js`, `ui/screens.js`)
+- Sauvegarde locale du meilleur score ET de la tirelire d'étoiles
+  (`storage/localStore.js`)
 - Registre central des assets temporaires (`assets/assetManifest.js`)
 
 ## Mécaniques en place
@@ -70,7 +80,9 @@ Voir `docs/GAMEPLAY.md` pour le détail. En résumé : défilement
 automatique basé sur le temps, une tuile toutes les `hopBeats`
 battements de musique, collision tolérante à la demi-largeur d'une
 tuile, échec immédiat si raté, musique dont la mélodie suit directement
-la position des tuiles.
+la position des tuiles. Un atterrissage pile au centre d'une tuile
+(tolérance plus stricte que le simple "hit") rapporte une étoile,
+monnaie persistante prévue pour une future boutique (non construite).
 
 ## Bugs connus
 
@@ -80,15 +92,20 @@ et déjà prévenus (pas des bugs actifs).
 
 ## Prochaines priorités (au moment de la rédaction de ce document)
 
-1. Faire jouer/tester le niveau par Ylonna elle-même et récolter son
-   ressenti (difficulté, plaisir, lisibilité du chemin des tuiles).
+1. Continuer à faire jouer/tester le niveau par Ylonna et récolter son
+   ressenti (difficulté, plaisir, lisibilité du chemin des tuiles,
+   difficulté à viser le centre des tuiles pour les étoiles).
 2. Ajuster éventuellement le motif du niveau d'entraînement
-   (`level/levelData.js`) selon ce retour — c'est un fichier simple à
-   modifier même sans savoir coder.
-3. Envisager un deuxième niveau **seulement** une fois le premier
+   (`level/levelData.js`) ou la tolérance d'atterrissage parfait
+   (`config.tile.perfectZoneRatio`) selon ce retour — ce sont des
+   réglages simples à modifier même sans savoir coder.
+3. Construire la boutique pour dépenser les étoiles (catalogue, écran,
+   inventaire possédé) — voir `docs/FUTURE_INTEGRATIONS.md` section 2
+   pour la marche à suivre déjà préparée.
+4. Envisager un deuxième niveau **seulement** une fois le premier
    validé comme "parfaitement fonctionnel et amusant" (consigne
    explicite : pas de contenu supplémentaire avant ça).
-4. Plus tard seulement : remplacement des assets et intégration
+5. Plus tard seulement : remplacement des assets et intégration
    Supabase (voir `docs/FUTURE_INTEGRATIONS.md`).
 
 ## Règles à respecter pour ajouter du code
@@ -116,9 +133,12 @@ python3 -m http.server 8080
 ```
 
 Vérifier au minimum : le défilement est visible, la balle suit
-souris/doigt/clavier, une tuile touchée devient verte et incrémente le
+souris/doigt/clavier (mouvement clavier fluide en continu, pas
+saccadé), une tuile touchée devient verte (dorée si atterrissage
+parfait, avec incrément des étoiles dans le HUD) et incrémente le
 score, une tuile ratée déclenche l'écran d'échec, le bouton pause
-fonctionne, terminer le niveau affiche l'écran de victoire.
+fonctionne, terminer le niveau affiche l'écran de victoire, et le
+solde d'étoiles survit à un rechargement de la page (localStorage).
 
 ## Comment intégrer plus tard les assets finaux et Supabase
 

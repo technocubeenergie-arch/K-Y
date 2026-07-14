@@ -51,15 +51,29 @@
       color: '#22d3ee',
       hitColor: '#4ade80',
       missColor: '#f87171',
+      // Couleur d'une tuile touchée pile au centre (voir "étoiles" plus bas).
+      perfectColor: '#facc15',
+      // Une tuile touchée est "parfaite" si la balle est à moins de
+      // (perfectZoneRatio × demi-largeur de la tuile) du centre.
+      // Exemple : 0.4 × 60px = 24px de tolérance autour du centre.
+      perfectZoneRatio: 0.4,
     },
 
     // Distance verticale (en pixels du monde) entre deux tuiles.
     // Choisie pour que l'espacement "colle" au tempo (voir levelSequencer.js).
     tileSpacing: 150,
 
+    // Étoiles : la monnaie du jeu, gagnée en atterrissant pile au centre
+    // d'une tuile. Prévue pour être dépensée plus tard dans une boutique
+    // (voir docs/FUTURE_INTEGRATIONS.md) — pas encore implémentée.
+    stars: {
+      perfectReward: 1,
+    },
+
     storage: {
-      // Clé utilisée dans le stockage local (voir localStore.js)
+      // Clés utilisées dans le stockage local (voir localStore.js)
       highscoreKey: 'tilesHop.trainingLevel.highscore',
+      starsKey: 'tilesHop.wallet.stars',
     },
   };
 })(window.TH = window.TH || {});

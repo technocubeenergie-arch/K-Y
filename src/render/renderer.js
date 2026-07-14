@@ -59,10 +59,12 @@
       ctx.setLineDash([]);
     }
 
-    _tileColor(state) {
+    _tileColor(tile) {
       const { config } = this;
-      if (state === 'hit') return config.tile.hitColor;
-      if (state === 'missed') return config.tile.missColor;
+      if (tile.state === 'hit') {
+        return tile.isPerfect ? config.tile.perfectColor : config.tile.hitColor;
+      }
+      if (tile.state === 'missed') return config.tile.missColor;
       return config.tile.color;
     }
 
@@ -76,7 +78,7 @@
         }
 
         const centerX = tile.getCenterX(config.canvas.width, config.tile.width);
-        ctx.fillStyle = this._tileColor(tile.state);
+        ctx.fillStyle = this._tileColor(tile);
         ctx.beginPath();
         ctx.roundRect(
           centerX - config.tile.width / 2,

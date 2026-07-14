@@ -49,6 +49,12 @@
         futurePath: 'assets/audio/sfx/complete.wav',
         note: 'Petite fanfare jouée à la fin du niveau.',
       },
+      star: {
+        status: 'procedural',
+        source: 'audioManager.js#playStarSound',
+        futurePath: 'assets/audio/sfx/star.wav',
+        note: 'Petit carillon joué pour un atterrissage "parfait" (voir docs/GAMEPLAY.md).',
+      },
     },
 
     visuals: {
@@ -62,7 +68,13 @@
         status: 'procedural',
         source: 'render/renderer.js#drawTile (rectangle canvas)',
         futurePath: 'assets/images/tile.png',
-        note: 'Prévoir plusieurs variantes visuelles de tuiles plus tard.',
+        note: 'Prévoir plusieurs variantes visuelles de tuiles plus tard. Une tuile "parfaite" utilise déjà une couleur dorée dédiée (config.tile.perfectColor).',
+      },
+      starIcon: {
+        status: 'procedural',
+        source: "caractère Unicode '⭐' (HUD et écrans, voir index.html)",
+        futurePath: 'assets/images/star-icon.png',
+        note: 'Icône temporaire pour représenter la monnaie du jeu.',
       },
       background: {
         status: 'procedural',

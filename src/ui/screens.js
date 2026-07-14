@@ -48,6 +48,7 @@
       return {
         score: 'Score : ' + payload.score + suffix,
         highscore: 'Meilleur score : ' + payload.highscore,
+        stars: 'Étoiles gagnées : ' + payload.runStars + ' ⭐ (total : ' + payload.starBalance + ')',
       };
     }
 
@@ -55,6 +56,7 @@
       const text = this._formatResult(payload);
       this._els.failScore.textContent = text.score;
       this._els.failHighscore.textContent = text.highscore;
+      this._els.failStars.textContent = text.stars;
       this._showOnly('fail');
     }
 
@@ -62,6 +64,7 @@
       const text = this._formatResult(payload);
       this._els.completeScore.textContent = text.score;
       this._els.completeHighscore.textContent = text.highscore;
+      this._els.completeStars.textContent = text.stars;
       this._showOnly('complete');
     }
   }
