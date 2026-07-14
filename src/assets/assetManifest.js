@@ -1,0 +1,75 @@
+/*
+ * assetManifest.js
+ * ------------------------------------------------------------
+ * Role: la "liste de courses" de tous les assets du jeu.
+ *
+ * Aujourd'hui, on n'a pas encore de vrais dessins ni de vrais
+ * fichiers audio : on les GÉNÈRE avec du code (formes simples,
+ * sons synthétiques). C'est volontaire et temporaire.
+ *
+ * Chaque entrée dit :
+ *  - status: 'procedural' (généré par le code) ou 'file' (vrai fichier)
+ *  - source: qui génère l'asset, ou le chemin du fichier futur
+ *
+ * Le jour où on aura de vrais dessins/sons, on changera UNIQUEMENT
+ * ce fichier (status: 'file', source: 'assets/images/ball.png'...),
+ * sans toucher au reste du code. C'est tout l'intérêt de centraliser
+ * les assets ici plutôt que de les éparpiller.
+ * ------------------------------------------------------------
+ */
+(function (TH) {
+  'use strict';
+
+  TH.AssetManifest = {
+    music: {
+      trainingLevel: {
+        status: 'procedural',
+        source: 'audio/musicGenerator.js',
+        futurePath: 'assets/audio/music/training-level.mp3',
+        note: 'Boucle rythmique générée par Web Audio, ~60s, calée sur le BPM de gameConfig.js.',
+      },
+    },
+
+    sfx: {
+      land: {
+        status: 'procedural',
+        source: 'audioManager.js#playLandSound',
+        futurePath: 'assets/audio/sfx/land.wav',
+        note: 'Petit "bip" joué quand la balle atterrit correctement sur une tuile.',
+      },
+      fail: {
+        status: 'procedural',
+        source: 'audioManager.js#playFailSound',
+        futurePath: 'assets/audio/sfx/fail.wav',
+        note: 'Son grave joué quand la balle rate une tuile.',
+      },
+      complete: {
+        status: 'procedural',
+        source: 'audioManager.js#playCompleteSound',
+        futurePath: 'assets/audio/sfx/complete.wav',
+        note: 'Petite fanfare jouée à la fin du niveau.',
+      },
+    },
+
+    visuals: {
+      ball: {
+        status: 'procedural',
+        source: 'render/renderer.js#drawBall (cercle canvas)',
+        futurePath: 'assets/images/ball.png',
+        note: 'Remplaçable par un sprite/image plus tard (voir docs/FUTURE_INTEGRATIONS.md).',
+      },
+      tile: {
+        status: 'procedural',
+        source: 'render/renderer.js#drawTile (rectangle canvas)',
+        futurePath: 'assets/images/tile.png',
+        note: 'Prévoir plusieurs variantes visuelles de tuiles plus tard.',
+      },
+      background: {
+        status: 'procedural',
+        source: 'render/renderer.js#drawBackground (dégradé + lignes)',
+        futurePath: 'assets/images/background.png',
+        note: 'Fond simple pour le moment ; un vrai décor pourra être ajouté sans changer la logique.',
+      },
+    },
+  };
+})(window.TH = window.TH || {});

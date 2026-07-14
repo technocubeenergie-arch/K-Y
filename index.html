@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Le jeu de Ylonna</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <h1>Le jeu de Ylonna</h1>
+
+  <div id="game-stage">
+    <canvas id="game-canvas"></canvas>
+
+    <div id="hud">
+      <div>
+        <div id="score">Score : 0</div>
+        <div id="progress">0 / 0</div>
+      </div>
+      <button id="btn-pause" type="button" aria-label="Pause">⏸</button>
+    </div>
+
+    <div id="screen-start" class="screen is-visible">
+      <h2>Le jeu de Ylonna</h2>
+      <p>Fais glisser ton doigt (ou utilise les flèches ← →) pour déplacer la balle et atterrir sur les tuiles, au rythme de la musique.</p>
+      <button id="btn-start" type="button">Jouer</button>
+    </div>
+
+    <div id="screen-pause" class="screen">
+      <h2>Pause</h2>
+      <button id="btn-resume" type="button">Reprendre</button>
+    </div>
+
+    <div id="screen-fail" class="screen">
+      <h2>Raté !</h2>
+      <p id="fail-score">Score : 0</p>
+      <p id="fail-highscore">Meilleur score : 0</p>
+      <button id="btn-retry-fail" type="button">Réessayer</button>
+    </div>
+
+    <div id="screen-complete" class="screen">
+      <h2>Bravo, niveau terminé !</h2>
+      <p id="complete-score">Score : 0</p>
+      <p id="complete-highscore">Meilleur score : 0</p>
+      <button id="btn-retry-complete" type="button">Rejouer</button>
+    </div>
+  </div>
+
+  <footer>Prototype — assets temporaires générés par le code (voir docs/FUTURE_INTEGRATIONS.md)</footer>
+
+  <!-- Ordre important : chaque fichier ajoute des propriétés à l'objet
+       global TH ("TilesHop"), les fichiers suivants s'appuient sur les
+       précédents. Voir docs/ARCHITECTURE.md pour le détail. -->
+  <script src="src/config/gameConfig.js"></script>
+  <script src="src/utils/math.js"></script>
+  <script src="src/core/eventBus.js"></script>
+  <script src="src/core/clock.js"></script>
+  <script src="src/assets/assetManifest.js"></script>
+  <script src="src/audio/musicGenerator.js"></script>
+  <script src="src/audio/audioManager.js"></script>
+  <script src="src/level/levelData.js"></script>
+  <script src="src/entities/tile.js"></script>
+  <script src="src/entities/ball.js"></script>
+  <script src="src/level/levelSequencer.js"></script>
+  <script src="src/render/camera.js"></script>
+  <script src="src/core/engine.js"></script>
+  <script src="src/core/gameLoop.js"></script>
+  <script src="src/render/renderer.js"></script>
+  <script src="src/storage/localStore.js"></script>
+  <script src="src/ui/hud.js"></script>
+  <script src="src/ui/screens.js"></script>
+  <script src="src/core/input.js"></script>
+  <script src="src/main.js"></script>
+</body>
+</html>
