@@ -41,7 +41,7 @@
       radius: 18,
       color: '#ffffff',
       // Vitesse de déplacement latéral au clavier (px / seconde).
-      keyboardSpeed: 480,
+      keyboardSpeed: 260,
     },
 
     // Les tuiles
