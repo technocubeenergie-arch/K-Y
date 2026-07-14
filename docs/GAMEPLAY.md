@@ -72,10 +72,28 @@ changer le niveau, c'est changer cette suite de lettres.
 3. **Si la balle est en dehors** → la tuile devient rouge ("missed"), et
    la partie se termine immédiatement (`game:over`).
 
-Il n'y a pas de "quasi-raté" : soit la balle est sur la tuile (avec une
-petite marge égale à la moitié de la largeur de tuile), soit c'est un
-échec. C'est ce qui rend le timing et la précision importants, comme
-dans Tiles Hop.
+Il n'y a pas de "quasi-raté" : soit la balle est dans la zone qui compte
+comme réussie, soit c'est un échec. Cette zone n'est **pas** toute la
+largeur de la tuile : elle est réglée par `tile.hitZoneRatio` dans
+`gameConfig.js` (actuellement 0,75, soit une tolérance de 45px de
+chaque côté du centre sur une tuile de 120px). C'est ce qui rend le
+timing et la précision importants, comme dans Tiles Hop.
+
+## Voir où atterrir avant d'y être
+
+Chaque tuile pas encore atteinte affiche directement dessus les zones à
+viser, comme une petite cible :
+
+- une zone **blanche translucide**, qui montre la largeur de la zone de
+  réussite (`tile.hitZoneRatio`) ;
+- une zone **dorée**, plus petite, au centre, qui montre la zone
+  "parfaite" (`tile.perfectZoneRatio`, voir plus bas).
+
+Ça permet d'anticiper précisément où placer la balle avant que la tuile
+n'arrive à la ligne d'impact, plutôt que de découvrir le résultat après
+coup. Ce dessin est géré par `render/renderer.js`
+(`_drawTargetZones`) et disparaît dès que la tuile est résolue (touchée
+ou ratée), remplacé par sa couleur de résultat.
 
 ## Les étoiles : récompenser la précision
 
