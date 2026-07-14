@@ -53,12 +53,24 @@
       missColor: '#f87171',
       // Couleur d'une tuile touchée pile au centre (voir "étoiles" plus bas).
       perfectColor: '#facc15',
-      // Une tuile touchée est "parfaite" si la balle est à moins de
-      // (perfectZoneRatio × demi-largeur de la tuile) du centre.
-      // Exemple : 0.5 × 60px = 30px de tolérance autour du centre.
+
+      // Une tuile est considérée "touchée" si la balle est à moins de
+      // (hitZoneRatio × demi-largeur de la tuile) du centre. Avant, la
+      // tuile entière comptait (ratio de 1) ; on demande maintenant plus
+      // de précision : 0,75 × 60px = 45px de tolérance de chaque côté.
+      hitZoneRatio: 0.75,
+      // Une tuile touchée est en plus "parfaite" si la balle est à moins
+      // de (perfectZoneRatio × demi-largeur de la tuile) du centre.
+      // Exemple : 0,5 × 60px = 30px de tolérance autour du centre.
       // (Valeur volontairement généreuse : un doigt ou une souris ne
       // sont jamais parfaitement précis, voir docs/BUGS.md, BUG-005.)
       perfectZoneRatio: 0.5,
+
+      // Ces deux couleurs dessinent, directement sur chaque tuile pas
+      // encore atteinte, les zones ci-dessus — pour voir à l'avance où
+      // il faut atterrir, avant même d'y arriver.
+      hitZonePreviewColor: 'rgba(255, 255, 255, 0.32)',
+      perfectZonePreviewColor: 'rgba(250, 204, 21, 0.6)',
     },
 
     // Distance verticale (en pixels du monde) entre deux tuiles.

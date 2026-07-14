@@ -87,7 +87,8 @@
       const tileCenterX = tile.getCenterX(this.config.canvas.width, this.config.tile.width);
       const halfTile = this.config.tile.width / 2;
       const distanceFromCenter = Math.abs(this.ball.x - tileCenterX);
-      const isAligned = distanceFromCenter <= halfTile;
+      const hitZone = halfTile * this.config.tile.hitZoneRatio;
+      const isAligned = distanceFromCenter <= hitZone;
 
       if (isAligned) {
         tile.state = 'hit';

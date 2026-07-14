@@ -88,7 +88,30 @@
           6
         );
         ctx.fill();
+
+        // Tant que la tuile n'a pas encore été atteinte, on montre
+        // directement dessus les zones à viser (voir docs/GAMEPLAY.md).
+        if (tile.state === 'pending') {
+          this._drawTargetZones(centerX, screenY);
+        }
       }
+    }
+
+    _drawTargetZone(centerX, screenY, width, color) {
+      const { ctx, config } = this;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.roundRect(centerX - width / 2, screenY - config.tile.height / 2, width, config.tile.height, 5);
+      ctx.fill();
+    }
+
+    _drawTargetZones(centerX, screenY) {
+      const { config } = this;
+      const hitZoneWidth = config.tile.width * config.tile.hitZoneRatio;
+      const perfectZoneWidth = config.tile.width * config.tile.perfectZoneRatio;
+
+      this._drawTargetZone(centerX, screenY, hitZoneWidth, config.tile.hitZonePreviewColor);
+      this._drawTargetZone(centerX, screenY, perfectZoneWidth, config.tile.perfectZonePreviewColor);
     }
 
     _drawBall(engine) {
