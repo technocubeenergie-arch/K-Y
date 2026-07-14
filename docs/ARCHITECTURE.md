@@ -41,8 +41,8 @@ src/
     eventBus.js             Messagerie entre modules (pub/sub)
     clock.js                 Le temps qui passe (chrono, pause), rien d'autre
     engine.js                 Le cerveau : règles du jeu, score, victoire/échec
-    gameLoop.js                La boucle requestAnimationFrame
-    input.js                   Traduit souris/doigt/clavier en "va vers X"
+    gameLoop.js                La boucle requestAnimationFrame (input → engine → rendu)
+    input.js                   Traduit souris/doigt/clavier en "va vers X" (déplacement clavier fluide, image par image)
   entities/
     ball.js                  La balle : position, rebond visuel
     tile.js                   Une tuile : position, état (pending/hit/missed)
@@ -120,19 +120,25 @@ eventBus.on('tile:hit', () => audioManager.playLandSound());
 1. `gameLoop.js` demande une nouvelle image au navigateur
    (`requestAnimationFrame`), calcule `dt` (temps écoulé depuis la
    dernière image).
-2. `engine.update(dt)` :
+2. `input.update(dt)` regarde si une flèche du clavier est actuellement
+   enfoncée, et si oui, déplace la cible de la balle d'une petite
+   distance proportionnelle à `dt` (c'est ce qui rend le clavier fluide
+   plutôt que saccadé — voir `docs/BUGS.md`, BUG-004). Le glisser
+   souris/tactile, lui, met déjà à jour la cible directement à chaque
+   déplacement, sans attendre cette étape.
+3. `engine.update(dt)` :
    - met à jour la position de la balle (`ball.update()`),
    - lit le temps écoulé via `clock.getElapsedSeconds()`,
    - vérifie si une nouvelle tuile vient d'atteindre la ligne d'impact
      (voir `docs/GAMEPLAY.md` pour le calcul du rythme),
    - si oui : compare la position de la balle à celle de la tuile,
-     marque la tuile `hit` ou `missed`, mnet à jour le score, émet les
+     marque la tuile `hit` ou `missed`, met à jour le score, émet les
      événements correspondants.
-3. `renderer.render(engine)` redessine tout : fond, tuiles (dont la
+4. `renderer.render(engine)` redessine tout : fond, tuiles (dont la
    position à l'écran est calculée par `camera.js` à partir du temps
    écoulé), balle.
-4. Les modules `audio/`, `ui/hud.js`, `ui/screens.js` réagissent aux
-   événements émis à l'étape 2, indépendamment les uns des autres.
+5. Les modules `audio/`, `ui/hud.js`, `ui/screens.js` réagissent aux
+   événements émis à l'étape 3, indépendamment les uns des autres.
 
 ## Le défilement automatique (comment on a corrigé le jeu statique)
 

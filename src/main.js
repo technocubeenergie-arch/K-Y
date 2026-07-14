@@ -52,9 +52,9 @@
 
   const engine = new TH.Engine({ config, clock, ball, sequence, eventBus, localStore });
   const renderer = new TH.Renderer(ctx, config, camera);
-  const gameLoop = new TH.GameLoop(engine, renderer);
+  const input = new TH.InputController(canvas, ball, config);
+  const gameLoop = new TH.GameLoop(engine, renderer, input);
 
-  new TH.InputController(canvas, ball, config);
   new TH.Hud(domRefs, eventBus, sequence.tiles.length);
   new TH.Screens(domRefs, eventBus, {
     onStart: handleStart,
