@@ -8,22 +8,44 @@
  * plus tard, on pourra le remplacer par une vraie musique en
  * changeant juste audioManager.js, sans toucher au reste du jeu.
  *
- * Idée clé : chaque tuile du niveau correspond à UNE note de la
- * mélodie, jouée pile au moment où la tuile arrive sur la ligne
- * d'impact. La hauteur de la note dépend de la position de la
- * tuile (gauche = grave, droite = aigu). C'est ce qui fait que
- * "la musique et les tuiles sont liées".
+ * La composition (~1 minute, calée sur le tempo du niveau) a 3 voix :
+ *  - une grosse caisse à chaque battement ;
+ *  - une ligne de basse qui suit une progression d'accords
+ *    (La mineur 7 → Fa majeur 7 → Do majeur 7 → Sol 7, un classique) ;
+ *  - une mélodie : chaque tuile du niveau correspond à UNE note,
+ *    jouée pile au moment où la tuile arrive sur la ligne d'impact.
+ *    La hauteur de la note dépend de la position de la tuile (gauche
+ *    = grave, droite = aigu) PARMI les notes de l'accord du moment.
+ *    C'est ce qui fait que "la musique et les tuiles sont liées", tout
+ *    en donnant une vraie progression harmonique à l'ensemble.
  * ------------------------------------------------------------
  */
 (function (TH) {
   'use strict';
 
-  // Gamme pentatonique (do majeur) : sonne agréable même jouée au hasard.
-  const SCALE = [261.63, 293.66, 329.63, 392.0, 440.0]; // C4 D4 E4 G4 A4
+  // Progression d'accords (La mineur 7, Fa majeur 7, Do majeur 7, Sol 7).
+  // `root` = note de basse ; `notes` = 5 notes de l'accord (graves vers
+  // aiguës), une par position latérale possible (FL, L, C, R, FR).
+  const CHORDS = [
+    { root: 110.0, notes: [220.0, 261.63, 329.63, 392.0, 440.0] }, // La mineur 7
+    { root: 87.31, notes: [174.61, 220.0, 261.63, 329.63, 349.23] }, // Fa majeur 7
+    { root: 130.81, notes: [261.63, 329.63, 392.0, 493.88, 523.25] }, // Do majeur 7
+    { root: 98.0, notes: [196.0, 246.94, 293.66, 349.23, 392.0] }, // Sol 7
+  ];
 
-  function noteFrequencyForXFraction(xFraction) {
-    const index = Math.min(SCALE.length - 1, Math.floor(xFraction * SCALE.length));
-    return SCALE[index];
+  // Nombre de tuiles ("hops") avant de passer à l'accord suivant. Avec
+  // 50 tuiles au total, ça donne 5 phrases de 10 tuiles : les 4 accords,
+  // puis un retour au premier (La mineur) pour boucler proprement.
+  const CHORD_LENGTH_HOPS = 10;
+
+  function getChordForHopIndex(hopIndex) {
+    const phraseIndex = Math.floor(hopIndex / CHORD_LENGTH_HOPS);
+    return CHORDS[phraseIndex % CHORDS.length];
+  }
+
+  function noteFrequencyForXFraction(xFraction, chordNotes) {
+    const index = Math.min(chordNotes.length - 1, Math.floor(xFraction * chordNotes.length));
+    return chordNotes[index];
   }
 
   // Joue un son simple (oscillateur) avec une enveloppe douce
@@ -53,9 +75,19 @@
     });
   }
 
-  function scheduleMelodyNote(audioCtx, destination, startTime, xFraction) {
+  function scheduleBass(audioCtx, destination, startTime, rootFreq) {
     playTone(audioCtx, destination, {
-      freq: noteFrequencyForXFraction(xFraction),
+      freq: rootFreq,
+      startTime,
+      duration: 0.32,
+      type: 'sine',
+      peakGain: 0.26,
+    });
+  }
+
+  function scheduleMelodyNote(audioCtx, destination, startTime, xFraction, chordNotes) {
+    playTone(audioCtx, destination, {
+      freq: noteFrequencyForXFraction(xFraction, chordNotes),
       startTime,
       duration: 0.28,
       type: 'triangle',
@@ -83,7 +115,11 @@
 
     for (let beat = 0; beat < totalBeats; beat++) {
       const beatTime = startTime + beat * sequence.beatInterval;
+      const hopIndex = Math.floor(beat / config.music.hopBeats);
+      const chord = getChordForHopIndex(hopIndex);
+
       scheduleKick(audioCtx, destination, beatTime);
+      scheduleBass(audioCtx, destination, beatTime, chord.root);
       // Un charleston léger sur les temps "creux" entre deux tuiles.
       if (config.music.hopBeats > 1 && beat % config.music.hopBeats !== 0) {
         scheduleHat(audioCtx, destination, beatTime);
@@ -92,7 +128,8 @@
 
     sequence.tiles.forEach((tile, index) => {
       const noteTime = startTime + index * sequence.hopInterval;
-      scheduleMelodyNote(audioCtx, destination, noteTime, tile.xFraction);
+      const chord = getChordForHopIndex(index);
+      scheduleMelodyNote(audioCtx, destination, noteTime, tile.xFraction, chord.notes);
     });
   }
 
