@@ -90,28 +90,23 @@
         ctx.fill();
 
         // Tant que la tuile n'a pas encore été atteinte, on montre
-        // directement dessus les zones à viser (voir docs/GAMEPLAY.md).
+        // directement dessus la zone bonus à viser (voir docs/GAMEPLAY.md).
+        // Le reste de la tuile (en bleu) est déjà sûr, pas besoin de le
+        // souligner en plus.
         if (tile.state === 'pending') {
-          this._drawTargetZones(centerX, screenY);
+          this._drawPerfectZone(centerX, screenY);
         }
       }
     }
 
-    _drawTargetZone(centerX, screenY, width, color) {
+    _drawPerfectZone(centerX, screenY) {
       const { ctx, config } = this;
-      ctx.fillStyle = color;
+      const width = config.tile.width * config.tile.perfectZoneRatio;
+
+      ctx.fillStyle = config.tile.perfectZonePreviewColor;
       ctx.beginPath();
       ctx.roundRect(centerX - width / 2, screenY - config.tile.height / 2, width, config.tile.height, 5);
       ctx.fill();
-    }
-
-    _drawTargetZones(centerX, screenY) {
-      const { config } = this;
-      const hitZoneWidth = config.tile.width * config.tile.hitZoneRatio;
-      const perfectZoneWidth = config.tile.width * config.tile.perfectZoneRatio;
-
-      this._drawTargetZone(centerX, screenY, hitZoneWidth, config.tile.hitZonePreviewColor);
-      this._drawTargetZone(centerX, screenY, perfectZoneWidth, config.tile.perfectZonePreviewColor);
     }
 
     _drawBall(engine) {

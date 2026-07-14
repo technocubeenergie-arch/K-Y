@@ -6,6 +6,52 @@
 
 ---
 
+## BUG-006 — Zone morte sur la tuile : on perdait en atterrissant sur du bleu (signalé par Ylonna)
+
+- **Problème observé** : en jouant, atterrir sur la partie bleue d'une
+  tuile (visuellement dessus, mais en dehors de l'anneau blanc ajouté
+  précédemment) faisait perdre la partie. Mauvaise expérience : le
+  joueur voit la balle sur la tuile et perd quand même, sans
+  comprendre pourquoi.
+- **Contexte** : suite aux demandes précédentes de resserrer la "zone
+  de réussite" (BUG-005 et les ajustements suivants), `tile.hitZoneRatio`
+  avait été progressivement réduit jusqu'à 0,6 (36px de tolérance sur
+  une tuile qui s'étend à 60px de chaque côté du centre). Le résultat :
+  une bande de 24px de chaque côté, visible en bleu sur la tuile, mais
+  qui comptait comme un échec au moment de l'impact.
+- **Cause identifiée** : confusion entre deux besoins différents qui
+  utilisaient la même mécanique. "Réduire la difficulté pour toucher
+  une tuile" et "réduire la difficulté pour gagner une étoile" sont
+  deux réglages séparés dans l'esprit du jeu, mais le code n'utilisait
+  qu'une seule zone resserrée (`hitZoneRatio`) pour les deux, sans zone
+  intermédiaire "j'ai touché la tuile, mais pas assez précisément pour
+  une étoile".
+- **Solution appliquée** : clarification du modèle en 3 zones, du plus
+  généreux au plus exigeant :
+  - `tile.hitZoneRatio` repassé à **1** (toute la tuile compte comme
+    réussite — on ne perd que si on atterrit carrément à côté) ;
+  - `tile.perfectZoneRatio` réduit de moitié, de 0,5 à **0,25** (15px
+    de tolérance), pour que le bonus étoile reste difficile à obtenir
+    sans jamais mettre en danger la survie ;
+  - `render/renderer.js` simplifié : seule la zone dorée (le bonus) est
+    maintenant dessinée sur les tuiles pas encore atteintes, la bande
+    blanche (`hitZonePreviewColor`) a été retirée car elle n'a plus de
+    sens (elle recouvrait exactement toute la tuile).
+- **Effets secondaires** : aucun changement de comportement pour un
+  atterrissage pile centre (toujours parfait + étoile) ni pour un
+  atterrissage complètement à côté (toujours un échec).
+- **Point de vigilance** : ne plus jamais réutiliser `hitZoneRatio`
+  pour régler la difficulté du bonus étoile — c'est le rôle exclusif de
+  `perfectZoneRatio`. `hitZoneRatio` doit rester à 1 sauf demande
+  explicite de faire perdre le joueur pour une tuile visuellement
+  atteinte (ce qui n'est, à ce jour, pas souhaité).
+- **Vérifié** : testé en navigateur réel (Playwright) — un atterrissage
+  à 59px du centre (bord de tuile) marque un point sans étoile ; un
+  atterrissage pile centre marque un point + une étoile ; un
+  atterrissage à 90px du centre (hors tuile) déclenche bien l'échec.
+
+---
+
 ## BUG-005 — Les étoiles ne s'obtenaient presque jamais (signalé par Ylonna)
 
 - **Problème observé** : Ylonna a testé le système d'étoiles (BUG/feature
