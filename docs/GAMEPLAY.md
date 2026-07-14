@@ -87,7 +87,9 @@ pour être dépensée plus tard dans une boutique (voir
 - Une tuile touchée est dite **"parfaite"** si la balle est à moins de
   `perfectZoneRatio × (largeur de tuile / 2)` du centre de la tuile
   (réglage dans `gameConfig.js`, `tile.perfectZoneRatio`, actuellement
-  0,4 — soit une tolérance de 24px autour du centre).
+  0,5 — soit une tolérance de 30px autour du centre). Cette valeur a été
+  volontairement augmentée après un premier essai trop strict (voir
+  `docs/BUGS.md`, BUG-005).
 - Une tuile parfaite est dessinée en **doré** au lieu de vert, et joue un
   petit carillon distinct du son d'atterrissage normal.
 - Les étoiles gagnées existent à deux niveaux :
