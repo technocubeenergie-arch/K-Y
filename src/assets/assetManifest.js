@@ -26,7 +26,7 @@
         status: 'procedural',
         source: 'audio/musicGenerator.js',
         futurePath: 'assets/audio/music/training-level.mp3',
-        note: 'Boucle rythmique générée par Web Audio, ~60s, calée sur le BPM de gameConfig.js.',
+        note: 'Composition générée par Web Audio, ~60s, calée sur le BPM de gameConfig.js : grosse caisse, ligne de basse suivant une progression d\'accords (La mineur 7 / Fa majeur 7 / Do majeur 7 / Sol 7), charleston, et mélodie liée à la position des tuiles.',
       },
     },
 

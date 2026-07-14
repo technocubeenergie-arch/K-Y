@@ -153,12 +153,19 @@ côté" du jeu : elle est **calculée à partir de la même horloge** que les
 tuiles.
 
 - Un son de grosse caisse ("kick") joue à chaque battement.
+- Une ligne de basse suit une **progression d'accords** (La mineur 7 →
+  Fa majeur 7 → Do majeur 7 → Sol 7, puis retour au premier accord),
+  qui change toutes les 10 tuiles. C'est elle qui donne une vraie
+  structure musicale au morceau plutôt qu'une simple boucle plate.
 - Une note de mélodie joue à **chaque tuile**, exactement au moment où
-  elle atteint la ligne d'impact. La hauteur de cette note dépend de la
-  position de la tuile (à gauche = note grave, à droite = note aiguë).
+  elle atteint la ligne d'impact. Sa hauteur dépend de la position de
+  la tuile (à gauche = note grave, à droite = note aiguë) **parmi les
+  notes de l'accord du moment** : la mélodie suit donc à la fois le
+  tracé des tuiles ET l'harmonie du morceau.
 
-Résultat : la musique "raconte" le chemin des tuiles. Un joueur qui
-écoute attentivement peut anticiper les prochains mouvements.
+Résultat : la musique "raconte" le chemin des tuiles, avec une vraie
+progression harmonique en fond. Un joueur qui écoute attentivement peut
+anticiper les prochains mouvements.
 
 ## Conditions de victoire / d'échec
 
