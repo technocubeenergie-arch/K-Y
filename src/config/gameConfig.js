@@ -55,8 +55,10 @@
       perfectColor: '#facc15',
       // Une tuile touchée est "parfaite" si la balle est à moins de
       // (perfectZoneRatio × demi-largeur de la tuile) du centre.
-      // Exemple : 0.4 × 60px = 24px de tolérance autour du centre.
-      perfectZoneRatio: 0.4,
+      // Exemple : 0.5 × 60px = 30px de tolérance autour du centre.
+      // (Valeur volontairement généreuse : un doigt ou une souris ne
+      // sont jamais parfaitement précis, voir docs/BUGS.md, BUG-005.)
+      perfectZoneRatio: 0.5,
     },
 
     // Distance verticale (en pixels du monde) entre deux tuiles.

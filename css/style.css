@@ -22,6 +22,7 @@ body {
   background: #0b1120;
   font-family: 'Segoe UI', Arial, sans-serif;
   color: #f1f5f9;
+  overflow-x: hidden;
 }
 
 h1 {
@@ -30,10 +31,18 @@ h1 {
   letter-spacing: 0.5px;
 }
 
+/* Le jeu a une forme fixe (400 de large pour 700 de haut), mais sa
+   TAILLE À L'ÉCRAN doit s'adapter à l'appareil : sur un téléphone, la
+   largeur de l'écran est souvent inférieure à 400px. Sans cette
+   adaptation, le jeu dépassait de l'écran, ce qui rendait le contrôle
+   au doigt imprécis (et donc les étoiles très difficiles à obtenir).
+   `min(...)` choisit toujours la plus petite valeur : la taille
+   naturelle du jeu, OU ce qui tient en largeur, OU ce qui tient en
+   hauteur — jamais plus grand que ce qui rentre réellement à l'écran. */
 #game-stage {
   position: relative;
-  width: 400px;
-  height: 700px;
+  width: min(400px, 92vw, calc((100vh - 130px) * (400 / 700)));
+  aspect-ratio: 400 / 700;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08), 0 20px 60px rgba(0, 0, 0, 0.5);

@@ -6,6 +6,50 @@
 
 ---
 
+## BUG-005 — Les étoiles ne s'obtenaient presque jamais (signalé par Ylonna)
+
+- **Problème observé** : Ylonna a testé le système d'étoiles (BUG/feature
+  ajoutée juste avant) en visant délibérément le centre des tuiles, sans
+  jamais obtenir de tuile dorée / d'étoile.
+- **Contexte** : deux causes cumulées ont été identifiées en relisant
+  `css/style.css` et `src/config/gameConfig.js`.
+- **Cause n°1 (la principale) — mise en page non adaptative** :
+  `#game-stage` avait une taille **fixe** en CSS (`width: 400px; height:
+  700px`), sans jamais s'adapter à la taille réelle de l'écran. Sur un
+  téléphone (dont la largeur est presque toujours inférieure à 400px),
+  le jeu dépassait de l'écran. Résultat : viser précisément devenait
+  quasi impossible, même en essayant sérieusement, car l'affichage et
+  le contrôle tactile n'étaient plus correctement alignés avec ce que
+  l'œil voyait.
+- **Cause n°2 (aggravante) — tolérance trop stricte** : la zone
+  "parfaite" ne tolérait que 24px d'écart autour du centre d'une tuile
+  de 120px de large (un peu plus de 1/5e de la largeur). Une valeur
+  raisonnable sur le papier, mais trop exigeante pour un doigt ou une
+  souris, qui ne sont jamais parfaitement précis.
+- **Solution appliquée** :
+  - `#game-stage` utilise maintenant `width: min(400px, 92vw,
+    calc((100vh - 130px) * (400 / 700)))` avec `aspect-ratio: 400/700` :
+    le jeu garde toujours ses proportions, mais sa taille à l'écran
+    s'adapte pour ne jamais dépasser l'écran (largeur OU hauteur,
+    celle qui est la plus contraignante). Aucun changement JS
+    nécessaire : `core/input.js` convertissait déjà correctement les
+    coordonnées du doigt/souris via `getBoundingClientRect()`, quelle
+    que soit la taille affichée.
+  - `tile.perfectZoneRatio` passe de 0,4 à 0,5 (24px → 30px de
+    tolérance), pour rester exigeant sans être irréaliste.
+- **Effets secondaires** : aucun changement de logique de jeu (moteur,
+  collisions) — uniquement CSS + une constante de configuration.
+- **Point de vigilance** : toute nouvelle zone de l'interface (future
+  boutique, futurs écrans) doit être pensée responsive dès le départ
+  (tester avec un viewport mobile étroit, ex. 360-390px de large), et
+  ne jamais utiliser de taille fixe en pixels pour un conteneur plein
+  écran.
+- **Vérifié** : testé avec un viewport mobile simulé (Playwright,
+  375×667, taille d'un iPhone SE) : le jeu tient maintenant entièrement
+  dans l'écran, sans dépassement horizontal.
+
+---
+
 ## BUG-004 — Déplacement au clavier saccadé (signalé par Ylonna)
 
 - **Problème observé** : en maintenant une flèche `←`/`→` enfoncée, la
