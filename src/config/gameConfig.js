@@ -36,6 +36,20 @@
       y: 560,
     },
 
+    // Perspective : donne au jeu l'effet "vu depuis derrière la balle",
+    // comme une route qui s'éloigne vers l'horizon, plutôt qu'une vue du
+    // dessus bien plate. Les tuiles lointaines paraissent petites et se
+    // resserrent vers le centre de l'écran, puis grandissent en
+    // s'approchant de la ligne d'impact. Voir render/camera.js.
+    perspective: {
+      // Hauteur de la ligne d'horizon : le point où tout devient
+      // minuscule, au loin.
+      horizonY: 90,
+      // "Force" de la perspective : une valeur plus petite rapproche
+      // l'horizon et rend l'effet plus prononcé ; plus grande, plus doux.
+      focalDepth: 260,
+    },
+
     // La balle
     ball: {
       radius: 18,

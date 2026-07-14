@@ -49,7 +49,7 @@
   const localStore = new TH.LocalStore(config.storage);
 
   const sequence = TH.LevelSequencer.buildSequence(TH.Levels.training, config);
-  const camera = new TH.Camera(sequence.scrollSpeed, config.hitLine.y);
+  const camera = new TH.Camera(sequence.scrollSpeed, config);
   const ball = new TH.Ball(config);
   const clock = new TH.Clock(() => audioManager.getAudioTime());
 

@@ -13,10 +13,17 @@ qui apparaissent en rythme avec la musique. Rater une tuile termine la
 partie immédiatement. Le contrôle est simple : on touche l'écran et on
 fait glisser le doigt (« touch / hold / drag »).
 
-Notre jeu reprend ces principes avec une vue simplifiée : au lieu d'une
-vraie 3D, on regarde le couloir "d'en haut" (vue plongeante) : les
-tuiles arrivent du haut de l'écran et défilent vers une **ligne
-d'impact** fixe, où la balle doit se trouver au bon moment.
+Notre jeu reprend ces principes avec une vue "vue depuis derrière la
+balle" façon route qui s'éloigne (un peu comme une caméra de voiture
+dans un jeu de course, ou la vue à la troisième personne de GTA San
+Andreas) : les tuiles apparaissent minuscules à l'horizon, grandissent
+en s'approchant, et arrivent jusqu'à une **ligne d'impact** fixe, où la
+balle doit se trouver au bon moment. Ce n'est pas de la vraie 3D (pas
+de moteur 3D, juste des calculs de mise à l'échelle sur un canvas 2D,
+voir `render/camera.js`), mais l'effet visuel s'en rapproche beaucoup,
+sans complexifier le reste du jeu : les règles (collision, score,
+étoiles) ne savent même pas que cette perspective existe, elles
+raisonnent toujours en positions "à plat" (voir `docs/ARCHITECTURE.md`).
 
 ## Ce que le joueur contrôle, et ce qu'il ne contrôle pas
 
