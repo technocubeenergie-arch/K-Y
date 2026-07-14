@@ -75,7 +75,7 @@ changer le niveau, c'est changer cette suite de lettres.
 Il n'y a pas de "quasi-raté" : soit la balle est dans la zone qui compte
 comme réussie, soit c'est un échec. Cette zone n'est **pas** toute la
 largeur de la tuile : elle est réglée par `tile.hitZoneRatio` dans
-`gameConfig.js` (actuellement 0,75, soit une tolérance de 45px de
+`gameConfig.js` (actuellement 0,65, soit une tolérance de 39px de
 chaque côté du centre sur une tuile de 120px). C'est ce qui rend le
 timing et la précision importants, comme dans Tiles Hop.
 

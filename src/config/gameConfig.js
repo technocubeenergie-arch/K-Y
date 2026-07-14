@@ -57,8 +57,8 @@
       // Une tuile est considérée "touchée" si la balle est à moins de
       // (hitZoneRatio × demi-largeur de la tuile) du centre. Avant, la
       // tuile entière comptait (ratio de 1) ; on demande maintenant plus
-      // de précision : 0,75 × 60px = 45px de tolérance de chaque côté.
-      hitZoneRatio: 0.75,
+      // de précision : 0,65 × 60px = 39px de tolérance de chaque côté.
+      hitZoneRatio: 0.65,
       // Une tuile touchée est en plus "parfaite" si la balle est à moins
       // de (perfectZoneRatio × demi-largeur de la tuile) du centre.
       // Exemple : 0,5 × 60px = 30px de tolérance autour du centre.
