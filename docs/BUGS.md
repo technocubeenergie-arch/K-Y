@@ -6,6 +6,41 @@
 
 ---
 
+## BUG-004 — Déplacement au clavier saccadé (signalé par Ylonna)
+
+- **Problème observé** : en maintenant une flèche `←`/`→` enfoncée, la
+  balle se déplaçait par à-coups au lieu de glisser en continu ; il
+  fallait parfois appuyer plusieurs fois pour qu'elle avance.
+- **Contexte** : `core/input.js` déplaçait la balle **une seule fois par
+  événement `keydown`**. Or le navigateur ne renvoie pas un `keydown` en
+  continu pendant qu'une touche est maintenue : il en envoie un premier,
+  attend un court délai, puis en renvoie à un rythme de répétition qui
+  dépend du système d'exploitation — d'où l'effet saccadé.
+- **Cause identifiée** : le mouvement clavier n'était pas rattaché à la
+  boucle de jeu (image par image), contrairement au glisser
+  souris/tactile qui, lui, était déjà fluide (position appliquée
+  directement à chaque déplacement du doigt).
+- **Solution appliquée** : `input.js` ne déplace plus la balle au moment
+  du `keydown`. Il retient seulement quelles flèches sont actuellement
+  enfoncées (`keydown` ajoute, `keyup` retire). Une nouvelle méthode
+  `update(dt)`, appelée à chaque image par `core/gameLoop.js`, fait
+  avancer la balle d'une petite distance (`config.ball.keyboardSpeed *
+  dt`) tant qu'une flèche reste enfoncée. Un écouteur `blur` vide aussi
+  la liste des touches enfoncées si la fenêtre perd le focus, pour
+  éviter qu'une touche reste "coincée" si le `keyup` n'arrive jamais.
+- **Effets secondaires** : `GameLoop` prend désormais un troisième
+  paramètre (`input`) en plus de `engine` et `renderer` ; `main.js` a été
+  mis à jour en conséquence. Aucun changement pour le contrôle
+  souris/tactile, déjà fluide.
+- **Point de vigilance** : toute nouvelle entrée clavier future doit
+  suivre ce même principe (lire l'état à chaque image via `update(dt)`),
+  jamais agir directement dans le gestionnaire d'événement `keydown`.
+- **Vérifié** : test automatisé (Playwright) confirmant un déplacement
+  régulier de 72px toutes les 150ms en maintenant la touche (soit
+  480px/s, la vitesse configurée), jusqu'au bord de l'écran.
+
+---
+
 ## BUG-001 — Le jeu ne défilait pas du tout (jeu "statique")
 
 - **Problème observé** : dans la version de départ (`index.html`

@@ -4,9 +4,10 @@
  * Role: LA BOUCLE DE JEU. Un jeu, c'est juste ça qui tourne en
  * boucle très vite (60 fois par seconde environ) :
  *
- *   1. mettre à jour le jeu (engine.update)
- *   2. redessiner l'écran (renderer.render)
- *   3. recommencer
+ *   1. lire les touches actuellement enfoncées (input.update)
+ *   2. mettre à jour le jeu (engine.update)
+ *   3. redessiner l'écran (renderer.render)
+ *   4. recommencer
  *
  * Ce fichier ne connaît pas les règles du jeu (c'est engine.js)
  * ni comment dessiner (c'est renderer.js) : il se contente de les
@@ -17,9 +18,10 @@
   'use strict';
 
   class GameLoop {
-    constructor(engine, renderer) {
+    constructor(engine, renderer, input) {
       this.engine = engine;
       this.renderer = renderer;
+      this.input = input;
       this._lastTimestamp = null;
       this._running = false;
       this._tick = this._tick.bind(this);
@@ -43,6 +45,7 @@
       const dt = Math.min(0.05, (timestamp - this._lastTimestamp) / 1000);
       this._lastTimestamp = timestamp;
 
+      this.input.update(dt);
       this.engine.update(dt);
       this.renderer.render(this.engine);
 
