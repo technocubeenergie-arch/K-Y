@@ -62,40 +62,42 @@ changer le niveau, c'est changer cette suite de lettres.
 
 ## Que se passe-t-il à chaque "saut" (hop) ?
 
-À l'instant précis où une tuile atteint la ligne d'impact :
+À l'instant précis où une tuile atteint la ligne d'impact, le jeu
+compare la position `x` de la balle à la tuile. Il y a trois résultats
+possibles, du plus généreux au plus exigeant :
 
-1. Le jeu compare la position `x` actuelle de la balle à la zone
-   occupée par la tuile.
-2. **Si la balle est dedans** → la tuile devient verte ("hit"), le score
-   augmente de 1, la balle fait un petit "squash" (aplatissement) pour
-   simuler l'impact, une note de musique joue.
-3. **Si la balle est en dehors** → la tuile devient rouge ("missed"), et
-   la partie se termine immédiatement (`game:over`).
+1. **La balle est n'importe où sur la tuile (zone bleue)** → la tuile
+   devient verte ("hit"), le score augmente de 1, la balle fait un
+   petit "squash" (aplatissement) pour simuler l'impact, une note de
+   musique joue. **Toute la tuile compte** : `tile.hitZoneRatio` vaut 1
+   dans `gameConfig.js`, donc il n'y a aucune "zone morte" invisible à
+   l'intérieur de la tuile où on perdrait sans comprendre pourquoi
+   (voir `docs/BUGS.md`, BUG-006 — c'était le cas avant, et c'était une
+   mauvaise expérience de jeu).
+2. **La balle est dans la petite zone dorée au centre** → en plus du
+   point, la tuile devient dorée et rapporte une étoile (voir la
+   section suivante). Cette zone est volontairement étroite
+   (`tile.perfectZoneRatio`, actuellement 0,25, soit 15px de tolérance
+   de chaque côté du centre) : c'est un bonus difficile à obtenir, pas
+   une condition de survie.
+3. **La balle est complètement en dehors de la tuile** → la tuile
+   devient rouge ("missed"), et la partie se termine immédiatement
+   (`game:over`).
 
-Il n'y a pas de "quasi-raté" : soit la balle est dans la zone qui compte
-comme réussie, soit c'est un échec. Cette zone n'est **pas** toute la
-largeur de la tuile : elle est réglée par `tile.hitZoneRatio` dans
-`gameConfig.js` (actuellement 0,6, soit une tolérance de 36px de
-chaque côté du centre sur une tuile de 120px — assez proche de la
-zone "parfaite" à 30px, il reste peu de marge pour resserrer encore
-sans que les deux zones se confondent). C'est ce qui rend le
-timing et la précision importants, comme dans Tiles Hop.
+C'est ce qui rend le timing et la précision importants sans être
+injuste : on ne rate que si on atterrit vraiment à côté, comme dans
+Tiles Hop.
 
-## Voir où atterrir avant d'y être
+## Voir où viser le bonus avant d'y être
 
-Chaque tuile pas encore atteinte affiche directement dessus les zones à
-viser, comme une petite cible :
-
-- une zone **blanche translucide**, qui montre la largeur de la zone de
-  réussite (`tile.hitZoneRatio`) ;
-- une zone **dorée**, plus petite, au centre, qui montre la zone
-  "parfaite" (`tile.perfectZoneRatio`, voir plus bas).
-
-Ça permet d'anticiper précisément où placer la balle avant que la tuile
-n'arrive à la ligne d'impact, plutôt que de découvrir le résultat après
-coup. Ce dessin est géré par `render/renderer.js`
-(`_drawTargetZones`) et disparaît dès que la tuile est résolue (touchée
-ou ratée), remplacé par sa couleur de résultat.
+Chaque tuile pas encore atteinte affiche directement dessus sa petite
+zone dorée (la zone "parfaite"), comme une cible à viser pour le bonus
+étoile. Le reste de la tuile (en bleu) est déjà sûr par défaut, inutile
+de le souligner. Ça permet d'anticiper précisément où placer la balle
+pour tenter le bonus, avant que la tuile n'arrive à la ligne d'impact.
+Ce dessin est géré par `render/renderer.js` (`_drawPerfectZone`) et
+disparaît dès que la tuile est résolue (touchée ou ratée), remplacé par
+sa couleur de résultat.
 
 ## Les étoiles : récompenser la précision
 
@@ -107,9 +109,12 @@ pour être dépensée plus tard dans une boutique (voir
 - Une tuile touchée est dite **"parfaite"** si la balle est à moins de
   `perfectZoneRatio × (largeur de tuile / 2)` du centre de la tuile
   (réglage dans `gameConfig.js`, `tile.perfectZoneRatio`, actuellement
-  0,5 — soit une tolérance de 30px autour du centre). Cette valeur a été
-  volontairement augmentée après un premier essai trop strict (voir
-  `docs/BUGS.md`, BUG-005).
+  0,25 — soit une tolérance de 15px autour du centre). Cette valeur a
+  varié plusieurs fois en fonction des tests : trop stricte au départ
+  (voir `docs/BUGS.md`, BUG-005), puis volontairement resserrée à
+  nouveau une fois que la zone de réussite est devenue toute la tuile
+  (voir BUG-006) — c'est maintenant elle seule qui porte la difficulté
+  du bonus, la survie ne dépend plus de la précision.
 - Une tuile parfaite est dessinée en **doré** au lieu de vert, et joue un
   petit carillon distinct du son d'atterrissage normal.
 - Les étoiles gagnées existent à deux niveaux :

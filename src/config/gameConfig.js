@@ -55,24 +55,23 @@
       perfectColor: '#facc15',
 
       // Une tuile est considérée "touchée" si la balle est à moins de
-      // (hitZoneRatio × demi-largeur de la tuile) du centre. Avant, la
-      // tuile entière comptait (ratio de 1) ; on demande maintenant plus
-      // de précision : 0,6 × 60px = 36px de tolérance de chaque côté.
-      // Attention : cette valeur doit toujours rester nettement au-dessus
-      // de perfectZoneRatio (0,5) juste en dessous, sinon "touché" et
-      // "parfait" deviendraient quasiment la même chose.
-      hitZoneRatio: 0.6,
-      // Une tuile touchée est en plus "parfaite" si la balle est à moins
-      // de (perfectZoneRatio × demi-largeur de la tuile) du centre.
-      // Exemple : 0,5 × 60px = 30px de tolérance autour du centre.
-      // (Valeur volontairement généreuse : un doigt ou une souris ne
-      // sont jamais parfaitement précis, voir docs/BUGS.md, BUG-005.)
-      perfectZoneRatio: 0.5,
+      // (hitZoneRatio × demi-largeur de la tuile) du centre. Ratio de 1 =
+      // toute la tuile compte : on ne rate QUE si on atterrit carrément à
+      // côté (voir docs/BUGS.md, BUG-006 — une valeur plus petite créait
+      // une bande invisible sur la tuile où on perdait sans comprendre
+      // pourquoi, ce qui est une mauvaise expérience de jeu).
+      hitZoneRatio: 1,
+      // Une tuile touchée est en plus "parfaite" (zone jaune) si la balle
+      // est à moins de (perfectZoneRatio × demi-largeur de la tuile) du
+      // centre. 0,25 × 60px = 15px de tolérance de chaque côté (zone
+      // volontairement étroite : c'est le bonus qui doit être difficile
+      // à obtenir, pas la survie).
+      perfectZoneRatio: 0.25,
 
-      // Ces deux couleurs dessinent, directement sur chaque tuile pas
-      // encore atteinte, les zones ci-dessus — pour voir à l'avance où
-      // il faut atterrir, avant même d'y arriver.
-      hitZonePreviewColor: 'rgba(255, 255, 255, 0.32)',
+      // Dessine, directement sur chaque tuile pas encore atteinte, la
+      // zone jaune ci-dessus — pour voir à l'avance où viser le bonus
+      // étoile. Le reste de la tuile (en bleu) est déjà sûr par défaut,
+      // inutile de le souligner en plus.
       perfectZonePreviewColor: 'rgba(250, 204, 21, 0.6)',
     },
 
