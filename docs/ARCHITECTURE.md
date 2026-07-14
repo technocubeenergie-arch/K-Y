@@ -50,8 +50,8 @@ src/
     levelData.js              La "recette" du niveau (motif de lettres)
     levelSequencer.js          Transforme la recette en vraies tuiles + timing
   render/
-    camera.js                  Calcule le défilement (position écran d'une tuile)
-    renderer.js                  Dessine tout sur le canvas
+    camera.js                  Défilement + projection en perspective (position/échelle écran)
+    renderer.js                  Dessine tout sur le canvas (route, tuiles, balle)
   audio/
     musicGenerator.js           Compose la musique du niveau (Web Audio)
     audioManager.js               Seul fichier qui touche à l'API audio
@@ -147,17 +147,40 @@ eventBus.on('tile:hit', ({ isPerfect }) => {
 
 Chaque tuile a une position fixe "dans le monde" (`tile.worldY`), qui ne
 bouge jamais. C'est la **caméra** (`render/camera.js`) qui, à chaque
-image, calcule à quelle hauteur **à l'écran** chaque tuile doit
-apparaître, en fonction du temps écoulé :
+image, calcule où **à l'écran** chaque tuile doit apparaître, en
+fonction du temps écoulé. Plus le temps passe, plus les tuiles se
+rapprochent de la ligne d'impact, sans que le joueur n'ait jamais à
+s'en occuper. C'est ce mécanisme qui remplace l'ancien jeu statique.
+
+## La perspective (vue "depuis derrière la balle")
+
+Depuis la version "vue perspective", `camera.js` ne calcule pas
+seulement une position, mais une **projection** : position à l'écran
+ET échelle (taille), à partir d'une notion de "profondeur" :
 
 ```
-distance parcourue = vitesse de défilement × temps écoulé
-position à l'écran  = ligne d'impact − position dans le monde + distance parcourue
+profondeur d'une tuile = sa position dans le monde − distance déjà parcourue
+échelle                = focalDepth / (focalDepth + profondeur)
+position à l'écran     = horizon + (ligne d'impact − horizon) × échelle
 ```
 
-Résultat : plus le temps passe, plus les tuiles "descendent" vers la
-ligne d'impact, sans que le joueur n'ait jamais à s'en occuper. C'est ce
-mécanisme qui remplace l'ancien jeu statique.
+Une tuile encore loin (grande profondeur) a une échelle proche de 0 :
+elle apparaît minuscule, près du point de fuite (le centre, à hauteur
+de l'horizon). Une tuile sur le point d'être atteinte (profondeur proche
+de 0) a une échelle proche de 1 : taille normale, en bas de l'écran. Le
+même calcul s'applique à la position latérale (`flatX`), qui se
+resserre vers le centre pour les tuiles lointaines — comme une route
+qui s'élargit en s'approchant.
+
+**Point important d'architecture** : cette perspective est une pure
+affaire de *rendu*. `core/engine.js` (les règles du jeu) continue de
+raisonner uniquement en positions "à plat" (`tile.getCenterX`, sans
+perspective) pour détecter les collisions : il ne sait même pas que
+l'écran affiche une perspective. C'est cette séparation stricte entre
+"les règles" et "le dessin" (voir plus haut, "qui a le droit de
+connaître qui") qui a permis de faire cet ajout uniquement en modifiant
+`camera.js` et `renderer.js`, sans toucher au moteur de jeu ni casser
+le score, les collisions ou les étoiles.
 
 ## Les assets : centralisés et remplaçables
 
