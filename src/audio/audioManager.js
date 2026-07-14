@@ -53,15 +53,45 @@
       return this._audioCtx ? this._audioCtx.currentTime : 0;
     }
 
-    // Compose et lance la musique du niveau. Renvoie l'heure audio
-    // exacte de démarrage, pour que l'horloge du jeu s'aligne dessus.
-    playMusic(sequence, config) {
+    _createMusicGain() {
       this._musicGain = this._audioCtx.createGain();
       this._musicGain.gain.value = 0.6;
       this._musicGain.connect(this._audioCtx.destination);
+      return this._musicGain;
+    }
+
+    // Compose et lance la musique du niveau. Renvoie l'heure audio
+    // exacte de démarrage, pour que l'horloge du jeu s'aligne dessus.
+    playMusic(sequence, config) {
+      const gain = this._createMusicGain();
+      const startTime = this._audioCtx.currentTime + 0.15;
+      TH.MusicGenerator.schedule(this._audioCtx, gain, startTime, sequence, config);
+      return startTime;
+    }
+
+    // Télécharge et décode un vrai fichier audio (mp3, etc.) en un
+    // AudioBuffer exploitable — par ex. par audio/beatDetector.js pour
+    // en extraire le rythme, puis par playTrack() ci-dessous pour le
+    // jouer. C'est le SEUL endroit du jeu qui sait lire un fichier audio.
+    async loadTrack(url) {
+      const response = await fetch(url);
+      const arrayBuffer = await response.arrayBuffer();
+      return this._audioCtx.decodeAudioData(arrayBuffer);
+    }
+
+    // Joue un vrai fichier audio déjà décodé (voir loadTrack), pour un
+    // niveau généré à partir d'une musique importée (voir
+    // audio/beatDetector.js). Renvoie l'heure audio exacte de
+    // démarrage, comme playMusic(), pour que l'horloge du jeu s'aligne
+    // dessus de la même façon.
+    playTrack(audioBuffer) {
+      const gain = this._createMusicGain();
+      const source = this._audioCtx.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(gain);
 
       const startTime = this._audioCtx.currentTime + 0.15;
-      TH.MusicGenerator.schedule(this._audioCtx, this._musicGain, startTime, sequence, config);
+      source.start(startTime);
       return startTime;
     }
 

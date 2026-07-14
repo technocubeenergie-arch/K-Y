@@ -28,6 +28,18 @@
         futurePath: 'assets/audio/music/training-level.mp3',
         note: 'Composition générée par Web Audio, ~60s, calée sur le BPM de gameConfig.js : grosse caisse, ligne de basse suivant une progression d\'accords (La mineur 7 / Fa majeur 7 / Do majeur 7 / Sol 7), charleston, et mélodie liée à la position des tuiles.',
       },
+      // Piste de TEST pour le bouton "🧪 Tester avec la musique
+      // importée" (écran de démarrage) : sert à vérifier que le moteur
+      // sait générer des tuiles à partir du rythme d'une VRAIE musique
+      // (voir audio/beatDetector.js), au lieu de composer la musique
+      // pour suivre des tuiles déjà fixées. Fichier non optimisé
+      // (déposé tel quel pour le test), à remplacer/retirer une fois la
+      // fonctionnalité validée — voir docs/FUTURE_INTEGRATIONS.md.
+      importedTest: {
+        status: 'file',
+        source: 'src/assets/mfcc-chinese-japanese-korean-music-324382.mp3',
+        note: 'Musique réelle utilisée pour tester la détection de rythme et la génération de tuiles à partir d\'un fichier importé.',
+      },
     },
 
     sfx: {

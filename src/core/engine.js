@@ -35,7 +35,12 @@
     // `syncStartTime` (optionnel) est l'heure audio exacte à laquelle
     // la musique commence, pour que l'horloge du jeu démarre pile
     // en même temps qu'elle (voir main.js).
-    start(syncStartTime) {
+    // `sequenceOverride` (optionnel) remplace le niveau en cours par un
+    // autre (par exemple un niveau généré à partir d'une musique
+    // importée, voir main.js et level/levelSequencer.js).
+    start(syncStartTime, sequenceOverride) {
+      if (sequenceOverride) this.sequence = sequenceOverride;
+
       this.state = 'playing';
       this.score = 0;
       this.runStars = 0;
@@ -46,7 +51,10 @@
       });
       this.ball.reset(this.config);
       this.clock.start(syncStartTime);
-      this.events.emit('game:start', { starBalance: this.localStore.getStarBalance() });
+      this.events.emit('game:start', {
+        starBalance: this.localStore.getStarBalance(),
+        totalTiles: this.sequence.tiles.length,
+      });
     }
 
     togglePause() {
@@ -72,7 +80,7 @@
 
       while (
         this._nextHopIndex < tiles.length &&
-        t >= this._nextHopIndex * this.sequence.hopInterval
+        t >= tiles[this._nextHopIndex].expectedTime
       ) {
         this._processHop(tiles[this._nextHopIndex]);
         this._nextHopIndex++;
@@ -150,12 +158,22 @@
       this.events.emit('game:complete', this._buildRunSummaryPayload());
     }
 
-    // Position (0 à 1) de la balle dans son cycle de saut courant,
-    // utilisée par le renderer pour dessiner l'animation de rebond.
+    // Position (0 à 1) de la balle dans son saut courant, utilisée par
+    // le renderer pour dessiner l'animation de rebond. Fonctionne que
+    // les tuiles soient espacées régulièrement (niveau d'entraînement)
+    // ou pas (niveau généré depuis une musique importée, où l'écart
+    // entre deux tuiles varie) : on prend simplement le temps entre la
+    // DERNIÈRE tuile passée et la PROCHAINE, quel qu'il soit.
     getBouncePhase() {
       const t = Math.max(0, this.clock.getElapsedSeconds());
-      const hopInterval = this.sequence.hopInterval;
-      return (t % hopInterval) / hopInterval;
+      const tiles = this.sequence.tiles;
+      const nextIndex = this._nextHopIndex;
+
+      const previousTime = nextIndex > 0 ? tiles[nextIndex - 1].expectedTime : 0;
+      const nextTime = nextIndex < tiles.length ? tiles[nextIndex].expectedTime : previousTime + 1;
+      const interval = Math.max(0.05, nextTime - previousTime);
+
+      return TH.MathUtils.clamp((t - previousTime) / interval, 0, 1);
     }
 
     getElapsedSeconds() {
