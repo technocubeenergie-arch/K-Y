@@ -64,7 +64,8 @@ src/
   assets/
     assetManifest.js             Registre central de tous les assets (voir plus bas)
     levelTrackData.js              La musique du niveau, encodée en base64 (généré, voir plus bas)
-    audioniveau6.ogg                Le fichier audio d'origine (gardé pour référence/régénération)
+    phuthon.ogg                     Fichier audio actuellement utilisé pour le niveau (test de comparaison, voir docs/GAMEPLAY.md)
+    audioniveau6.ogg                Fichier audio précédent, gardé pour comparaison/régénération
   main.js                    Chef d'orchestre : crée et relie tous les modules
 docs/                     Documentation (ce dossier)
 ```
@@ -216,10 +217,11 @@ en déduit où placer les tuiles.
 5. **`audio/audioManager.js`** décode et joue le fichier audio du jeu
    (`decodeArrayBuffer` / `playTrack`). Le fichier lui-même est
    embarqué en base64 directement dans un script JS
-   (`assets/levelTrackData.js`, généré à partir de
-   `assets/audioniveau6.ogg`) : pas de `fetch()`, donc ça fonctionne
-   même en ouvrant `index.html` directement, sans serveur (voir
-   `docs/BUGS.md`).
+   (`assets/levelTrackData.js`, généré à partir du fichier `.ogg`
+   actuellement choisi comme musique du niveau — voir
+   `src/assets/assetManifest.js` pour savoir lequel) : pas de
+   `fetch()`, donc ça fonctionne même en ouvrant `index.html`
+   directement, sans serveur (voir `docs/BUGS.md`).
 6. **`main.js`** (`handleStart`) enchaîne ces étapes au clic sur
    "Jouer" : décodage → détection du rythme → construction du niveau →
    lecture → `engine.start(startTime, sequence)`. Le résultat de
@@ -231,9 +233,9 @@ en déduit où placer les tuiles.
 
 Les visuels (balle, tuiles, fond) restent **générés par du code**
 (formes simples sur le canvas). La musique, elle, est un vrai fichier
-(`assets/audioniveau6.ogg`), mais c'est encore un choix temporaire
-(fichier de test non optimisé, pas de sélection par le joueur). Chaque
-asset est référencé dans `src/assets/assetManifest.js`, avec son statut
+(actuellement `assets/phuthon.ogg`, voir `docs/GAMEPLAY.md`), mais
+c'est encore un choix temporaire (pas de sélection par le joueur).
+Chaque asset est référencé dans `src/assets/assetManifest.js`, avec son statut
 et, pour les visuels encore générés, leur futur chemin de fichier. Voir
 `docs/FUTURE_INTEGRATIONS.md` pour la marche à suivre le jour du
 remplacement.

@@ -163,11 +163,22 @@
   // morceau n'est pas joué à la mécanique près). Une position sans
   // sursaut suffisamment marqué par rapport à la moyenne locale reste
   // vide : c'est une vraie pause dans la musique, pas une tuile ratée.
+  //
+  // Cette tolérance de recherche peut, pour deux positions voisines de
+  // la grille, faire retomber les deux coups choisis plus près l'un de
+  // l'autre que l'intervalle normal (un peu avant l'un, un peu après
+  // l'autre) : sur un morceau à tempo déjà rapide, l'écart obtenu peut
+  // alors passer sous `minIntervalSeconds`, le temps de réaction
+  // minimum. Un coup trop proche du précédent est donc ignoré (la
+  // position reste vide) plutôt que de livrer deux tuiles injouables
+  // coup sur coup.
   function buildGridOnsets(flux, framesPerSecond, intervalFrames, phaseFrames, options) {
     const localWindowFrames = Math.max(1, Math.round(options.localWindowSeconds * framesPerSecond));
     const toleranceFrames = Math.max(1, Math.round(intervalFrames * options.toleranceRatio));
+    const minIntervalFrames = Math.max(1, Math.round(options.minIntervalSeconds * framesPerSecond));
 
     const onsetTimes = [];
+    let lastAcceptedFrame = -Infinity;
 
     for (let frame = phaseFrames; frame < flux.length; frame += intervalFrames) {
       const searchStart = Math.max(0, frame - toleranceFrames);
@@ -182,6 +193,7 @@
         }
       }
       if (bestFrame < 0) continue;
+      if (bestFrame - lastAcceptedFrame < minIntervalFrames) continue;
 
       const windowStart = Math.max(0, bestFrame - localWindowFrames);
       const windowEnd = Math.min(flux.length, bestFrame + localWindowFrames);
@@ -191,6 +203,7 @@
 
       if (bestValue > localAverage * options.sensitivity && bestValue > 0.0001) {
         onsetTimes.push(bestFrame / framesPerSecond);
+        lastAcceptedFrame = bestFrame;
       }
     }
 

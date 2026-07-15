@@ -57,10 +57,10 @@ du rythme réel de la musique du jeu (`audio/beatDetector.js` +
 `level/levelSequencer.buildSequence`, voir `docs/ARCHITECTURE.md` et
 `docs/GAMEPLAY.md`) — ce n'est plus un test, c'est le fonctionnement
 normal du jeu. Ce qui reste temporaire : la musique est un **seul
-fichier fixe**, choisi par nous
-(`src/assets/audioniveau6.ogg`, embarqué en base64 dans
-`src/assets/levelTrackData.js`), pas encore un fichier choisi par le
-joueur.
+fichier fixe**, choisi par nous (actuellement `src/assets/phuthon.ogg`,
+embarqué en base64 dans `src/assets/levelTrackData.js` — voir
+`src/assets/assetManifest.js` pour le fichier actif), pas encore un
+fichier choisi par le joueur.
 
 ### Ce qu'il reste à faire pour que ce soit une vraie fonctionnalité
 
@@ -70,10 +70,10 @@ joueur.
   `fetch()` nécessaire, donc ça marche aussi bien avec ou sans
   serveur) — ce résultat se passe tel quel à
   `audioManager.decodeArrayBuffer()`, qui existe déjà.
-- **Retirer le fichier fixe embarqué** (`levelTrackData.js`,
-  `audioniveau6.ogg`) une fois qu'un vrai mécanisme de sélection
-  existe : il n'a été embarqué que pour que le jeu fonctionne sans
-  configuration, en attendant ce sélecteur.
+- **Retirer le fichier fixe embarqué** (`levelTrackData.js`, et le
+  fichier `.ogg` source qu'il contient) une fois qu'un vrai mécanisme
+  de sélection existe : il n'a été embarqué que pour que le jeu
+  fonctionne sans configuration, en attendant ce sélecteur.
 - **Un vrai retour à l'écran de démarrage** : aujourd'hui, il n'existe
   pas de bouton "Menu" pour changer de musique sans recharger la page
   (voir `docs/GAMEPLAY.md`, limites connues).

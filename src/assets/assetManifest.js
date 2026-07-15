@@ -28,8 +28,8 @@
       // les tuiles depuis le rythme de la musique").
       levelTrack: {
         status: 'file',
-        source: 'src/assets/audioniveau6.ogg (embarqué en base64 dans assets/levelTrackData.js, voir utils/base64.js)',
-        note: 'Embarquée directement dans le JS (pas de fetch()) pour fonctionner même sans serveur, en ouvrant index.html directement. Voir docs/FUTURE_INTEGRATIONS.md pour la suite (sélection d\'un fichier par le joueur).',
+        source: 'src/assets/phuthon.ogg (embarqué en base64 dans assets/levelTrackData.js, voir utils/base64.js)',
+        note: 'Extrait tiré du vrai jeu Tiles Hop, utilisé pour comparer le rendu de la génération de tuiles à une référence connue (src/assets/audioniveau6.ogg reste dans le dépôt pour cette comparaison, mais n\'est plus le fichier actif). Embarquée directement dans le JS (pas de fetch()) pour fonctionner même sans serveur, en ouvrant index.html directement. Voir docs/FUTURE_INTEGRATIONS.md pour la suite (sélection d\'un fichier par le joueur).',
       },
     },
 

@@ -6,6 +6,47 @@
 
 ---
 
+## BUG-009 — Deux tuiles trop rapprochées possibles sur un morceau rapide
+
+- **Problème observé** : en testant `audio/beatDetector.js` (voir
+  BUG-008) avec un second morceau, `phuthon.ogg` (un extrait tiré du
+  vrai jeu Tiles Hop, ajouté par Ylonna pour comparer le rendu de la
+  génération de tuiles à une référence connue), l'écart le plus court
+  mesuré entre deux tuiles générées était de 0,255s — bien en dessous
+  de `minIntervalSeconds` (0,45s, le temps de réaction minimum voulu).
+- **Contexte** : `phuthon.ogg` a un tempo plus rapide (~129 BPM) que
+  `audioniveau6.ogg` (~83 BPM), ce qui a révélé un cas que le premier
+  morceau ne déclenchait jamais.
+- **Cause identifiée** : `buildGridOnsets` cherche, pour chaque
+  position de la grille rythmique, le plus gros sursaut d'énergie dans
+  une fenêtre de tolérance autour de cette position (pour rester juste
+  même si le morceau n'est pas joué à la mécanique près). Rien
+  n'empêchait deux positions VOISINES de la grille de choisir chacune
+  un coup near le bord de leur fenêtre respective (l'une en avance, la
+  suivante en retard), rapprochant les deux tuiles obtenues bien plus
+  que l'intervalle normal — et, sur un tempo déjà rapide, en dessous du
+  temps de réaction minimum.
+- **Solution appliquée** : `buildGridOnsets` retient désormais l'horaire
+  du dernier coup accepté, et ignore toute position de la grille dont le
+  meilleur candidat tomberait à moins de `minIntervalSeconds` de ce
+  dernier coup (la position reste vide plutôt que de livrer deux tuiles
+  injouables coup sur coup).
+- **Effets secondaires** : légère réduction du nombre de tuiles
+  générées sur les morceaux à tempo rapide (325 coups détectés sur
+  `phuthon.ogg` contre 435 sans cette protection) — c'est le compromis
+  attendu : mieux vaut une tuile de moins qu'un enchaînement injouable.
+- **Point de vigilance** : ce garde-fou dépend de `minIntervalSeconds`,
+  déjà utilisé ailleurs comme borne de recherche du tempo (voir
+  BUG-008) : ne pas le baisser sans revérifier qu'un enchaînement de
+  tuiles reste jouable au clavier/souris/tactile.
+- **Vérifié** : testé en navigateur réel (Playwright, `file://`) avec
+  `phuthon.ogg` : écart minimum mesuré désormais ~0,441s (la petite
+  différence avec 0,45s vient de l'arrondi à la tranche d'analyse la
+  plus proche, ~23ms) ; aucune régression sur le score, la pause,
+  l'échec ou le rejeu.
+
+---
+
 ## BUG-008 — Une note jouait pendant que la balle était encore en l'air (signalé par Ylonna)
 
 - **Problème observé** : en jouant avec `audioniveau6.ogg` (musique
