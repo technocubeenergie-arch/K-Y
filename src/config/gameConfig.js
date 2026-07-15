@@ -20,16 +20,6 @@
       height: 700,
     },
 
-    // Musique : tempo (BPM = battements par minute) du niveau d'entraînement.
-    // C'est LA valeur qui commande le rythme de tout le jeu.
-    music: {
-      bpm: 100,
-      // Une tuile arrive toutes les `hopBeats` battements de musique.
-      hopBeats: 2,
-      // Durée visée du niveau d'entraînement, en secondes (~1 minute).
-      targetDurationSeconds: 60,
-    },
-
     // Ligne d'impact : hauteur (en pixels depuis le haut) à laquelle
     // la balle doit atterrir sur une tuile.
     hitLine: {
@@ -92,19 +82,16 @@
     },
 
     // Défilement : vitesse constante (px/seconde) à laquelle le monde
-    // avance vers le joueur. Une seule valeur, utilisée quelle que soit
-    // la façon dont les tuiles ont été programmées dans le temps (tempo
-    // fixe du niveau d'entraînement, OU horaires réels détectés dans une
-    // musique importée, voir level/levelSequencer.js) : c'est ce qui
-    // permet à la caméra (render/camera.js) de rester la même dans les
-    // deux cas.
+    // avance vers le joueur, quel que soit l'écart entre deux tuiles
+    // (voir level/levelSequencer.js et core/engine.js).
     scroll: {
       speed: 125,
     },
 
-    // Détection de rythme pour les musiques importées (voir
-    // audio/beatDetector.js) : transforme un fichier audio en horaires
-    // de tuiles, sans que la musique ait été composée pour le jeu.
+    // Détection de rythme (voir audio/beatDetector.js) : transforme la
+    // musique du niveau (assets/levelTrackData.js) en horaires de
+    // tuiles. C'est le rythme réel du morceau qui décide où sont les
+    // tuiles, pas l'inverse (voir docs/GAMEPLAY.md).
     beatDetection: {
       // Taille d'une tranche d'analyse, en échantillons audio.
       windowSize: 1024,
@@ -115,8 +102,7 @@
       sensitivity: 1.4,
       // Fenêtre (secondes) utilisée pour calculer cette moyenne locale.
       localWindowSeconds: 1.0,
-      // Limite le nombre de tuiles générées, même pour un long morceau
-      // (le niveau de test reste comparable en longueur à l'entraînement).
+      // Limite le nombre de tuiles générées, même pour un long morceau.
       maxTiles: 60,
     },
 

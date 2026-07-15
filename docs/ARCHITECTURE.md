@@ -1,9 +1,9 @@
 # Architecture du projet
 
-> Dernière mise à jour : niveau d'entraînement v1 (défilement automatique,
-> musique procédurale, moteur complet). Ce document doit rester fidèle au
-> code : si tu changes un module, mets cette page à jour dans le même
-> commit.
+> Dernière mise à jour : le niveau est généré à partir du rythme réel
+> de la musique du jeu (plus de tempo fixe ni de musique composée pour
+> le jeu). Ce document doit rester fidèle au code : si tu changes un
+> module, mets cette page à jour dans le même commit.
 
 ## Vue d'ensemble
 
@@ -34,9 +34,10 @@ index.html              Structure de la page (canvas + HUD + écrans)
 css/style.css            Habillage visuel (aucune logique de jeu)
 src/
   config/
-    gameConfig.js         Tous les réglages (vitesse, tempo, couleurs...)
+    gameConfig.js         Tous les réglages (vitesse, détection de rythme, couleurs...)
   utils/
     math.js                Petites fonctions génériques (clamp, lerp)
+    base64.js                Convertit une donnée base64 embarquée en ArrayBuffer (audio)
   core/
     eventBus.js             Messagerie entre modules (pub/sub)
     clock.js                 Le temps qui passe (chrono, pause), rien d'autre
@@ -47,14 +48,13 @@ src/
     ball.js                  La balle : position, rebond visuel
     tile.js                   Une tuile : position, état (pending/hit/missed), atterrissage parfait
   level/
-    levelData.js              La "recette" du niveau (motif de lettres)
-    levelSequencer.js          Transforme la recette (+ horaires fixes OU détectés) en vraies tuiles
+    levelData.js              La "recette" du tracé latéral (motif de lettres)
+    levelSequencer.js          Transforme des horaires détectés + le tracé en vraies tuiles
   render/
     camera.js                  Défilement + projection en perspective (position/échelle écran)
     renderer.js                  Dessine tout sur le canvas (route, tuiles, balle)
   audio/
-    musicGenerator.js           Compose la musique du niveau d'entraînement (Web Audio)
-    beatDetector.js               Analyse un fichier audio pour trouver son rythme (onsets)
+    beatDetector.js              Analyse la musique du jeu pour trouver son rythme (onsets)
     audioManager.js               Seul fichier qui touche à l'API audio
   ui/
     hud.js                      Score, progression et étoiles affichés pendant la partie
@@ -63,6 +63,8 @@ src/
     localStore.js               Sauvegarde du meilleur score et de la tirelire d'étoiles (temporaire, local)
   assets/
     assetManifest.js             Registre central de tous les assets (voir plus bas)
+    levelTrackData.js              La musique du niveau, encodée en base64 (généré, voir plus bas)
+    audioniveau6.ogg                Le fichier audio d'origine (gardé pour référence/régénération)
   main.js                    Chef d'orchestre : crée et relie tous les modules
 docs/                     Documentation (ce dossier)
 ```
@@ -183,61 +185,56 @@ connaître qui") qui a permis de faire cet ajout uniquement en modifiant
 `camera.js` et `renderer.js`, sans toucher au moteur de jeu ni casser
 le score, les collisions ou les étoiles.
 
-## Générer les tuiles depuis le rythme d'une musique (pas l'inverse)
+## Générer les tuiles depuis le rythme de la musique (pas l'inverse)
 
-Le niveau d'entraînement fonctionne dans un sens précis : le tempo est
-décidé D'ABORD (`gameConfig.js`), puis `musicGenerator.js` compose une
-musique qui colle à ce tempo, et `levelSequencer.buildSequence` place
-les tuiles aux mêmes horaires. Ça marche bien pour une musique qu'on
-compose nous-mêmes, mais ça ne marche PAS pour une vraie musique
-importée, dont on ne choisit pas le rythme.
-
-Le moteur sait donc aussi faire l'inverse : partir d'un vrai fichier
-audio, en extraire le rythme, et placer les tuiles en conséquence.
+Règle de fonctionnement du jeu : **la musique décide, les tuiles
+suivent** — jamais l'inverse. Il n'y a pas de tempo fixé à l'avance
+dans `gameConfig.js`, et pas de musique composée pour coller à des
+tuiles déjà placées. Le moteur écoute le vrai fichier audio du jeu et
+en déduit où placer les tuiles.
 
 1. **`audio/beatDetector.js`** analyse un `AudioBuffer` déjà décodé et
    renvoie une liste d'horaires (secondes) où un "coup" a été détecté
    (une technique simple de flux d'énergie : voir les commentaires du
    fichier). Ce module ne connaît ni les tuiles, ni le jeu : il ne fait
    que de l'analyse de signal.
-2. **`level/levelSequencer.buildSequenceFromBeatTimes(beatTimes, ...)`**
-   transforme cette liste d'horaires en objets `Tile`, exactement comme
-   `buildSequence` le fait pour le tempo fixe — la position latérale
-   (quelle lettre FL/L/C/R/FR) suit toujours le même tracé que le
-   niveau d'entraînement, faute de mieux (l'analyse audio ne peut
-   donner QUE le rythme, pas où placer la balle).
+2. **`level/levelSequencer.buildSequence(beatTimes, levelDef, config)`**
+   transforme cette liste d'horaires en objets `Tile`. La position
+   latérale (quelle lettre FL/L/C/R/FR) vient de `levelDef`
+   (`level/levelData.js`) : l'analyse audio ne peut donner QUE le
+   rythme, pas où placer la balle.
 3. **`core/engine.js`** ne suppose jamais un intervalle fixe entre deux
    tuiles : chaque `Tile` porte son propre `expectedTime`, et c'est
-   cette valeur que la boucle de jeu compare au temps écoulé (au lieu
-   de `index × hopInterval`). Ça marche donc aussi bien pour un tempo
-   régulier que pour des horaires détectés, irréguliers.
-4. **`config.scroll.speed`** est une vitesse de défilement CONSTANTE,
-   utilisée par les deux méthodes de séquencement. C'est ce qui permet
-   à la caméra (`render/camera.js`) de rester exactement la même dans
-   les deux cas, sans jamais avoir besoin de savoir quelle méthode a
-   été utilisée pour construire le niveau en cours.
-5. **`audio/audioManager.js`** sait aussi charger et jouer un vrai
-   fichier (`loadTrack(url)` / `playTrack(buffer)`), en plus de
-   composer sa propre musique (`playMusic`). Les deux méthodes
-   renvoient l'heure de démarrage exacte de la même façon, pour rester
-   synchronisées avec `core/clock.js`.
-6. **`main.js`** expose un bouton expérimental ("🧪 Tester avec la
-   musique importée") sur l'écran de démarrage, qui enchaîne ces
-   étapes et appelle `engine.start(startTime, sequenceOverride)` — une
-   variante de `start()` qui remplace le niveau en cours par celui
-   généré depuis le fichier importé.
-
-Ce n'est pour l'instant qu'un **bouton de test**, pas un vrai second
-niveau permanent (voir `docs/FUTURE_INTEGRATIONS.md` pour la suite
-prévue : sélection d'un fichier par le joueur, remplacement propre du
-niveau d'entraînement, retrait du fichier de test non optimisé).
+   cette valeur que la boucle de jeu compare au temps écoulé — jamais
+   `index × un_intervalle_fixe`. Le rebond de la balle
+   (`getBouncePhase`) est calculé de la même façon, à partir de l'écart
+   réel entre la dernière tuile passée et la prochaine.
+4. **`config.scroll.speed`** est une vitesse de défilement CONSTANTE.
+   C'est ce qui permet à la caméra (`render/camera.js`) de rester
+   simple : elle n'a jamais besoin de connaître le détail du rythme,
+   juste la position (`worldY`) de chaque tuile.
+5. **`audio/audioManager.js`** décode et joue le fichier audio du jeu
+   (`decodeArrayBuffer` / `playTrack`). Le fichier lui-même est
+   embarqué en base64 directement dans un script JS
+   (`assets/levelTrackData.js`, généré à partir de
+   `assets/audioniveau6.ogg`) : pas de `fetch()`, donc ça fonctionne
+   même en ouvrant `index.html` directement, sans serveur (voir
+   `docs/BUGS.md`).
+6. **`main.js`** (`handleStart`) enchaîne ces étapes au clic sur
+   "Jouer" : décodage → détection du rythme → construction du niveau →
+   lecture → `engine.start(startTime, sequence)`. Le résultat de
+   l'analyse est mis en cache : les parties suivantes ("Réessayer",
+   "Rejouer") réutilisent la musique déjà décodée et le niveau déjà
+   généré, sans refaire l'analyse à chaque fois.
 
 ## Les assets : centralisés et remplaçables
 
-Aujourd'hui, aucun vrai fichier image/son n'existe : tout est **généré
-par du code** (formes simples sur le canvas, sons synthétiques via Web
-Audio). Chaque asset "temporaire" est référencé dans
-`src/assets/assetManifest.js`, avec son futur chemin de fichier. Voir
+Les visuels (balle, tuiles, fond) restent **générés par du code**
+(formes simples sur le canvas). La musique, elle, est un vrai fichier
+(`assets/audioniveau6.ogg`), mais c'est encore un choix temporaire
+(fichier de test non optimisé, pas de sélection par le joueur). Chaque
+asset est référencé dans `src/assets/assetManifest.js`, avec son statut
+et, pour les visuels encore générés, leur futur chemin de fichier. Voir
 `docs/FUTURE_INTEGRATIONS.md` pour la marche à suivre le jour du
 remplacement.
 

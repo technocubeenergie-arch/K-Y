@@ -3,10 +3,11 @@
  * ------------------------------------------------------------
  * Role: le SEUL fichier qui touche à l'API audio du navigateur
  * (Web Audio). Le reste du jeu ne connaît jamais AudioContext :
- * il appelle juste audioManager.playMusic(), .playLandSound(), etc.
+ * il appelle juste audioManager.playTrack(), .playLandSound(), etc.
  *
- * Pourquoi c'est important : le jour où on remplace la musique
- * générée par un vrai fichier .mp3, on ne modifie QUE ce fichier.
+ * Pourquoi c'est important : le jour où la musique du niveau change
+ * (un autre fichier, ou un vrai sélecteur pour le joueur), on ne
+ * modifie QUE ce fichier (et main.js pour le brancher).
  * ------------------------------------------------------------
  */
 (function (TH) {
@@ -60,41 +61,22 @@
       return this._musicGain;
     }
 
-    // Compose et lance la musique du niveau. Renvoie l'heure audio
-    // exacte de démarrage, pour que l'horloge du jeu s'aligne dessus.
-    playMusic(sequence, config) {
-      const gain = this._createMusicGain();
-      const startTime = this._audioCtx.currentTime + 0.15;
-      TH.MusicGenerator.schedule(this._audioCtx, gain, startTime, sequence, config);
-      return startTime;
-    }
-
     // Décode des données audio déjà en mémoire (un ArrayBuffer) en un
     // AudioBuffer exploitable — par ex. par audio/beatDetector.js pour
     // en extraire le rythme, puis par playTrack() ci-dessous pour le
     // jouer. C'est le SEUL endroit du jeu qui décode un fichier audio.
+    // (La musique du niveau est embarquée en base64 dans le JS — voir
+    // assets/levelTrackData.js et utils/base64.js — donc aucun
+    // téléchargement réseau n'est nécessaire ici.)
     async decodeArrayBuffer(arrayBuffer) {
       return this._audioCtx.decodeAudioData(arrayBuffer);
     }
 
-    // Télécharge (avec fetch) et décode un fichier audio distant.
-    // ATTENTION : ne fonctionne que si le jeu est servi par un vrai
-    // serveur (ex. `python3 -m http.server`) — fetch() est bloqué par
-    // les navigateurs quand la page est ouverte directement en
-    // double-cliquant sur index.html (file://). Pour un fichier déjà
-    // en mémoire (ex. embarqué en base64, ou choisi via un
-    // `<input type="file">`), utiliser decodeArrayBuffer() directement.
-    async loadTrack(url) {
-      const response = await fetch(url);
-      const arrayBuffer = await response.arrayBuffer();
-      return this.decodeArrayBuffer(arrayBuffer);
-    }
-
-    // Joue un vrai fichier audio déjà décodé (voir loadTrack), pour un
-    // niveau généré à partir d'une musique importée (voir
+    // Joue un fichier audio déjà décodé (voir decodeArrayBuffer), pour
+    // le niveau généré à partir de son rythme réel (voir
     // audio/beatDetector.js). Renvoie l'heure audio exacte de
-    // démarrage, comme playMusic(), pour que l'horloge du jeu s'aligne
-    // dessus de la même façon.
+    // démarrage, pour que l'horloge du jeu (core/clock.js) s'aligne
+    // dessus.
     playTrack(audioBuffer) {
       const gain = this._createMusicGain();
       const source = this._audioCtx.createBufferSource();

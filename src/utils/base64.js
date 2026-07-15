@@ -8,9 +8,9 @@
  * Pourquoi c'est nécessaire : pour que le jeu fonctionne même ouvert
  * en double-cliquant sur index.html (sans serveur), on ne peut pas
  * télécharger un fichier avec fetch() (bloqué par le navigateur pour
- * les fichiers locaux). La musique de test est donc directement
+ * les fichiers locaux). La musique du jeu est donc directement
  * embarquée dans un fichier JavaScript (voir
- * assets/importedTrackData.js) ; cet utilitaire sert juste à
+ * assets/levelTrackData.js) ; cet utilitaire sert juste à
  * retransformer ce texte en vraies données audio.
  * ------------------------------------------------------------
  */

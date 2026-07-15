@@ -25,8 +25,7 @@
       <h2>Le jeu de Ylonna</h2>
       <p>Fais glisser ton doigt (ou utilise les flèches ← →) pour déplacer la balle et atterrir sur les tuiles, au rythme de la musique.</p>
       <button id="btn-start" type="button">Jouer</button>
-      <button id="btn-test-imported-track" class="btn-secondary" type="button">🧪 Tester avec la musique importée</button>
-      <p id="test-track-status"></p>
+      <p id="start-status"></p>
     </div>
 
     <div id="screen-pause" class="screen">
@@ -62,11 +61,10 @@
   <script src="src/core/eventBus.js"></script>
   <script src="src/core/clock.js"></script>
   <script src="src/assets/assetManifest.js"></script>
-  <!-- Fichier volontairement lourd (~4,4 Mo) : la musique de test
+  <!-- Fichier volontairement lourd (~1,8 Mo) : la musique du niveau
        embarquée en base64, voir docs/GAMEPLAY.md et
        docs/FUTURE_INTEGRATIONS.md. -->
-  <script src="src/assets/importedTrackData.js"></script>
-  <script src="src/audio/musicGenerator.js"></script>
+  <script src="src/assets/levelTrackData.js"></script>
   <script src="src/audio/beatDetector.js"></script>
   <script src="src/audio/audioManager.js"></script>
   <script src="src/level/levelData.js"></script>
