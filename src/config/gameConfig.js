@@ -95,13 +95,28 @@
     beatDetection: {
       // Taille d'une tranche d'analyse, en échantillons audio.
       windowSize: 1024,
-      // Écart minimum entre deux tuiles générées (temps de réaction).
+      // Écart minimum entre deux tuiles générées (temps de réaction), ET
+      // tempo le plus rapide recherché lors de la détection du pouls du
+      // morceau (voir beatDetector.js, estimateTempoIntervalFrames).
       minIntervalSeconds: 0.45,
-      // Un "coup" doit dépasser la moyenne locale de ce facteur pour
-      // compter : plus haut = moins de tuiles, seulement les coups forts.
-      sensitivity: 1.4,
+      // Tempo le plus lent recherché lors de cette même détection.
+      maxIntervalSeconds: 1.4,
+      // Un sursaut d'énergie, à une position de la grille rythmique
+      // détectée, doit dépasser la moyenne locale de ce facteur pour
+      // devenir une tuile : plus haut = moins de tuiles, seulement les
+      // coups nets. Une position sans sursaut suffisant reste vide
+      // (silence, vraie pause dans la musique). Comme on cherche
+      // seulement à CONFIRMER un coup à un horaire déjà jugé probable
+      // par la grille rythmique (pas à le repérer au hasard dans tout
+      // le morceau), ce facteur peut rester modéré sans risquer de
+      // tuiles parasites en plein silence.
+      sensitivity: 0.6,
       // Fenêtre (secondes) utilisée pour calculer cette moyenne locale.
       localWindowSeconds: 1.0,
+      // Tolérance de recherche autour de chaque position de la grille
+      // (fraction du pouls détecté), pour rester juste même si le
+      // morceau n'est pas joué à la mécanique près.
+      toleranceRatio: 0.3,
       // Limite le nombre de tuiles générées, même pour un long morceau.
       maxTiles: 60,
     },

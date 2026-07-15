@@ -6,6 +6,66 @@
 
 ---
 
+## BUG-008 — Une note jouait pendant que la balle était encore en l'air (signalé par Ylonna)
+
+- **Problème observé** : en jouant avec `audioniveau6.ogg` (musique
+  "plus rythmée", choisie justement pour vérifier la qualité de la
+  génération de tuiles), Ylonna a remarqué qu'on entendait parfois une
+  note pendant que la balle était en plein saut entre deux tuiles, au
+  lieu d'atterrir pile dessus. Elle a aussi fait le lien avec un autre
+  jeu du même genre (Tiles Hop) où la balle accélère/décélère pour
+  rester en rythme, et noté que les deux points étaient liés.
+- **Contexte** : le rebond visuel de la balle (`core/engine.js`,
+  `getBouncePhase`) s'adaptait déjà correctement à l'écart réel entre
+  deux tuiles (`tile.expectedTime`) — ce n'était donc pas le problème.
+  Le souci venait de la détection de rythme elle-même
+  (`audio/beatDetector.js`) : elle cherchait des sursauts d'énergie
+  n'importe où dans le morceau (peu importe l'écart avec le coup
+  précédent, tant qu'il dépassait `minIntervalSeconds` et
+  `sensitivity`). Un coup plus discret pouvait donc être raté, laissant
+  un "trou" sans tuile là où l'oreille entendait pourtant une note.
+- **Cause identifiée** : vérifié avec un script d'analyse (Playwright +
+  `TH.BeatDetector.detectOnsets` avec différents réglages) : sur
+  `audioniveau6.ogg`, la plupart des écarts entre coups détectés
+  valaient environ 0,46 à 0,51s, mais certains sautaient à 0,70, 0,72
+  ou même 0,95s — signe qu'un ou plusieurs coups intermédiaires
+  n'avaient pas été détectés. Une vérification indépendante (script
+  Python, `numpy` + `soundfile`, hors du code du jeu) a confirmé le
+  vrai pouls du morceau : environ 0,72s (≈83 BPM), nettement plus net
+  que n'importe quel autre écart candidat — ce n'est donc pas la
+  détection Python qui donnait raison à 0,48s, mais bien celle à 0,72s.
+- **Solution appliquée** : `audio/beatDetector.js` réécrit autour d'une
+  détection en deux temps, au lieu de chercher des pics librement :
+  1. trouver le pouls régulier du morceau par autocorrélation (le
+     décalage qui fait le plus se ressembler le flux à lui-même),
+     `estimateTempoIntervalFrames`, avec une protection contre l'erreur
+     classique de choisir un multiple du vrai pouls plutôt que le vrai
+     pouls (on garde le plus petit décalage qui forme déjà un pic net) ;
+  2. trouver où cette grille commence (`estimateBeatPhaseFrames`), puis
+     chercher un coup à CHAQUE position de la grille
+     (`buildGridOnsets`), avec une tolérance de recherche autour de
+     chaque position et un seuil de confirmation réduit (`sensitivity`
+     abaissé de 1.4 à 0.6, car on confirme un coup déjà attendu, on ne
+     le cherche plus au hasard).
+  Résultat mesuré sur `audioniveau6.ogg` : 93 tuiles générées sur 96
+  positions de grille possibles (contre des trous fréquents avant), et
+  un écart moyen de 0,75s, très proche du pouls réel du morceau.
+- **Effets secondaires** : le nombre de tuiles générées a changé (la
+  détection précédente comptait, à tort, certains sursauts secondaires
+  comme des coups séparés). `core/engine.js` n'a eu besoin d'aucune
+  modification : il continue de lire `tile.expectedTime` tuile par
+  tuile, sans savoir comment la grille a été construite.
+- **Point de vigilance** : cette détection suppose un tempo stable sur
+  tout le morceau. Un futur morceau à tempo variable serait mal suivi
+  dans sa seconde partie (voir `docs/GAMEPLAY.md`, limites connues).
+- **Vérifié** : testé en navigateur réel (Playwright, `file://`) :
+  aucune régression sur le score, la pause, l'échec ou le rejeu ;
+  écarts entre tuiles mesurés cohérents avec le pouls réel du morceau
+  (confirmé indépendamment par un script Python séparé, hors du code
+  du jeu, pour écarter un biais de mon propre algorithme de détection).
+
+---
+
 ## BUG-007 — La musique continuait pendant la pause (signalé par Ylonna)
 
 - **Problème observé** : en mettant le jeu en pause puis en reprenant,
