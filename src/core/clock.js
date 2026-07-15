@@ -34,7 +34,7 @@
 
     // Démarre (ou redémarre) le chrono à zéro.
     // `atTime` permet de caler précisément le départ sur un instant
-    // audio déjà programmé (voir audioManager.playMusic), pour que
+    // audio déjà programmé (voir audioManager.playTrack), pour que
     // le jeu et la musique démarrent exactement ensemble.
     start(atTime) {
       this._startTime = atTime !== undefined ? atTime : this._now();

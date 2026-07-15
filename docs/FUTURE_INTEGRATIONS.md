@@ -6,10 +6,11 @@
 
 ## 1. Remplacer les assets temporaires par de vrais assets
 
-Aujourd'hui, tous les visuels et sons sont **générés par du code** (pas
-de fichier image ni audio). C'est un choix assumé pour avancer vite sur
-le gameplay. La liste complète est dans
-`src/assets/assetManifest.js`, qui sert de point d'entrée unique.
+Les visuels sont **générés par du code** (pas de fichier image). C'est
+un choix assumé pour avancer vite sur le gameplay. La musique, elle,
+est déjà un vrai fichier (voir section 2), mais fixe et non choisi par
+le joueur. La liste complète est dans `src/assets/assetManifest.js`,
+qui sert de point d'entrée unique.
 
 ### Marche à suivre pour un remplacement
 
@@ -23,7 +24,6 @@ le gameplay. La liste complète est dans
 
 | Asset | Fichier à modifier | Ce qu'il faut faire |
 |---|---|---|
-| Musique du niveau | `src/main.js` (`handleStart`) | Le mécanisme existe déjà (`audioManager.loadTrack(url)` / `playTrack(buffer)`, utilisés par le bouton de test — voir section 2) : il suffit d'appeler ces méthodes dans `handleStart()` au lieu de `playMusic(sequence, config)` |
 | Sons (land/fail/complete) | `src/audio/audioManager.js` | Remplacer `_playBlip(...)` par la lecture du fichier correspondant |
 | Balle | `src/render/renderer.js` (`_drawBall`) | Remplacer `ctx.arc(...)` par `ctx.drawImage(image, ...)` |
 | Tuiles | `src/render/renderer.js` (`_drawTiles`) | Remplacer `ctx.roundRect(...)` par `ctx.drawImage(...)` |
@@ -50,32 +50,33 @@ n'ont pas encore de logique associée :
   **monnaie pour les acheter existe déjà** (les étoiles, voir
   `docs/GAMEPLAY.md`). Voir section 3 ci-dessous pour la suite.
 
-## 2. Finaliser l'import de musique (aller au-delà du bouton de test)
+## 2. Laisser le joueur choisir sa propre musique
 
-**Partiellement fait.** Le moteur sait déjà générer un niveau à partir
-du rythme réel d'un fichier audio importé (`audio/beatDetector.js` +
-`level/levelSequencer.buildSequenceFromBeatTimes`, voir
-`docs/ARCHITECTURE.md` et `docs/GAMEPLAY.md`). Aujourd'hui, ça reste un
-**bouton de test** sur l'écran de démarrage ("🧪 Tester avec la musique
-importée"), avec un seul fichier fixe et non optimisé
-(`src/assets/mfcc-chinese-japanese-korean-music-324382.mp3`, ~3,3 Mo).
+**Partiellement fait.** Le niveau est déjà entièrement généré à partir
+du rythme réel de la musique du jeu (`audio/beatDetector.js` +
+`level/levelSequencer.buildSequence`, voir `docs/ARCHITECTURE.md` et
+`docs/GAMEPLAY.md`) — ce n'est plus un test, c'est le fonctionnement
+normal du jeu. Ce qui reste temporaire : la musique est un **seul
+fichier fixe**, choisi par nous
+(`src/assets/audioniveau6.ogg`, embarqué en base64 dans
+`src/assets/levelTrackData.js`), pas encore un fichier choisi par le
+joueur.
 
 ### Ce qu'il reste à faire pour que ce soit une vraie fonctionnalité
 
 - **Laisser le joueur choisir son fichier** : un `<input type="file"
-  accept="audio/*">` sur l'écran de démarrage, lu avec
-  `file.arrayBuffer()` avant de le passer à
-  `audioManager.loadTrack`-like logique (`decodeAudioData` prend déjà
-  un `ArrayBuffer`, donc `loadTrack` devra être adapté pour accepter
-  soit une URL soit un `ArrayBuffer` directement).
-- **Retirer le fichier de test** (`mfcc-chinese-japanese-korean-music-324382.mp3`)
-  une fois qu'un vrai mécanisme de sélection existe : il n'a été
-  déposé que pour valider la détection de rythme, et il n'est pas
-  optimisé (poids, format) pour un vrai jeu.
-- **Un vrai retour à l'écran de démarrage** : aujourd'hui, après une
-  partie sur le niveau importé, seul un rechargement de page permet de
-  retester (voir `docs/GAMEPLAY.md`, limites connues). Prévoir un
-  bouton "Menu" sur les écrans d'échec/victoire.
+  accept="audio/*">` sur l'écran de démarrage. Un `File` choisi par
+  l'utilisateur se lit directement avec `file.arrayBuffer()` (aucun
+  `fetch()` nécessaire, donc ça marche aussi bien avec ou sans
+  serveur) — ce résultat se passe tel quel à
+  `audioManager.decodeArrayBuffer()`, qui existe déjà.
+- **Retirer le fichier fixe embarqué** (`levelTrackData.js`,
+  `audioniveau6.ogg`) une fois qu'un vrai mécanisme de sélection
+  existe : il n'a été embarqué que pour que le jeu fonctionne sans
+  configuration, en attendant ce sélecteur.
+- **Un vrai retour à l'écran de démarrage** : aujourd'hui, il n'existe
+  pas de bouton "Menu" pour changer de musique sans recharger la page
+  (voir `docs/GAMEPLAY.md`, limites connues).
 - **Améliorer la détection de rythme** si nécessaire : `beatDetector.js`
   utilise une méthode simple (un seul canal d'analyse d'énergie). Pour
   des musiques plus subtiles (peu de percussions marquées), une
@@ -83,22 +84,24 @@ importée"), avec un seul fichier fixe et non optimisé
   meilleurs résultats — mais ajoute de la complexité, à ne faire que si
   le besoin se confirme.
 - **Décider où va la position latérale** : aujourd'hui, le tracé
-  (FL/L/C/R/FR) reprend celui du niveau d'entraînement quel que soit
-  le fichier importé, faute de mieux. Une vraie fonctionnalité pourrait
-  vouloir un tracé différent (aléatoire, ou dérivé d'une autre analyse
+  (FL/L/C/R/FR) vient toujours de `level/levelData.js` quel que soit le
+  fichier choisi. Une vraie fonctionnalité pourrait vouloir un tracé
+  différent selon la musique (aléatoire, ou dérivé d'une autre analyse
   du son, comme sa hauteur/fréquence dominante).
 
 ### Points de vigilance
 
 - Ne jamais faire dépendre `core/engine.js` de la façon dont un niveau
-  a été construit (tempo fixe ou détection de rythme) : c'est tout
-  l'intérêt de `tile.expectedTime` et de `config.scroll.speed` (voir
-  `docs/ARCHITECTURE.md`) — ce module ne doit jamais avoir besoin de
-  savoir laquelle des deux méthodes a été utilisée.
+  a été construit : c'est tout l'intérêt de `tile.expectedTime` et de
+  `config.scroll.speed` (voir `docs/ARCHITECTURE.md`) — ce module ne
+  doit jamais avoir besoin de savoir d'où vient le rythme.
 - Le décodage + l'analyse d'un long fichier peuvent prendre plusieurs
   secondes : garder un message de chargement clair (déjà en place,
-  `#test-track-status`), et prévoir un moyen d'annuler si ça devient
-  gênant pour de très gros fichiers.
+  `#start-status`), et prévoir un moyen d'annuler si ça devient gênant
+  pour de très gros fichiers.
+- Le résultat de l'analyse est mis en cache dans `main.js` pour que
+  "Réessayer"/"Rejouer" soient instantanés : si le joueur peut changer
+  de musique en cours de route, penser à vider ce cache au bon moment.
 
 ## 3. Construire la boutique (dépenser les étoiles)
 

@@ -1,8 +1,9 @@
 # Mécaniques du jeu
 
-> Ce document décrit le fonctionnement du niveau d'entraînement tel qu'il
-> existe aujourd'hui dans le code. À garder synchronisé avec
-> `src/config/gameConfig.js`, `src/core/engine.js` et `src/level/levelData.js`.
+> Ce document décrit le fonctionnement du niveau tel qu'il existe
+> aujourd'hui dans le code. À garder synchronisé avec
+> `src/config/gameConfig.js`, `src/core/engine.js`,
+> `src/level/levelData.js` et `src/audio/beatDetector.js`.
 
 ## L'inspiration : Tiles Hop
 
@@ -37,27 +38,54 @@ Le joueur ne gère jamais "l'avancée" du jeu : elle est 100% automatique,
 pilotée par le temps qui passe (voir `docs/ARCHITECTURE.md`, section
 "défilement automatique").
 
-## Le rythme structure tout
+## Le rythme structure tout : la musique décide, les tuiles suivent
 
-Tout part du tempo choisi dans `gameConfig.js` :
+Contrairement à beaucoup de jeux du genre, il n'y a **pas de tempo
+choisi à l'avance**. Le niveau est entièrement construit à partir du
+rythme réel de la musique du jeu (`src/assets/audioniveau6.ogg`) :
 
-- `music.bpm = 100` (battements par minute)
-- `music.hopBeats = 2` → une tuile arrive toutes les 2 battements
+1. Au clic sur "Jouer", le fichier est décodé, puis analysé par
+   `audio/beatDetector.js` pour repérer ses "coups" (les moments où le
+   son a un sursaut d'énergie — une percussion, une note jouée fort...).
+   Technique utilisée : découpage en petites tranches de temps, mesure
+   du volume de chaque tranche, repérage des tranches où le volume
+   augmente brusquement et nettement plus que la moyenne du moment
+   (voir les commentaires du fichier pour le détail).
+2. Chaque "coup" détecté devient l'horaire d'une tuile
+   (`level/levelSequencer.buildSequence`). Contrairement à un jeu à
+   tempo fixe, l'écart entre deux tuiles **n'est pas régulier** : il
+   suit le rythme réel du morceau — c'est ce qui permet de vérifier
+   que les tuiles collent vraiment à ce qu'on entend.
+3. Le fichier se joue normalement pendant que le niveau généré défile,
+   synchronisé sur la même horloge (voir `docs/ARCHITECTURE.md`).
 
-Donc :
-- un battement dure `60 / 100 = 0,6 seconde`
-- une tuile (un "hop") arrive toutes les `0,6 × 2 = 1,2 seconde`
-- pour un niveau d'environ 60 secondes, il faut `60 / 1,2 = 50 tuiles`
+Réglages disponibles dans `gameConfig.js` (`beatDetection`) :
+`minIntervalSeconds` (écart minimum entre deux tuiles, pour garder un
+temps de réaction correct), `sensitivity` (à quel point un coup doit
+être marqué pour compter), `maxTiles` (longueur maximum du niveau
+généré, même pour un long morceau).
 
-Ces 50 "moments de saut" sont calculés une fois pour toutes par
-`level/levelSequencer.js` au lancement du niveau. Chaque tuile a donc un
-horaire précis et fixe (tuile n°0 à t=0s, tuile n°1 à t=1,2s, tuile n°2
-à t=2,4s, etc.).
+**Limites connues** (voir `docs/FUTURE_INTEGRATIONS.md` pour la
+suite) :
+- la détection est une version simple (un seul "canal" d'analyse) : une
+  musique sans attaques nettes (très douce, très continue) donnerait
+  peu ou pas de tuiles ;
+- la position latérale des tuiles (quelle lettre FL/L/C/R/FR) vient
+  toujours du tracé de `level/levelData.js` : l'analyse audio ne donne
+  que le RYTHME, pas où placer la balle ;
+- la musique est pour l'instant un seul fichier fixe
+  (`audioniveau6.ogg`), pas encore un fichier choisi par le joueur ;
+- il n'existe pas encore de bouton "retour à l'écran de démarrage" :
+  pour changer de musique, il faut remplacer le fichier dans le code
+  (voir `docs/FUTURE_INTEGRATIONS.md`).
+- L'analyse (décodage + détection) ne se fait qu'une fois par
+  chargement de page : les parties suivantes ("Réessayer", "Rejouer")
+  réutilisent le résultat déjà calculé, pour rejouer instantanément.
 
-## Le chemin des tuiles (niveau d'entraînement)
+## Le chemin latéral des tuiles
 
-Le "chemin" que la balle doit suivre est écrit avec des lettres dans
-`src/level/levelData.js` :
+Le "chemin" que la balle doit suivre (gauche/droite, pas le rythme) est
+écrit avec des lettres dans `src/level/levelData.js` :
 
 ```
 FL = tout à gauche   L = un peu à gauche   C = centre
@@ -140,75 +168,15 @@ c'est ce qui permettra plus tard d'acheter des choses dans le jeu.
 ## Le rebond visuel de la balle
 
 Indépendamment de la détection de collision, la balle fait un petit
-"saut" (mouvement vertical en arc, comme une parabole) à chaque cycle de
-1,2 seconde, pour donner une sensation de rythme continu — même avant
-la première tuile ou entre deux tuiles. Ce mouvement est **uniquement
-visuel** : il ne change jamais la position latérale de la balle, donc il
-n'affecte jamais si on touche ou rate une tuile.
-
-## Musique et tuiles : un seul et même rythme
-
-La musique (voir `src/audio/musicGenerator.js`) n'est pas jouée "à
-côté" du jeu : elle est **calculée à partir de la même horloge** que les
-tuiles.
-
-- Un son de grosse caisse ("kick") joue à chaque battement.
-- Une ligne de basse suit une **progression d'accords** (La mineur 7 →
-  Fa majeur 7 → Do majeur 7 → Sol 7, puis retour au premier accord),
-  qui change toutes les 10 tuiles. C'est elle qui donne une vraie
-  structure musicale au morceau plutôt qu'une simple boucle plate.
-- Une note de mélodie joue à **chaque tuile**, exactement au moment où
-  elle atteint la ligne d'impact. Sa hauteur dépend de la position de
-  la tuile (à gauche = note grave, à droite = note aiguë) **parmi les
-  notes de l'accord du moment** : la mélodie suit donc à la fois le
-  tracé des tuiles ET l'harmonie du morceau.
-
-Résultat : la musique "raconte" le chemin des tuiles, avec une vraie
-progression harmonique en fond. Un joueur qui écoute attentivement peut
-anticiper les prochains mouvements.
-
-## Générer les tuiles depuis une vraie musique importée (expérimental)
-
-Tout ce qui précède fonctionne dans un sens : le tempo est fixé
-d'abord, la musique est composée pour lui coller, les tuiles suivent.
-Mais une VRAIE musique importée (un fichier qu'on n'a pas composé
-nous-mêmes) a son propre rythme, qu'on ne choisit pas. Le moteur doit
-donc pouvoir fonctionner **dans l'autre sens** : écouter le fichier,
-et placer les tuiles en fonction de ce qu'il y trouve.
-
-Sur l'écran de démarrage, le bouton **"🧪 Tester avec la musique
-importée"** déclenche ce chemin :
-
-1. Le fichier audio est téléchargé et décodé (`audioManager.loadTrack`).
-2. `audio/beatDetector.js` l'analyse pour repérer ses "coups" (les
-   moments où le son a un sursaut d'énergie — une percussion, une note
-   jouée fort...). Techniquement : découpage en petites tranches,
-   mesure du volume de chaque tranche, repérage des tranches où le
-   volume augmente brusquement et nettement plus que la moyenne du
-   moment (voir les commentaires du fichier pour le détail).
-3. Ces horaires deviennent directement les moments où les tuiles
-   doivent être atteintes (`level/levelSequencer.buildSequenceFromBeatTimes`).
-   Contrairement au niveau d'entraînement, l'écart entre deux tuiles
-   n'est **pas régulier** : il suit le rythme réel du morceau.
-4. Le fichier se joue normalement pendant que le niveau généré défile.
-
-Réglages disponibles dans `gameConfig.js` (`beatDetection`) :
-`minIntervalSeconds` (écart minimum entre deux tuiles, pour garder un
-temps de réaction correct), `sensitivity` (à quel point un coup doit
-être marqué pour compter), `maxTiles` (longueur maximum du niveau
-généré, pour rester comparable au niveau d'entraînement même avec un
-long morceau).
-
-**Limites connues** (c'est un test, pas encore une fonctionnalité
-finie — voir `docs/FUTURE_INTEGRATIONS.md`) :
-- la détection est une version simple (un seul "canal" d'analyse) : une
-  musique sans attaques nettes (très douce, très continue) donnera
-  peu ou pas de tuiles ;
-- la position latérale des tuiles (quelle lettre FL/L/C/R/FR) reprend
-  toujours le tracé du niveau d'entraînement : l'analyse audio ne
-  donne que le RYTHME, pas où placer la balle ;
-- il n'existe pas encore de bouton "retour à l'écran de démarrage" :
-  pour retester, il faut recharger la page.
+"saut" (mouvement vertical en arc, comme une parabole) entre chaque
+tuile, pour donner une sensation de rythme continu — même avant la
+première tuile ou entre deux tuiles. Comme l'écart entre deux tuiles
+n'est pas toujours le même (il suit le rythme réel de la musique), la
+durée de ce saut s'adapte à chaque fois à l'écart réel entre la
+dernière tuile passée et la prochaine (voir `core/engine.js`,
+`getBouncePhase`). Ce mouvement est **uniquement visuel** : il ne
+change jamais la position latérale de la balle, donc il n'affecte
+jamais si on touche ou rate une tuile.
 
 ## Conditions de victoire / d'échec
 

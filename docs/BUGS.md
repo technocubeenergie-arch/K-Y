@@ -13,9 +13,11 @@
   ("tout est décalé").
 - **Contexte** : Ylonna a soupçonné que le rythme de la musique et la
   génération des tuiles n'étaient pas liés. En creusant, ce n'était
-  pas ça : les tuiles et la musique utilisent bien la même horloge et
-  les mêmes formules de tempo (voir `docs/GAMEPLAY.md`, "Musique et
-  tuiles : un seul et même rythme") — le souci était ailleurs.
+  pas ça : les tuiles et la musique utilisent bien la même horloge
+  (voir `docs/ARCHITECTURE.md`) — le souci était ailleurs. (Note :
+  à l'époque de ce bug, le niveau utilisait encore un tempo fixe ; le
+  jeu génère depuis les tuiles à partir du rythme réel détecté dans la
+  musique, voir `docs/GAMEPLAY.md`, "Le rythme structure tout".)
 - **Cause identifiée** : `engine.togglePause()` mettait bien en pause
   l'horloge du JEU (`core/clock.js`, qui gèle correctement les calculs
   de tuiles), mais **rien ne mettait en pause l'audio**. La musique,
@@ -259,7 +261,7 @@ recherché ici.
   très légèrement après le clic (environ 0,15s de battement d'avance
   programmé), ce qui est normal et volontaire.
 - **Point de vigilance** : ne jamais appeler `audioManager.init()` ou
-  `playMusic()` avant une interaction utilisateur explicite (clic/tap).
+  `playTrack()` avant une interaction utilisateur explicite (clic/tap).
 
 ---
 
