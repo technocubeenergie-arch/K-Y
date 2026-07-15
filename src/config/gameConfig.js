@@ -57,7 +57,7 @@
       // Vitesse de déplacement latéral au clavier (px / seconde).
       keyboardSpeed: 170,
       // Hauteur du saut visuel entre deux tuiles (en pixels).
-      bounceHeight: 64,
+      bounceHeight: 256,
     },
 
     // Les tuiles
