@@ -26,7 +26,7 @@
       this._maxX = config.canvas.width - this.radius;
 
       // Amplitude du rebond visuel (en pixels), 0 = balle immobile
-      this.bounceHeight = 16;
+      this.bounceHeight = config.ball.bounceHeight;
       this.squash = 1; // 1 = taille normale, <1 = écrasée à l'impact
       this.isAlive = true;
     }
