@@ -130,11 +130,12 @@ changer le niveau, c'est changer cette suite de lettres.
 
 ## Les fausses tuiles : brouiller la lecture du chemin
 
-À chaque horaire, en plus de la VRAIE tuile (colorée normalement), le
-jeu affiche aussi des **fausses tuiles** : des tuiles grises, sans
-couleur, posées sur les autres positions latérales possibles au même
-moment. Elles ne servent qu'à rendre le chemin moins évident à lire
-d'un coup d'œil — un peu comme dans le vrai Tiles Hop.
+DE TEMPS EN TEMPS (pas à chaque horaire, sinon ce serait trop chargé à
+lire), en plus de la VRAIE tuile (colorée normalement), le jeu affiche
+aussi des **fausses tuiles** : des tuiles grises, sans couleur, posées
+sur les autres positions latérales possibles au même moment. Elles ne
+servent qu'à rendre le chemin moins évident à lire d'un coup d'œil — un
+peu comme dans le vrai Tiles Hop.
 
 Ces fausses tuiles n'ont **aucune existence dans les règles du jeu** :
 `core/engine.js` ne les connaît même pas. Rater en atterrissant sur
@@ -146,9 +147,19 @@ Elles sont générées par `level/levelSequencer.js` (fonction
 dessinées par `render/renderer.js`, sans zone bonus ni changement de
 couleur possible.
 
-Réglages dans `gameConfig.js` (`tile.decoyCount`, `tile.decoyColor`) :
-`decoyCount` contrôle combien des 4 autres positions reçoivent une
-fausse tuile (0 désactive complètement la fonctionnalité).
+Quelles tuiles reçoivent des fausses tuiles ? Décidé par une petite
+formule mathématique (un "hash", voir `pseudoRandom01` dans
+`levelSequencer.js`) plutôt que par un vrai tirage au sort
+(`Math.random()`) : ça donne un résultat qui semble irrégulier au
+joueur, tout en générant **toujours exactement le même niveau** pour un
+même morceau — important pour que "Réessayer"/"Rejouer" retombent sur
+le même défi, et pour pouvoir tester le jeu de façon fiable.
+
+Réglages dans `gameConfig.js` (`tile.decoyCount`, `tile.decoyFrequency`,
+`tile.decoyColor`) : `decoyCount` contrôle combien des 4 autres
+positions reçoivent une fausse tuile QUAND elles en reçoivent,
+`decoyFrequency` contrôle À QUELLE FRÉQUENCE ça arrive (0 = jamais,
+1 = à chaque tuile ; actuellement 0,3, soit environ 3 tuiles sur 10).
 
 **Prévu pour plus tard** (voir `docs/FUTURE_INTEGRATIONS.md`) : un
 objet de boutique (une "balle volante") qui permettrait de sauter

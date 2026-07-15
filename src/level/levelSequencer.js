@@ -35,6 +35,16 @@
       .map((fraction) => new TH.Tile(realTile.index, realTile.worldY, fraction, realTile.expectedTime));
   }
 
+  // Décide si LA tuile d'indice `index` reçoit des fausses tuiles, sans
+  // utiliser Math.random() : un même morceau doit toujours générer
+  // exactement le même niveau (rejouer, tester). Cette petite formule
+  // ("hash" classique) transforme un nombre entier en une valeur entre
+  // 0 et 1 qui paraît irrégulière mais reste identique à chaque calcul.
+  function pseudoRandom01(seed) {
+    const x = Math.sin(seed * 12.9898) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
   // `beatTimes` : les horaires (secondes, triés du plus tôt au plus
   // tard) des "coups" détectés dans la musique. La position latérale
   // (quelle lettre FL/L/C/R/FR) est décidée par `levelDef` : l'analyse
@@ -46,7 +56,8 @@
     const tiles = beatTimes.map((expectedTime, index) => {
       const worldY = scrollSpeed * expectedTime;
       const tile = new TH.Tile(index, worldY, xFractions[index], expectedTime);
-      if (config.tile.decoyCount > 0) {
+      const showDecoys = config.tile.decoyCount > 0 && pseudoRandom01(index) < config.tile.decoyFrequency;
+      if (showDecoys) {
         tile.decoys = buildDecoys(tile, xFractions[index], levelDef.laneFractions, config);
       }
       return tile;
