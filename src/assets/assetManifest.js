@@ -37,8 +37,8 @@
       // fonctionnalité validée — voir docs/FUTURE_INTEGRATIONS.md.
       importedTest: {
         status: 'file',
-        source: 'src/assets/mfcc-chinese-japanese-korean-music-324382.mp3',
-        note: 'Musique réelle utilisée pour tester la détection de rythme et la génération de tuiles à partir d\'un fichier importé.',
+        source: 'src/assets/mfcc-chinese-japanese-korean-music-324382.mp3 (embarqué en base64 dans assets/importedTrackData.js, voir utils/base64.js)',
+        note: 'Musique réelle utilisée pour tester la détection de rythme et la génération de tuiles à partir d\'un fichier importé. Embarquée directement dans le JS (pas de fetch()) pour fonctionner même sans serveur, en ouvrant index.html directement.',
       },
     },
 
