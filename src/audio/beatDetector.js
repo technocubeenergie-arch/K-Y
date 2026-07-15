@@ -11,18 +11,29 @@
  * c'est l'inverse : on écoute la musique, et les tuiles suivent ce
  * qu'on y trouve (voir docs/GAMEPLAY.md).
  *
- * Principe (une technique simple et classique, "flux d'énergie") :
- *  1. découper le son en toutes petites tranches de temps ;
- *  2. mesurer l'énergie (le volume) de chaque tranche ;
- *  3. repérer les tranches où l'énergie AUGMENTE brusquement (une
- *     baisse de volume n'est jamais un "coup") ;
- *  4. ne garder que les vrais pics, pas trop rapprochés entre eux,
- *     et nettement plus forts que le volume moyen du moment.
+ * Principe (deux techniques simples et classiques, sans dépendance
+ * externe) :
+ *  1. découper le son en toutes petites tranches de temps, et mesurer
+ *     l'énergie (le volume) de chaque tranche, puis de combien elle
+ *     AUGMENTE par rapport à la tranche précédente ("flux") — une
+ *     baisse de volume n'est jamais un "coup" ;
+ *  2. plutôt que de chercher des pics au hasard dans ce flux (ce qui
+ *     peut laisser passer un coup plus discret, faisant "flotter" la
+ *     balle sans tuile pendant qu'on entend pourtant une note), on
+ *     commence par trouver le POULS régulier du morceau
+ *     (autocorrélation, voir `estimateTempoIntervalFrames`) puis on
+ *     place une tuile
+ *     à chaque position de cette grille régulière, en cherchant le
+ *     plus grand sursaut d'énergie tout autour (pour rester tolérant
+ *     à un morceau pas joué mécaniquement). Une position sans aucun
+ *     sursaut clair reste vide (silence, vraie pause), sinon quasiment
+ *     chaque temps du morceau obtient sa tuile.
  *
  * Ce n'est pas un détecteur de rythme "parfait" (un vrai outil pro
- * analyserait plusieurs bandes de fréquences séparément) : c'est une
- * version simple, sans dépendance externe, suffisante pour transformer
- * une musique en tuiles jouables.
+ * analyserait plusieurs bandes de fréquences séparément, et gérerait
+ * les changements de tempo en cours de morceau) : c'est une version
+ * simple, suffisante pour transformer une musique à tempo à peu près
+ * stable en tuiles jouables, bien synchronisées avec ce qu'on entend.
  * ------------------------------------------------------------
  */
 (function (TH) {
@@ -30,9 +41,11 @@
 
   const DEFAULT_OPTIONS = {
     windowSize: 1024, // taille d'une tranche d'analyse, en échantillons audio
-    minIntervalSeconds: 0.45, // écart minimum entre deux tuiles (temps de réaction)
-    sensitivity: 1.4, // un pic doit dépasser la moyenne locale de ce facteur
+    minIntervalSeconds: 0.45, // écart minimum entre deux tuiles (temps de réaction) ET tempo le plus rapide recherché
+    maxIntervalSeconds: 1.4, // tempo le plus lent recherché, pour borner la recherche du pouls du morceau
+    sensitivity: 1.4, // un sursaut d'énergie doit dépasser la moyenne locale de ce facteur pour devenir une tuile
     localWindowSeconds: 1.0, // fenêtre utilisée pour calculer la "moyenne locale"
+    toleranceRatio: 0.3, // tolérance de recherche autour de chaque position de la grille (fraction du pouls détecté)
   };
 
   // Mélange tous les canaux (stéréo, etc.) en un seul signal mono :
@@ -77,32 +90,110 @@
     return flux;
   }
 
-  // Repère les pics du flux qui dépassent nettement la moyenne locale
-  // (adaptative : un passage calme et un passage fort n'ont pas la
-  // même échelle), en respectant un écart minimum entre deux pics.
-  function pickPeaks(flux, framesPerSecond, options) {
+  // Trouve le pouls régulier du morceau par autocorrélation : on
+  // compare le flux à lui-même décalé de `lag` tranches, pour tous les
+  // décalages plausibles (entre `minIntervalSeconds` et
+  // `maxIntervalSeconds`). Un signal périodique ressemble beaucoup à
+  // lui-même décalé d'exactement une période — mais aussi décalé de 2,
+  // 3 fois cette période (chaque "double coup" retombe aussi juste) :
+  // sans précaution, cette recherche a tendance à préférer un multiple
+  // du vrai pouls (trop lent) plutôt que le pouls lui-même. On prend
+  // donc le PLUS PETIT décalage qui produit déjà un pic net de
+  // ressemblance (au moins 85% du meilleur score trouvé sur toute la
+  // plage), plutôt que le meilleur score toutes plages confondues.
+  function estimateTempoIntervalFrames(flux, framesPerSecond, options) {
+    const minLagFrames = Math.max(1, Math.round(options.minIntervalSeconds * framesPerSecond));
+    const maxLagFrames = Math.max(minLagFrames + 1, Math.round(options.maxIntervalSeconds * framesPerSecond));
+
+    const scores = new Float64Array(maxLagFrames - minLagFrames + 1);
+    let bestScore = -Infinity;
+    for (let lag = minLagFrames; lag <= maxLagFrames; lag++) {
+      let score = 0;
+      for (let i = 0; i + lag < flux.length; i++) {
+        score += flux[i] * flux[i + lag];
+      }
+      scores[lag - minLagFrames] = score;
+      if (score > bestScore) bestScore = score;
+    }
+
+    const acceptanceThreshold = bestScore * 0.85;
+    for (let lag = minLagFrames; lag <= maxLagFrames; lag++) {
+      const score = scores[lag - minLagFrames];
+      const previous = lag > minLagFrames ? scores[lag - minLagFrames - 1] : -Infinity;
+      const next = lag < maxLagFrames ? scores[lag - minLagFrames + 1] : -Infinity;
+      const isLocalPeak = score >= previous && score >= next;
+      if (isLocalPeak && score >= acceptanceThreshold) return lag;
+    }
+
+    // Filet de sécurité (ne devrait pas arriver) : le meilleur score brut.
+    let bestLag = minLagFrames;
+    for (let lag = minLagFrames; lag <= maxLagFrames; lag++) {
+      if (scores[lag - minLagFrames] === bestScore) {
+        bestLag = lag;
+        break;
+      }
+    }
+    return bestLag;
+  }
+
+  // Une fois le pouls connu (sa DURÉE), reste à savoir où il commence
+  // (sa PHASE) : on teste tous les départs possibles dans une première
+  // période, et on garde celui qui tombe le plus souvent sur de gros
+  // sursauts d'énergie.
+  function estimateBeatPhaseFrames(flux, intervalFrames) {
+    let bestPhase = 0;
+    let bestScore = -Infinity;
+
+    for (let phase = 0; phase < intervalFrames; phase++) {
+      let score = 0;
+      for (let frame = phase; frame < flux.length; frame += intervalFrames) {
+        score += flux[frame];
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        bestPhase = phase;
+      }
+    }
+    return bestPhase;
+  }
+
+  // Pour chaque position de la grille rythmique (phase, phase+intervalle,
+  // phase+2×intervalle...), cherche le plus grand sursaut d'énergie aux
+  // alentours (tolérance `toleranceRatio`, pour rester juste même si le
+  // morceau n'est pas joué à la mécanique près). Une position sans
+  // sursaut suffisamment marqué par rapport à la moyenne locale reste
+  // vide : c'est une vraie pause dans la musique, pas une tuile ratée.
+  function buildGridOnsets(flux, framesPerSecond, intervalFrames, phaseFrames, options) {
     const localWindowFrames = Math.max(1, Math.round(options.localWindowSeconds * framesPerSecond));
-    const minIntervalFrames = Math.max(1, Math.round(options.minIntervalSeconds * framesPerSecond));
+    const toleranceFrames = Math.max(1, Math.round(intervalFrames * options.toleranceRatio));
 
     const onsetTimes = [];
-    let lastPeakFrame = -Infinity;
 
-    for (let i = 1; i < flux.length - 1; i++) {
-      const isLocalMax = flux[i] > flux[i - 1] && flux[i] >= flux[i + 1];
-      if (!isLocalMax) continue;
-      if (i - lastPeakFrame < minIntervalFrames) continue;
+    for (let frame = phaseFrames; frame < flux.length; frame += intervalFrames) {
+      const searchStart = Math.max(0, frame - toleranceFrames);
+      const searchEnd = Math.min(flux.length, frame + toleranceFrames);
 
-      const windowStart = Math.max(0, i - localWindowFrames);
-      const windowEnd = Math.min(flux.length, i + localWindowFrames);
+      let bestFrame = -1;
+      let bestValue = 0;
+      for (let f = searchStart; f < searchEnd; f++) {
+        if (flux[f] > bestValue) {
+          bestValue = flux[f];
+          bestFrame = f;
+        }
+      }
+      if (bestFrame < 0) continue;
+
+      const windowStart = Math.max(0, bestFrame - localWindowFrames);
+      const windowEnd = Math.min(flux.length, bestFrame + localWindowFrames);
       let sum = 0;
       for (let j = windowStart; j < windowEnd; j++) sum += flux[j];
       const localAverage = sum / (windowEnd - windowStart);
 
-      if (flux[i] > localAverage * options.sensitivity && flux[i] > 0.0001) {
-        onsetTimes.push(i / framesPerSecond);
-        lastPeakFrame = i;
+      if (bestValue > localAverage * options.sensitivity && bestValue > 0.0001) {
+        onsetTimes.push(bestFrame / framesPerSecond);
       }
     }
+
     return onsetTimes;
   }
 
@@ -114,7 +205,10 @@
     const energy = computeEnergyEnvelope(samples, options.windowSize);
     const flux = computeFlux(energy);
     const framesPerSecond = audioBuffer.sampleRate / options.windowSize;
-    return pickPeaks(flux, framesPerSecond, options);
+
+    const intervalFrames = estimateTempoIntervalFrames(flux, framesPerSecond, options);
+    const phaseFrames = estimateBeatPhaseFrames(flux, intervalFrames);
+    return buildGridOnsets(flux, framesPerSecond, intervalFrames, phaseFrames, options);
   }
 
   TH.BeatDetector = { detectOnsets };

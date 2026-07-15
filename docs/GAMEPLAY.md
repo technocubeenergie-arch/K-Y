@@ -45,31 +45,53 @@ choisi à l'avance**. Le niveau est entièrement construit à partir du
 rythme réel de la musique du jeu (`src/assets/audioniveau6.ogg`) :
 
 1. Au clic sur "Jouer", le fichier est décodé, puis analysé par
-   `audio/beatDetector.js` pour repérer ses "coups" (les moments où le
-   son a un sursaut d'énergie — une percussion, une note jouée fort...).
-   Technique utilisée : découpage en petites tranches de temps, mesure
-   du volume de chaque tranche, repérage des tranches où le volume
-   augmente brusquement et nettement plus que la moyenne du moment
-   (voir les commentaires du fichier pour le détail).
-2. Chaque "coup" détecté devient l'horaire d'une tuile
-   (`level/levelSequencer.buildSequence`). Contrairement à un jeu à
-   tempo fixe, l'écart entre deux tuiles **n'est pas régulier** : il
-   suit le rythme réel du morceau — c'est ce qui permet de vérifier
-   que les tuiles collent vraiment à ce qu'on entend.
+   `audio/beatDetector.js`. Technique utilisée, en deux temps :
+   - découpage en petites tranches de temps, mesure du volume de
+     chaque tranche, puis de combien ce volume AUGMENTE d'une tranche
+     à l'autre (le "flux") ;
+   - repérage du **pouls régulier** du morceau par autocorrélation (on
+     compare le flux à lui-même décalé de différentes durées, et on
+     garde la durée qui le fait le plus se ressembler à lui-même — la
+     définition même d'un rythme périodique), puis placement d'une
+     tuile à CHAQUE position de cette grille régulière, en choisissant
+     le plus gros sursaut d'énergie tout autour de chaque position
+     (voir les commentaires du fichier pour le détail).
+2. Chaque position de la grille rythmique ainsi confirmée devient
+   l'horaire d'une tuile (`level/levelSequencer.buildSequence`). Une
+   position sans sursaut d'énergie suffisant reste vide (silence, vraie
+   pause dans le morceau) — sinon, la quasi-totalité des temps du
+   morceau obtient sa tuile.
 3. Le fichier se joue normalement pendant que le niveau généré défile,
    synchronisé sur la même horloge (voir `docs/ARCHITECTURE.md`).
 
 Réglages disponibles dans `gameConfig.js` (`beatDetection`) :
-`minIntervalSeconds` (écart minimum entre deux tuiles, pour garder un
-temps de réaction correct), `sensitivity` (à quel point un coup doit
-être marqué pour compter), `maxTiles` (longueur maximum du niveau
-généré, même pour un long morceau).
+`minIntervalSeconds`/`maxIntervalSeconds` (plage de tempo recherchée —
+`minIntervalSeconds` sert aussi de temps de réaction minimum entre deux
+tuiles), `sensitivity` (à quel point un sursaut doit être marqué pour
+confirmer une tuile à une position de la grille), `toleranceRatio`
+(marge de recherche autour de chaque position, pour un morceau pas joué
+à la mécanique près), `maxTiles` (longueur maximum du niveau généré,
+même pour un long morceau).
+
+**Pourquoi une grille plutôt que des pics détectés librement ?** Une
+première version cherchait les sursauts d'énergie n'importe où dans le
+morceau. Problème observé en testant avec `audioniveau6.ogg` : un coup
+plus discret pouvait être raté, laissant un "trou" — la balle sautait
+alors vers la tuile suivante pendant qu'une note s'entendait pourtant
+au milieu du saut. Verrouiller d'abord le pouls régulier du morceau,
+puis chercher un coup à CHAQUE position de ce pouls (voir
+`docs/BUGS.md`, entrée sur la synchronisation notes/tuiles), garantit
+que la balle atterrit en rythme à chaque fois, sauf vraie pause
+musicale.
 
 **Limites connues** (voir `docs/FUTURE_INTEGRATIONS.md` pour la
 suite) :
-- la détection est une version simple (un seul "canal" d'analyse) : une
-  musique sans attaques nettes (très douce, très continue) donnerait
-  peu ou pas de tuiles ;
+- la détection suppose un **tempo stable** sur tout le morceau (une
+  seule grille pour toute sa durée) : un morceau qui change de tempo en
+  cours de route serait mal suivi dans sa seconde partie ;
+- c'est une version simple (un seul "canal" d'analyse) : une musique
+  sans attaques nettes (très douce, très continue) donnerait un pouls
+  mal défini, et donc peu ou pas de tuiles ;
 - la position latérale des tuiles (quelle lettre FL/L/C/R/FR) vient
   toujours du tracé de `level/levelData.js` : l'analyse audio ne donne
   que le RYTHME, pas où placer la balle ;
