@@ -69,14 +69,25 @@
       return startTime;
     }
 
-    // Télécharge et décode un vrai fichier audio (mp3, etc.) en un
+    // Décode des données audio déjà en mémoire (un ArrayBuffer) en un
     // AudioBuffer exploitable — par ex. par audio/beatDetector.js pour
     // en extraire le rythme, puis par playTrack() ci-dessous pour le
-    // jouer. C'est le SEUL endroit du jeu qui sait lire un fichier audio.
+    // jouer. C'est le SEUL endroit du jeu qui décode un fichier audio.
+    async decodeArrayBuffer(arrayBuffer) {
+      return this._audioCtx.decodeAudioData(arrayBuffer);
+    }
+
+    // Télécharge (avec fetch) et décode un fichier audio distant.
+    // ATTENTION : ne fonctionne que si le jeu est servi par un vrai
+    // serveur (ex. `python3 -m http.server`) — fetch() est bloqué par
+    // les navigateurs quand la page est ouverte directement en
+    // double-cliquant sur index.html (file://). Pour un fichier déjà
+    // en mémoire (ex. embarqué en base64, ou choisi via un
+    // `<input type="file">`), utiliser decodeArrayBuffer() directement.
     async loadTrack(url) {
       const response = await fetch(url);
       const arrayBuffer = await response.arrayBuffer();
-      return this._audioCtx.decodeAudioData(arrayBuffer);
+      return this.decodeArrayBuffer(arrayBuffer);
     }
 
     // Joue un vrai fichier audio déjà décodé (voir loadTrack), pour un

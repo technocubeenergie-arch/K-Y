@@ -104,8 +104,11 @@
       audioManager.init();
       await audioManager.resumeIfNeeded();
 
-      const trackUrl = TH.AssetManifest.music.importedTest.source;
-      const audioBuffer = await audioManager.loadTrack(trackUrl);
+      // Données embarquées directement dans le JS (voir
+      // assets/importedTrackData.js) : pas de fetch() nécessaire, donc
+      // ça fonctionne même en ouvrant index.html sans serveur.
+      const arrayBuffer = TH.Base64.toArrayBuffer(TH.ImportedTrackData);
+      const audioBuffer = await audioManager.decodeArrayBuffer(arrayBuffer);
 
       const onsets = TH.BeatDetector.detectOnsets(audioBuffer, config.beatDetection)
         .slice(0, config.beatDetection.maxTiles);

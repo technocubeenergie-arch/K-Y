@@ -58,9 +58,14 @@
        précédents. Voir docs/ARCHITECTURE.md pour le détail. -->
   <script src="src/config/gameConfig.js"></script>
   <script src="src/utils/math.js"></script>
+  <script src="src/utils/base64.js"></script>
   <script src="src/core/eventBus.js"></script>
   <script src="src/core/clock.js"></script>
   <script src="src/assets/assetManifest.js"></script>
+  <!-- Fichier volontairement lourd (~4,4 Mo) : la musique de test
+       embarquée en base64, voir docs/GAMEPLAY.md et
+       docs/FUTURE_INTEGRATIONS.md. -->
+  <script src="src/assets/importedTrackData.js"></script>
   <script src="src/audio/musicGenerator.js"></script>
   <script src="src/audio/beatDetector.js"></script>
   <script src="src/audio/audioManager.js"></script>
