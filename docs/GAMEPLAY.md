@@ -42,7 +42,11 @@ pilotée par le temps qui passe (voir `docs/ARCHITECTURE.md`, section
 
 Contrairement à beaucoup de jeux du genre, il n'y a **pas de tempo
 choisi à l'avance**. Le niveau est entièrement construit à partir du
-rythme réel de la musique du jeu (`src/assets/audioniveau6.ogg`) :
+rythme réel de la musique du jeu (actuellement
+`src/assets/phuthon.ogg`, un extrait tiré du vrai jeu Tiles Hop, utilisé
+pour comparer le rendu de la génération de tuiles à une référence
+connue — voir `src/assets/assetManifest.js` pour savoir quel fichier
+est actif) :
 
 1. Au clic sur "Jouer", le fichier est décodé, puis analysé par
    `audio/beatDetector.js`. Technique utilisée, en deux temps :
@@ -96,7 +100,7 @@ suite) :
   toujours du tracé de `level/levelData.js` : l'analyse audio ne donne
   que le RYTHME, pas où placer la balle ;
 - la musique est pour l'instant un seul fichier fixe
-  (`audioniveau6.ogg`), pas encore un fichier choisi par le joueur ;
+  (`phuthon.ogg`), pas encore un fichier choisi par le joueur ;
 - il n'existe pas encore de bouton "retour à l'écran de démarrage" :
   pour changer de musique, il faut remplacer le fichier dans le code
   (voir `docs/FUTURE_INTEGRATIONS.md`).

@@ -95,8 +95,8 @@ ouvrable sans installation).
   (`storage/localStore.js`)
 - Registre central des assets temporaires (`assets/assetManifest.js`)
 - Musique du niveau embarquée en base64, prête à être lue sans serveur
-  (`assets/levelTrackData.js`, généré à partir de
-  `assets/audioniveau6.ogg`)
+  (`assets/levelTrackData.js`, généré à partir du fichier `.ogg`
+  actuellement actif — voir `assets/assetManifest.js`)
 
 ## Mécaniques en place
 
@@ -171,8 +171,8 @@ pas se fier uniquement à un serveur local.
 
 Vérifier au minimum : au clic sur "Jouer", un message de chargement
 apparaît puis disparaît (~1s, le temps de décoder et analyser
-`src/assets/levelTrackData.js`, qui embarque
-`src/assets/audioniveau6.ogg`), le défilement (en perspective) est
+`src/assets/levelTrackData.js`, qui embarque actuellement
+`src/assets/phuthon.ogg`), le défilement (en perspective) est
 visible, la balle suit souris/doigt/clavier (mouvement clavier fluide
 en continu, pas saccadé), les tuiles apparaissent avec un espacement
 irrégulier qui suit le rythme entendu, une tuile touchée devient verte
