@@ -55,7 +55,7 @@
       radius: 18,
       color: '#ffffff',
       // Vitesse de déplacement latéral au clavier (px / seconde).
-      keyboardSpeed: 200,
+      keyboardSpeed: 250,
       // Hauteur du saut visuel entre deux tuiles (en pixels).
       bounceHeight: 128,
     },
