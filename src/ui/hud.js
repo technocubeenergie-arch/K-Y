@@ -7,20 +7,27 @@
  *
  * Ce module ne connaît pas les règles du jeu : il s'abonne juste
  * aux événements de l'eventBus ("tile:hit", "game:start"...) et
- * met à jour le texte à l'écran en conséquence.
+ * met à jour le texte à l'écran en conséquence. Le nombre total de
+ * tuiles vient de l'événement `game:start` (et non d'une valeur figée
+ * à la création du HUD), pour que ça reste juste même si le niveau
+ * change en cours de route (par ex. un niveau généré à partir d'une
+ * musique importée, voir main.js).
  * ------------------------------------------------------------
  */
 (function (TH) {
   'use strict';
 
   class Hud {
-    constructor(elements, eventBus, totalTiles) {
+    constructor(elements, eventBus) {
       this._scoreEl = elements.scoreEl;
       this._progressEl = elements.progressEl;
       this._starsEl = elements.starsEl;
-      this._totalTiles = totalTiles;
+      this._totalTiles = 0;
 
-      eventBus.on('game:start', () => this._render(0, 0));
+      eventBus.on('game:start', ({ totalTiles }) => {
+        this._totalTiles = totalTiles;
+        this._render(0, 0);
+      });
       eventBus.on('tile:hit', ({ score, runStars }) => this._render(score, runStars));
     }
 

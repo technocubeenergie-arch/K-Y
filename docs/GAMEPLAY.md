@@ -167,6 +167,49 @@ Résultat : la musique "raconte" le chemin des tuiles, avec une vraie
 progression harmonique en fond. Un joueur qui écoute attentivement peut
 anticiper les prochains mouvements.
 
+## Générer les tuiles depuis une vraie musique importée (expérimental)
+
+Tout ce qui précède fonctionne dans un sens : le tempo est fixé
+d'abord, la musique est composée pour lui coller, les tuiles suivent.
+Mais une VRAIE musique importée (un fichier qu'on n'a pas composé
+nous-mêmes) a son propre rythme, qu'on ne choisit pas. Le moteur doit
+donc pouvoir fonctionner **dans l'autre sens** : écouter le fichier,
+et placer les tuiles en fonction de ce qu'il y trouve.
+
+Sur l'écran de démarrage, le bouton **"🧪 Tester avec la musique
+importée"** déclenche ce chemin :
+
+1. Le fichier audio est téléchargé et décodé (`audioManager.loadTrack`).
+2. `audio/beatDetector.js` l'analyse pour repérer ses "coups" (les
+   moments où le son a un sursaut d'énergie — une percussion, une note
+   jouée fort...). Techniquement : découpage en petites tranches,
+   mesure du volume de chaque tranche, repérage des tranches où le
+   volume augmente brusquement et nettement plus que la moyenne du
+   moment (voir les commentaires du fichier pour le détail).
+3. Ces horaires deviennent directement les moments où les tuiles
+   doivent être atteintes (`level/levelSequencer.buildSequenceFromBeatTimes`).
+   Contrairement au niveau d'entraînement, l'écart entre deux tuiles
+   n'est **pas régulier** : il suit le rythme réel du morceau.
+4. Le fichier se joue normalement pendant que le niveau généré défile.
+
+Réglages disponibles dans `gameConfig.js` (`beatDetection`) :
+`minIntervalSeconds` (écart minimum entre deux tuiles, pour garder un
+temps de réaction correct), `sensitivity` (à quel point un coup doit
+être marqué pour compter), `maxTiles` (longueur maximum du niveau
+généré, pour rester comparable au niveau d'entraînement même avec un
+long morceau).
+
+**Limites connues** (c'est un test, pas encore une fonctionnalité
+finie — voir `docs/FUTURE_INTEGRATIONS.md`) :
+- la détection est une version simple (un seul "canal" d'analyse) : une
+  musique sans attaques nettes (très douce, très continue) donnera
+  peu ou pas de tuiles ;
+- la position latérale des tuiles (quelle lettre FL/L/C/R/FR) reprend
+  toujours le tracé du niveau d'entraînement : l'analyse audio ne
+  donne que le RYTHME, pas où placer la balle ;
+- il n'existe pas encore de bouton "retour à l'écran de démarrage" :
+  pour retester, il faut recharger la page.
+
 ## Conditions de victoire / d'échec
 
 - **Échec (`game:over`)** : la balle n'est pas alignée avec une tuile au

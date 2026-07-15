@@ -89,9 +89,34 @@
       perfectZonePreviewColor: 'rgba(250, 204, 21, 0.6)',
     },
 
-    // Distance verticale (en pixels du monde) entre deux tuiles.
-    // Choisie pour que l'espacement "colle" au tempo (voir levelSequencer.js).
-    tileSpacing: 150,
+    // Défilement : vitesse constante (px/seconde) à laquelle le monde
+    // avance vers le joueur. Une seule valeur, utilisée quelle que soit
+    // la façon dont les tuiles ont été programmées dans le temps (tempo
+    // fixe du niveau d'entraînement, OU horaires réels détectés dans une
+    // musique importée, voir level/levelSequencer.js) : c'est ce qui
+    // permet à la caméra (render/camera.js) de rester la même dans les
+    // deux cas.
+    scroll: {
+      speed: 125,
+    },
+
+    // Détection de rythme pour les musiques importées (voir
+    // audio/beatDetector.js) : transforme un fichier audio en horaires
+    // de tuiles, sans que la musique ait été composée pour le jeu.
+    beatDetection: {
+      // Taille d'une tranche d'analyse, en échantillons audio.
+      windowSize: 1024,
+      // Écart minimum entre deux tuiles générées (temps de réaction).
+      minIntervalSeconds: 0.45,
+      // Un "coup" doit dépasser la moyenne locale de ce facteur pour
+      // compter : plus haut = moins de tuiles, seulement les coups forts.
+      sensitivity: 1.4,
+      // Fenêtre (secondes) utilisée pour calculer cette moyenne locale.
+      localWindowSeconds: 1.0,
+      // Limite le nombre de tuiles générées, même pour un long morceau
+      // (le niveau de test reste comparable en longueur à l'entraînement).
+      maxTiles: 60,
+    },
 
     // Étoiles : la monnaie du jeu, gagnée en atterrissant pile au centre
     // d'une tuile. Prévue pour être dépensée plus tard dans une boutique

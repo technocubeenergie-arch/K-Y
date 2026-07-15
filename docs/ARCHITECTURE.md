@@ -48,12 +48,13 @@ src/
     tile.js                   Une tuile : position, état (pending/hit/missed), atterrissage parfait
   level/
     levelData.js              La "recette" du niveau (motif de lettres)
-    levelSequencer.js          Transforme la recette en vraies tuiles + timing
+    levelSequencer.js          Transforme la recette (+ horaires fixes OU détectés) en vraies tuiles
   render/
     camera.js                  Défilement + projection en perspective (position/échelle écran)
     renderer.js                  Dessine tout sur le canvas (route, tuiles, balle)
   audio/
-    musicGenerator.js           Compose la musique du niveau (Web Audio)
+    musicGenerator.js           Compose la musique du niveau d'entraînement (Web Audio)
+    beatDetector.js               Analyse un fichier audio pour trouver son rythme (onsets)
     audioManager.js               Seul fichier qui touche à l'API audio
   ui/
     hud.js                      Score, progression et étoiles affichés pendant la partie
@@ -181,6 +182,55 @@ l'écran affiche une perspective. C'est cette séparation stricte entre
 connaître qui") qui a permis de faire cet ajout uniquement en modifiant
 `camera.js` et `renderer.js`, sans toucher au moteur de jeu ni casser
 le score, les collisions ou les étoiles.
+
+## Générer les tuiles depuis le rythme d'une musique (pas l'inverse)
+
+Le niveau d'entraînement fonctionne dans un sens précis : le tempo est
+décidé D'ABORD (`gameConfig.js`), puis `musicGenerator.js` compose une
+musique qui colle à ce tempo, et `levelSequencer.buildSequence` place
+les tuiles aux mêmes horaires. Ça marche bien pour une musique qu'on
+compose nous-mêmes, mais ça ne marche PAS pour une vraie musique
+importée, dont on ne choisit pas le rythme.
+
+Le moteur sait donc aussi faire l'inverse : partir d'un vrai fichier
+audio, en extraire le rythme, et placer les tuiles en conséquence.
+
+1. **`audio/beatDetector.js`** analyse un `AudioBuffer` déjà décodé et
+   renvoie une liste d'horaires (secondes) où un "coup" a été détecté
+   (une technique simple de flux d'énergie : voir les commentaires du
+   fichier). Ce module ne connaît ni les tuiles, ni le jeu : il ne fait
+   que de l'analyse de signal.
+2. **`level/levelSequencer.buildSequenceFromBeatTimes(beatTimes, ...)`**
+   transforme cette liste d'horaires en objets `Tile`, exactement comme
+   `buildSequence` le fait pour le tempo fixe — la position latérale
+   (quelle lettre FL/L/C/R/FR) suit toujours le même tracé que le
+   niveau d'entraînement, faute de mieux (l'analyse audio ne peut
+   donner QUE le rythme, pas où placer la balle).
+3. **`core/engine.js`** ne suppose jamais un intervalle fixe entre deux
+   tuiles : chaque `Tile` porte son propre `expectedTime`, et c'est
+   cette valeur que la boucle de jeu compare au temps écoulé (au lieu
+   de `index × hopInterval`). Ça marche donc aussi bien pour un tempo
+   régulier que pour des horaires détectés, irréguliers.
+4. **`config.scroll.speed`** est une vitesse de défilement CONSTANTE,
+   utilisée par les deux méthodes de séquencement. C'est ce qui permet
+   à la caméra (`render/camera.js`) de rester exactement la même dans
+   les deux cas, sans jamais avoir besoin de savoir quelle méthode a
+   été utilisée pour construire le niveau en cours.
+5. **`audio/audioManager.js`** sait aussi charger et jouer un vrai
+   fichier (`loadTrack(url)` / `playTrack(buffer)`), en plus de
+   composer sa propre musique (`playMusic`). Les deux méthodes
+   renvoient l'heure de démarrage exacte de la même façon, pour rester
+   synchronisées avec `core/clock.js`.
+6. **`main.js`** expose un bouton expérimental ("🧪 Tester avec la
+   musique importée") sur l'écran de démarrage, qui enchaîne ces
+   étapes et appelle `engine.start(startTime, sequenceOverride)` — une
+   variante de `start()` qui remplace le niveau en cours par celui
+   généré depuis le fichier importé.
+
+Ce n'est pour l'instant qu'un **bouton de test**, pas un vrai second
+niveau permanent (voir `docs/FUTURE_INTEGRATIONS.md` pour la suite
+prévue : sélection d'un fichier par le joueur, remplacement propre du
+niveau d'entraînement, retrait du fichier de test non optimisé).
 
 ## Les assets : centralisés et remplaçables
 

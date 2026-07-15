@@ -11,10 +11,17 @@
   'use strict';
 
   class Tile {
-    constructor(index, worldY, xFraction) {
+    constructor(index, worldY, xFraction, expectedTime) {
       this.index = index;
       this.worldY = worldY; // position fixe dans le "monde" du niveau
       this.xFraction = xFraction; // 0 = bord gauche, 1 = bord droit
+      // Horaire (secondes depuis le début du niveau) auquel cette tuile
+      // doit atteindre la ligne d'impact. Pour le niveau d'entraînement,
+      // c'est un tempo régulier (index × hopInterval) ; pour un niveau
+      // généré à partir d'une musique importée (voir beatDetector.js),
+      // ce sont les horaires réels détectés dans le morceau — d'où
+      // l'engine.js ne suppose jamais un intervalle fixe entre 2 tuiles.
+      this.expectedTime = expectedTime;
       // 'pending' -> pas encore atteinte, 'hit' -> réussie, 'missed' -> ratée
       this.state = 'pending';
       // true si la tuile a été touchée pile au centre (voir engine.js) :

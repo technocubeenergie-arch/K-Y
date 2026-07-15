@@ -23,7 +23,7 @@ le gameplay. La liste complète est dans
 
 | Asset | Fichier à modifier | Ce qu'il faut faire |
 |---|---|---|
-| Musique du niveau | `src/audio/audioManager.js` (`playMusic`) | Remplacer l'appel à `MusicGenerator.schedule` par le chargement/lecture d'un fichier audio (`fetch` + `decodeAudioData`, ou une simple balise `<audio>`) |
+| Musique du niveau | `src/main.js` (`handleStart`) | Le mécanisme existe déjà (`audioManager.loadTrack(url)` / `playTrack(buffer)`, utilisés par le bouton de test — voir section 2) : il suffit d'appeler ces méthodes dans `handleStart()` au lieu de `playMusic(sequence, config)` |
 | Sons (land/fail/complete) | `src/audio/audioManager.js` | Remplacer `_playBlip(...)` par la lecture du fichier correspondant |
 | Balle | `src/render/renderer.js` (`_drawBall`) | Remplacer `ctx.arc(...)` par `ctx.drawImage(image, ...)` |
 | Tuiles | `src/render/renderer.js` (`_drawTiles`) | Remplacer `ctx.roundRect(...)` par `ctx.drawImage(...)` |
@@ -48,9 +48,59 @@ n'ont pas encore de logique associée :
   nécessaire.
 - **Collectibles / skins / bonus** : n'existent pas encore, mais la
   **monnaie pour les acheter existe déjà** (les étoiles, voir
-  `docs/GAMEPLAY.md`). Voir section 2 ci-dessous pour la suite.
+  `docs/GAMEPLAY.md`). Voir section 3 ci-dessous pour la suite.
 
-## 2. Construire la boutique (dépenser les étoiles)
+## 2. Finaliser l'import de musique (aller au-delà du bouton de test)
+
+**Partiellement fait.** Le moteur sait déjà générer un niveau à partir
+du rythme réel d'un fichier audio importé (`audio/beatDetector.js` +
+`level/levelSequencer.buildSequenceFromBeatTimes`, voir
+`docs/ARCHITECTURE.md` et `docs/GAMEPLAY.md`). Aujourd'hui, ça reste un
+**bouton de test** sur l'écran de démarrage ("🧪 Tester avec la musique
+importée"), avec un seul fichier fixe et non optimisé
+(`src/assets/mfcc-chinese-japanese-korean-music-324382.mp3`, ~3,3 Mo).
+
+### Ce qu'il reste à faire pour que ce soit une vraie fonctionnalité
+
+- **Laisser le joueur choisir son fichier** : un `<input type="file"
+  accept="audio/*">` sur l'écran de démarrage, lu avec
+  `file.arrayBuffer()` avant de le passer à
+  `audioManager.loadTrack`-like logique (`decodeAudioData` prend déjà
+  un `ArrayBuffer`, donc `loadTrack` devra être adapté pour accepter
+  soit une URL soit un `ArrayBuffer` directement).
+- **Retirer le fichier de test** (`mfcc-chinese-japanese-korean-music-324382.mp3`)
+  une fois qu'un vrai mécanisme de sélection existe : il n'a été
+  déposé que pour valider la détection de rythme, et il n'est pas
+  optimisé (poids, format) pour un vrai jeu.
+- **Un vrai retour à l'écran de démarrage** : aujourd'hui, après une
+  partie sur le niveau importé, seul un rechargement de page permet de
+  retester (voir `docs/GAMEPLAY.md`, limites connues). Prévoir un
+  bouton "Menu" sur les écrans d'échec/victoire.
+- **Améliorer la détection de rythme** si nécessaire : `beatDetector.js`
+  utilise une méthode simple (un seul canal d'analyse d'énergie). Pour
+  des musiques plus subtiles (peu de percussions marquées), une
+  analyse multi-bandes (grave/médium/aigu séparés) donnerait de
+  meilleurs résultats — mais ajoute de la complexité, à ne faire que si
+  le besoin se confirme.
+- **Décider où va la position latérale** : aujourd'hui, le tracé
+  (FL/L/C/R/FR) reprend celui du niveau d'entraînement quel que soit
+  le fichier importé, faute de mieux. Une vraie fonctionnalité pourrait
+  vouloir un tracé différent (aléatoire, ou dérivé d'une autre analyse
+  du son, comme sa hauteur/fréquence dominante).
+
+### Points de vigilance
+
+- Ne jamais faire dépendre `core/engine.js` de la façon dont un niveau
+  a été construit (tempo fixe ou détection de rythme) : c'est tout
+  l'intérêt de `tile.expectedTime` et de `config.scroll.speed` (voir
+  `docs/ARCHITECTURE.md`) — ce module ne doit jamais avoir besoin de
+  savoir laquelle des deux méthodes a été utilisée.
+- Le décodage + l'analyse d'un long fichier peuvent prendre plusieurs
+  secondes : garder un message de chargement clair (déjà en place,
+  `#test-track-status`), et prévoir un moyen d'annuler si ça devient
+  gênant pour de très gros fichiers.
+
+## 3. Construire la boutique (dépenser les étoiles)
 
 **Pas encore fait, volontairement.** Le joueur gagne des étoiles
 (atterrissage parfait sur une tuile), et elles sont sauvegardées de
@@ -87,11 +137,11 @@ d'endroit où les dépenser.
   seulement lire la config qui en résulte (couleur, skin...).
 - Garder la même règle que pour les étoiles : l'inventaire "objets
   possédés" doit être écrit dès maintenant pour être **facile à
-  migrer vers Supabase** plus tard (voir section 3), donc passer par
+  migrer vers Supabase** plus tard (voir section 4), donc passer par
   `localStore.js`, jamais par un accès direct à `localStorage` ailleurs
   dans le code.
 
-## 3. Brancher Supabase (authentification + base de données)
+## 4. Brancher Supabase (authentification + base de données)
 
 **Pas encore fait, volontairement.** Aujourd'hui, le meilleur score et
 le solde d'étoiles sont sauvegardés, en local, via
@@ -108,7 +158,7 @@ getStarBalance()          // renvoie le total d'étoiles du joueur
 addStars(amount)           // ajoute des étoiles au total, renvoie le nouveau total
 ```
 
-(Si la boutique de la section 2 est construite avant Supabase, elle
+(Si la boutique de la section 3 est construite avant Supabase, elle
 ajoutera probablement `getOwnedItems()` / `setOwnedItems(ids)` ici
 aussi, en suivant le même principe.)
 
@@ -133,7 +183,7 @@ Supabase est prêt :
 - Une table `scores` (ou équivalent) côté Supabase : `user_id`,
   `level_id`, `score`, `created_at` au minimum.
 - Une table (ou colonne) pour le solde d'étoiles, et potentiellement
-  une table `owned_items` si la boutique (section 2) existe déjà à ce
+  une table `owned_items` si la boutique (section 3) existe déjà à ce
   moment-là.
 - Gérer le cas hors-ligne / erreur réseau : `SupabaseStore` devra
   définir un comportement de repli raisonnable (par exemple, retomber

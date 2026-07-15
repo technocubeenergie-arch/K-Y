@@ -42,6 +42,8 @@
     completeHighscore: document.getElementById('complete-highscore'),
     completeStars: document.getElementById('complete-stars'),
   };
+  const testTrackButton = document.getElementById('btn-test-imported-track');
+  const testTrackStatus = document.getElementById('test-track-status');
 
   // --- 2. Briques du jeu ---------------------------------------------------
   const eventBus = new TH.EventBus();
@@ -49,7 +51,7 @@
   const localStore = new TH.LocalStore(config.storage);
 
   const sequence = TH.LevelSequencer.buildSequence(TH.Levels.training, config);
-  const camera = new TH.Camera(sequence.scrollSpeed, config);
+  const camera = new TH.Camera(config.scroll.speed, config);
   const ball = new TH.Ball(config);
   const clock = new TH.Clock(() => audioManager.getAudioTime());
 
@@ -58,7 +60,7 @@
   const input = new TH.InputController(canvas, ball, config);
   const gameLoop = new TH.GameLoop(engine, renderer, input);
 
-  new TH.Hud(domRefs, eventBus, sequence.tiles.length);
+  new TH.Hud(domRefs, eventBus);
   new TH.Screens(domRefs, eventBus, {
     onStart: handleStart,
     onTogglePause: handleTogglePause,
@@ -71,6 +73,7 @@
   });
   eventBus.on('game:over', () => audioManager.stopMusic());
   eventBus.on('game:over', () => audioManager.playFailSound());
+  eventBus.on('game:complete', () => audioManager.stopMusic());
   eventBus.on('game:complete', () => audioManager.playCompleteSound());
   eventBus.on('game:pause', () => audioManager.pause());
   eventBus.on('game:resume', () => audioManager.resumeIfNeeded());
@@ -86,6 +89,47 @@
   function handleTogglePause() {
     engine.togglePause();
   }
+
+  // Bouton expérimental : génère un niveau à partir du RYTHME RÉEL d'un
+  // fichier audio importé (voir audio/beatDetector.js), au lieu du tempo
+  // fixe du niveau d'entraînement. But : prouver que le moteur peut
+  // suivre n'importe quelle musique, pas seulement celle composée pour
+  // lui (voir docs/GAMEPLAY.md, "Générer les tuiles depuis une vraie
+  // musique").
+  async function handleTestImportedTrack() {
+    testTrackButton.disabled = true;
+    testTrackStatus.textContent = 'Analyse du rythme en cours…';
+
+    try {
+      audioManager.init();
+      await audioManager.resumeIfNeeded();
+
+      const trackUrl = TH.AssetManifest.music.importedTest.source;
+      const audioBuffer = await audioManager.loadTrack(trackUrl);
+
+      const onsets = TH.BeatDetector.detectOnsets(audioBuffer, config.beatDetection)
+        .slice(0, config.beatDetection.maxTiles);
+
+      if (onsets.length < 2) {
+        testTrackStatus.textContent = "Pas assez de rythme détecté dans ce fichier.";
+        testTrackButton.disabled = false;
+        return;
+      }
+
+      const testSequence = TH.LevelSequencer.buildSequenceFromBeatTimes(onsets, TH.Levels.training, config);
+
+      testTrackStatus.textContent = '';
+      testTrackButton.disabled = false;
+
+      const startTime = audioManager.playTrack(audioBuffer);
+      engine.start(startTime, testSequence);
+    } catch (error) {
+      testTrackStatus.textContent = 'Impossible de lire ce fichier audio.';
+      testTrackButton.disabled = false;
+    }
+  }
+
+  testTrackButton.addEventListener('click', handleTestImportedTrack);
 
   // --- 5. Démarrage de la boucle de rendu (dessine même avant le "Jouer") -
   gameLoop.start();
