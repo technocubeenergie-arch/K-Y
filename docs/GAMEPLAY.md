@@ -128,6 +128,35 @@ R  = un peu à droite   FR = tout à droite
 C'est volontairement simple à lire (et à modifier) sans savoir coder :
 changer le niveau, c'est changer cette suite de lettres.
 
+## Les fausses tuiles : brouiller la lecture du chemin
+
+À chaque horaire, en plus de la VRAIE tuile (colorée normalement), le
+jeu affiche aussi des **fausses tuiles** : des tuiles grises, sans
+couleur, posées sur les autres positions latérales possibles au même
+moment. Elles ne servent qu'à rendre le chemin moins évident à lire
+d'un coup d'œil — un peu comme dans le vrai Tiles Hop.
+
+Ces fausses tuiles n'ont **aucune existence dans les règles du jeu** :
+`core/engine.js` ne les connaît même pas. Rater en atterrissant sur
+l'une d'elles revient exactement à rater en atterrissant dans le vide
+(la balle n'est simplement pas alignée avec la vraie tuile) — le moteur
+n'a pas eu besoin d'un seul changement pour ça (voir `docs/BUGS.md`).
+Elles sont générées par `level/levelSequencer.js` (fonction
+`buildDecoys`) et attachées à la vraie tuile (`tile.decoys`), puis
+dessinées par `render/renderer.js`, sans zone bonus ni changement de
+couleur possible.
+
+Réglages dans `gameConfig.js` (`tile.decoyCount`, `tile.decoyColor`) :
+`decoyCount` contrôle combien des 4 autres positions reçoivent une
+fausse tuile (0 désactive complètement la fonctionnalité).
+
+**Prévu pour plus tard** (voir `docs/FUTURE_INTEGRATIONS.md`) : un
+objet de boutique (une "balle volante") qui permettrait de sauter
+par-dessus une fausse tuile, ou le vide, sans perdre. Le moteur garde
+donc un seul point de décision pour l'échec (`core/engine.js`,
+`_processHop`), pour qu'un futur état "vole" sur la balle puisse
+facilement désactiver cet échec sans toucher au reste des règles.
+
 ## Que se passe-t-il à chaque "saut" (hop) ?
 
 À l'instant précis où une tuile atteint la ligne d'impact, le jeu

@@ -132,12 +132,23 @@ d'endroit où les dépenser.
   **couleur de tuile parfaite** différente (juste une valeur à lire
   dans `config.ball.color` / `config.tile.perfectColor` au lieu de la
   valeur fixe actuelle).
+- **Idée retenue pour un futur objet (pas encore construit)** : une
+  "balle volante" (une mini-balle à ailes) qui permettrait au joueur de
+  sauter par-dessus le vide, y compris une fausse tuile (voir
+  `docs/GAMEPLAY.md`, section sur les fausses tuiles), sans perdre.
+  Techniquement : un état temporaire sur `ball` (par exemple
+  `ball.isFlying`), lu par `core/engine.js` dans `_processHop` pour
+  ignorer l'échec normal quand la balle n'est pas alignée avec la vraie
+  tuile. Le point de décision est déjà unique et isolé dans le code
+  actuel (une seule condition `isAligned` dans `_processHop`), pour que
+  cet ajout reste simple le jour venu.
 
 ### Points de vigilance
 
 - Ne pas mélanger la logique de la boutique avec `engine.js` : le
   moteur de jeu n'a pas besoin de savoir ce que le joueur a acheté,
-  seulement lire la config qui en résulte (couleur, skin...).
+  seulement lire la config (ou un état simple posé sur `ball`) qui en
+  résulte (couleur, skin, vol...).
 - Garder la même règle que pour les étoiles : l'inventaire "objets
   possédés" doit être écrit dès maintenant pour être **facile à
   migrer vers Supabase** plus tard (voir section 4), donc passer par

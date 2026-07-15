@@ -27,6 +27,12 @@
       // true si la tuile a été touchée pile au centre (voir engine.js) :
       // ça rapporte une étoile en plus du point normal.
       this.isPerfect = false;
+      // Optionnel : posé par level/levelSequencer.js sur une tuile
+      // RÉELLE, une liste de "fausses tuiles" (elles-mêmes de simples
+      // Tile) à afficher au même horaire, sur d'autres positions
+      // latérales. Purement visuel : core/engine.js ne lit jamais cette
+      // propriété, seul render/renderer.js s'en sert.
+      this.decoys = null;
     }
 
     getCenterX(canvasWidth, tileWidth) {
