@@ -79,6 +79,15 @@
       // étoile. Le reste de la tuile (en bleu) est déjà sûr par défaut,
       // inutile de le souligner en plus.
       perfectZonePreviewColor: 'rgba(250, 204, 21, 0.6)',
+
+      // "Fausses tuiles" (voir docs/GAMEPLAY.md) : à chaque horaire, en
+      // plus de la vraie tuile (colorée normalement), combien d'AUTRES
+      // positions latérales affichent une tuile grise, non colorée,
+      // purement visuelle (aucune conséquence si la balle passe
+      // dessus : c'est déjà un "raté" comme atterrir dans le vide,
+      // voir docs/GAMEPLAY.md). 0 = fonctionnalité désactivée.
+      decoyCount: 4,
+      decoyColor: '#334155',
     },
 
     // Défilement : vitesse constante (px/seconde) à laquelle le monde

@@ -92,44 +92,66 @@
     }
 
     _drawTiles(tiles, t) {
-      const { ctx, config, camera } = this;
-
       // On dessine des tuiles les plus LOINTAINES aux plus PROCHES,
       // pour que les grandes tuiles proches recouvrent correctement
       // les petites tuiles lointaines si elles se chevauchent à l'écran
       // (comme une vraie scène en perspective).
       for (let i = tiles.length - 1; i >= 0; i--) {
         const tile = tiles[i];
-        const flatX = tile.getCenterX(config.canvas.width, config.tile.width);
-        const { screenX, screenY, scale } = camera.project(tile.worldY, flatX, t);
 
-        if (scale < MIN_VISIBLE_SCALE) continue; // trop loin pour être utile
-        if (screenY < camera.horizonY - 5 || screenY > config.canvas.height + config.tile.height) {
-          continue; // hors écran
+        // Les fausses tuiles (voir docs/GAMEPLAY.md) d'abord : elles
+        // sont à la même distance (même worldY) que la vraie tuile,
+        // mais sur d'autres positions latérales, donc ne se chevauchent
+        // jamais avec elle à l'écran — l'ordre entre les deux n'a pas
+        // d'importance.
+        if (tile.decoys) {
+          for (const decoy of tile.decoys) {
+            this._drawSingleTile(decoy, t, this.config.tile.decoyColor);
+          }
         }
 
-        const width = config.tile.width * scale;
-        const height = config.tile.height * scale;
-
-        ctx.fillStyle = this._tileColor(tile);
-        ctx.beginPath();
-        ctx.roundRect(
-          screenX - width / 2,
-          screenY - height / 2,
-          width,
-          height,
-          this._safeCornerRadius(6 * scale, width, height)
-        );
-        ctx.fill();
+        const projected = this._drawSingleTile(tile, t, this._tileColor(tile));
 
         // Tant que la tuile n'a pas encore été atteinte, on montre
         // directement dessus la zone bonus à viser (voir docs/GAMEPLAY.md).
         // Le reste de la tuile (en bleu) est déjà sûr, pas besoin de le
-        // souligner en plus.
-        if (tile.state === 'pending') {
-          this._drawPerfectZone(screenX, screenY, scale);
+        // souligner en plus. Les fausses tuiles n'ont jamais cette zone :
+        // elles ne rapportent jamais rien.
+        if (projected && tile.state === 'pending') {
+          this._drawPerfectZone(projected.screenX, projected.screenY, projected.scale);
         }
       }
+    }
+
+    // Dessine UNE tuile (vraie ou fausse) et renvoie sa position/échelle
+    // à l'écran, ou `null` si elle n'est pas visible (trop loin, ou hors
+    // écran) — pour éviter de dupliquer ce calcul de projection entre
+    // `_drawTiles` et `_drawPerfectZone`.
+    _drawSingleTile(tile, t, color) {
+      const { ctx, config, camera } = this;
+      const flatX = tile.getCenterX(config.canvas.width, config.tile.width);
+      const { screenX, screenY, scale } = camera.project(tile.worldY, flatX, t);
+
+      if (scale < MIN_VISIBLE_SCALE) return null; // trop loin pour être utile
+      if (screenY < camera.horizonY - 5 || screenY > config.canvas.height + config.tile.height) {
+        return null; // hors écran
+      }
+
+      const width = config.tile.width * scale;
+      const height = config.tile.height * scale;
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.roundRect(
+        screenX - width / 2,
+        screenY - height / 2,
+        width,
+        height,
+        this._safeCornerRadius(6 * scale, width, height)
+      );
+      ctx.fill();
+
+      return { screenX, screenY, scale };
     }
 
     _drawPerfectZone(screenX, screenY, scale) {

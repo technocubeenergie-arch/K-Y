@@ -58,5 +58,9 @@
     id: 'training',
     name: "Niveau d'entraînement",
     resolvePositions,
+    // Toutes les positions latérales possibles (FL/L/C/R/FR) : sert à
+    // placer les "fausses tuiles" sur les positions NON choisies à
+    // chaque horaire (voir level/levelSequencer.js et docs/GAMEPLAY.md).
+    laneFractions: Object.values(LANE_POSITIONS),
   };
 })(window.TH = window.TH || {});
