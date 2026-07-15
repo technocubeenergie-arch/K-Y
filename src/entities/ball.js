@@ -22,8 +22,18 @@
       this.radius = config.ball.radius;
       this.x = config.canvas.width / 2;
       this.targetX = this.x;
-      this._minX = this.radius;
-      this._maxX = config.canvas.width - this.radius;
+
+      // La balle ne doit jamais pouvoir sortir de la zone où une tuile
+      // peut exister : on reprend exactement la même formule que
+      // `tile.getCenterX` (une tuile, même complètement à gauche ou à
+      // droite, garde son centre entre `tileWidth/2` et
+      // `canvasWidth - tileWidth/2`). Sans cette limite, le joueur
+      // pouvait déplacer la balle au-delà de la tuile la plus excentrée
+      // (jusqu'aux bords du canvas), dans une zone où aucune tuile
+      // n'apparaît jamais.
+      const tileMargin = config.tile.width / 2;
+      this._minX = tileMargin;
+      this._maxX = config.canvas.width - tileMargin;
 
       // Amplitude du rebond visuel (en pixels), 0 = balle immobile
       this.bounceHeight = config.ball.bounceHeight;

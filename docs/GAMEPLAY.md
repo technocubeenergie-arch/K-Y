@@ -38,6 +38,13 @@ Le joueur ne gère jamais "l'avancée" du jeu : elle est 100% automatique,
 pilotée par le temps qui passe (voir `docs/ARCHITECTURE.md`, section
 "défilement automatique").
 
+Le déplacement latéral est libre, mais borné : la balle ne peut pas
+aller plus loin, sur le côté, que l'endroit où une tuile peut
+réellement exister (`entities/ball.js`, mêmes bornes que
+`tile.getCenterX` dans `entities/tile.js` — voir `docs/BUGS.md`,
+BUG-010). Impossible, donc, d'envoyer la balle dans une zone où aucune
+tuile n'apparaît jamais.
+
 ## Le rythme structure tout : la musique décide, les tuiles suivent
 
 Contrairement à beaucoup de jeux du genre, il n'y a **pas de tempo

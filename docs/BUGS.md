@@ -6,6 +6,45 @@
 
 ---
 
+## BUG-010 — La balle pouvait sortir de la zone où une tuile peut exister (signalé par Ylonna)
+
+- **Problème observé** : Ylonna a remarqué qu'en bougeant la balle tout
+  à fait sur le côté, elle pouvait "sortir de la limite des tuiles" :
+  aller plus loin, latéralement, que l'endroit où n'importe quelle
+  tuile peut apparaître.
+- **Contexte** : `entities/ball.js` limitait la position de la balle
+  uniquement par rapport aux BORDS DU CANVAS (`this.radius` à
+  `config.canvas.width - this.radius`), sans lien avec la zone où les
+  tuiles peuvent réellement se trouver.
+- **Cause identifiée** : `tile.getCenterX` (voir `entities/tile.js`)
+  garde toujours le centre d'une tuile entre `tileWidth / 2` et
+  `canvasWidth - tileWidth / 2`, même pour une tuile complètement à
+  gauche ou à droite (`xFraction` = 0 ou 1). La balle, elle, pouvait
+  aller jusqu'à `radius` et `canvasWidth - radius` — un intervalle plus
+  large que celui des tuiles, puisque `radius` (18px) est plus petit
+  que `tileWidth / 2` (60px). Le joueur pouvait donc déplacer la balle
+  dans une bande d'environ 42px de chaque côté où aucune tuile
+  n'apparaît jamais.
+- **Solution appliquée** : `entities/ball.js` calcule maintenant ses
+  bornes de déplacement avec exactement la même formule que
+  `tile.getCenterX` (`tileMargin = config.tile.width / 2`), au lieu de
+  se baser sur son propre rayon et les bords du canvas.
+- **Effets secondaires** : aucun changement pour le contrôle
+  souris/tactile/clavier lui-même (toujours `setTargetX` /
+  `nudgeTargetX`), seules les valeurs limites changent. `ball.radius`
+  reste utilisé pour le dessin, plus pour le calcul des bornes.
+- **Point de vigilance** : si `config.tile.width` change un jour, les
+  bornes de déplacement de la balle suivent automatiquement (même
+  formule) — ne jamais réintroduire un calcul de bornes séparé pour la
+  balle.
+- **Vérifié** : testé en navigateur réel (Playwright) — `ball.setTargetX`
+  avec des valeurs extrêmes (-9999 / +9999) se limite bien à 60px et
+  340px (sur un canvas de 400px et des tuiles de 120px de large),
+  cohérent avec `tile.getCenterX` ; aucune régression sur le score, la
+  pause, l'échec ou le rejeu.
+
+---
+
 ## BUG-009 — Deux tuiles trop rapprochées possibles sur un morceau rapide
 
 - **Problème observé** : en testant `audio/beatDetector.js` (voir
