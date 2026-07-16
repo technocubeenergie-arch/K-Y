@@ -26,12 +26,7 @@
   // jamais, et n'a pas besoin de savoir qu'elles existent — atterrir
   // dessus revient simplement à ne pas être aligné avec la vraie
   // tuile, ce que le moteur détecte déjà (voir docs/GAMEPLAY.md).
-  function buildDecoys(realTile, realXFraction, laneFractions, config, useLeftEdge) {
-    const sortedFractions = [...laneFractions].sort((a, b) => a - b);
-    const edgeLanes = useLeftEdge
-      ? sortedFractions.slice(0, config.tile.decoyCount)
-      : sortedFractions.slice(-config.tile.decoyCount);
-
+  function buildDecoys(realTile, edgeLanes, realXFraction, config) {
     return edgeLanes
       .filter((fraction) => fraction !== realXFraction)
       .map((fraction) => new TH.Tile(realTile.index, realTile.worldY, fraction, realTile.expectedTime));
@@ -65,6 +60,10 @@
     const scrollSpeed = config.scroll.speed;
     const xFractions = levelDef.resolvePositions(beatTimes.length);
 
+    const sortedFractions = [...levelDef.laneFractions].sort((a, b) => a - b);
+    const leftLanes = sortedFractions.slice(0, config.tile.decoyCount);
+    const rightLanes = sortedFractions.slice(-config.tile.decoyCount);
+
     // Même un tirage bien réparti (50/50) peut, par pur hasard, aligner
     // plusieurs fois le même bord d'affilée (repéré en jeu : jusqu'à 8
     // fois de suite) — statistiquement normal, mais ça donne
@@ -80,14 +79,36 @@
       const showDecoys = config.tile.decoyCount > 0 && pseudoRandom01(index, 0) < config.tile.decoyFrequency;
 
       if (showDecoys) {
-        const drawnSide = pseudoRandom01(index, 999331) < 0.5 ? 'left' : 'right';
-        const mustSwitch = drawnSide === lastSide && sameSideStreak >= config.tile.decoyMaxSameSideStreak;
-        const side = mustSwitch ? (drawnSide === 'left' ? 'right' : 'left') : drawnSide;
+        // Si la vraie tuile est déjà sur une des positions du bord
+        // choisi, il ne resterait qu'une seule fausse tuile, collée et
+        // chevauchant la vraie (un petit bout qui dépasse, repéré par
+        // Ylonna en jeu) — jamais le bloc net attendu de l'autre côté.
+        // On considère donc un bord "sûr" seulement s'il ne contient
+        // PAS la position de la vraie tuile.
+        const realOnLeftLanes = leftLanes.includes(xFractions[index]);
+        const realOnRightLanes = rightLanes.includes(xFractions[index]);
 
-        tile.decoys = buildDecoys(tile, xFractions[index], levelDef.laneFractions, config, side === 'left');
+        let side = null;
+        if (!realOnLeftLanes && !realOnRightLanes) {
+          // Les deux bords sont sûrs (vraie tuile ailleurs, par ex. au
+          // centre) : on choisit librement, avec l'anti-répétition.
+          const drawnSide = pseudoRandom01(index, 999331) < 0.5 ? 'left' : 'right';
+          const mustSwitch = drawnSide === lastSide && sameSideStreak >= config.tile.decoyMaxSameSideStreak;
+          side = mustSwitch ? (drawnSide === 'left' ? 'right' : 'left') : drawnSide;
+        } else if (!realOnLeftLanes) {
+          side = 'left';
+        } else if (!realOnRightLanes) {
+          side = 'right';
+        }
+        // Si les deux bords sont "dangereux" (decoyCount très grand),
+        // `side` reste `null` : aucune fausse tuile cette fois, plutôt
+        // qu'un chevauchement.
 
-        sameSideStreak = side === lastSide ? sameSideStreak + 1 : 1;
-        lastSide = side;
+        if (side) {
+          tile.decoys = buildDecoys(tile, side === 'left' ? leftLanes : rightLanes, xFractions[index], config);
+          sameSideStreak = side === lastSide ? sameSideStreak + 1 : 1;
+          lastSide = side;
+        }
       }
 
       return tile;
