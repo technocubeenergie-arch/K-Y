@@ -95,6 +95,24 @@ puis chercher un coup à CHAQUE position de ce pouls (voir
 que la balle atterrit en rythme à chaque fois, sauf vraie pause
 musicale.
 
+**Une grille fixe peut quand même rater un coup réel.** Si un coup
+tombe ENTRE deux positions de la grille (une syncope, une petite
+variation de tempo à cet endroit précis), la recherche ne le voit
+jamais — elle ne regarde qu'autour de chaque position de la grille,
+jamais entre deux. Repéré sur `phuthona.ogg` : Ylonna a remarqué que la
+balle ne retombait pas sur une tuile à chaque coup entendu. Vérifié en
+mesurant l'énergie exactement au milieu des écarts anormalement longs :
+un vrai sursaut, net et audible, s'y trouvait à chaque fois.
+`audio/beatDetector.js` (`fillMissedBeats`) fait donc, après la grille,
+une seconde passe : pour tout écart supérieur à 1,5× le pouls détecté,
+elle cherche le plus gros sursaut D'ÉNERGIE dans cet écart (même
+critère que la grille), et l'ajoute s'il est suffisamment marqué ET
+assez loin des deux tuiles voisines pour rester jouable
+(`minIntervalSeconds`, le temps de réaction minimum — voir BUG-009).
+Un coup réel mais trop proche d'une tuile voisine pour être jouable
+reste un écart : c'est là qu'une plateforme de liaison prend le relais
+(voir plus bas).
+
 **Limites connues** (voir `docs/FUTURE_INTEGRATIONS.md` pour la
 suite) :
 - la détection suppose un **tempo stable** sur tout le morceau (une
@@ -121,10 +139,13 @@ suite) :
 
 ## Les plateformes de liaison : combler les longs vides du rythme
 
-Certains écarts entre deux tuiles détectées sont nettement plus longs
-que la normale (une vraie pause dans le morceau, pas juste un tempo un
-peu plus lent). Plutôt que de laisser un simple trou dans le niveau,
-une **plateforme de liaison** vient combler cet espace — un long ruban
+Certains écarts entre deux tuiles détectées restent nettement plus
+longs que la normale, même après la récupération des coups manqués par
+la grille (voir plus haut, `fillMissedBeats`) : soit une vraie pause
+dans le morceau, soit un coup réel mais trop proche d'une tuile voisine
+pour être ajouté sans rendre le niveau injouable. Plutôt que de laisser
+un simple trou dans le niveau, une **plateforme de liaison** vient
+combler cet espace — un long ruban
 continu, à la même position latérale que la tuile qui précède le vide,
 qui rétrécit vers l'horizon comme les tuiles (même logique de
 perspective, voir `render/camera.js`), mais étiré entre les deux
@@ -135,12 +156,13 @@ plus** : elle roule en continu jusqu'à la tuile suivante, au lieu de
 faire son petit saut habituel entre chaque tuile.
 
 - **Détection** : `level/levelSequencer.js` (`buildBridges`) repère,
-  après avoir construit les tuiles, tout écart entre deux tuiles
-  consécutives supérieur à `config.bridge.minGapSeconds` (0,9s par
-  défaut — sur `phuthona.ogg`, la plupart des écarts valent 0,4 à
-  0,9s, donc au-delà c'est un vrai vide). Le résultat (`sequence.bridges`)
-  est une liste à part de `tiles` : ce n'est pas une tuile à toucher ou
-  à rater, `core/engine.js` ne juge jamais rien dessus.
+  après avoir construit les tuiles (donc après `fillMissedBeats`), tout
+  écart entre deux tuiles consécutives supérieur à
+  `config.bridge.minGapSeconds` (0,9s par défaut — sur `phuthona.ogg`,
+  la plupart des écarts valent 0,4 à 0,9s). Le résultat
+  (`sequence.bridges`) est une liste à part de `tiles` : ce n'est pas
+  une tuile à toucher ou à rater, `core/engine.js` ne juge jamais rien
+  dessus.
 - **Rendu** : `render/renderer.js` (`_drawBridges`) projette les DEUX
   bouts de la plateforme (début et fin du vide) avec `camera.project`,
   et dessine un quadrilatère qui les relie — plus large qu'une tuile
