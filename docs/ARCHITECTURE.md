@@ -176,12 +176,17 @@ même calcul s'applique à la position latérale (`flatX`), qui se
 resserre vers le centre pour les tuiles lointaines — comme une route
 qui s'élargit en s'approchant.
 
-`render/renderer.js` ne dessine pas les tuiles dont l'échelle tombe
-sous `config.perspective.minVisibleScale` : sans cette limite, un
-niveau généré à partir d'un long morceau (beaucoup de tuiles) affiche
-un fouillis de tuiles minuscules empilées près de l'horizon, puisque
-toutes les tuiles à venir (même très loin dans le niveau) sont
-projetées à chaque image, aussi loin soit leur `worldY`.
+`render/renderer.js` ne dessine pas une tuile dont l'échelle tombe sous
+un seuil minimum — sinon, un niveau généré à partir d'un long morceau
+(beaucoup de tuiles) afficherait un fouillis de tuiles minuscules
+empilées près de l'horizon, puisque toutes les tuiles à venir (même
+très loin dans le niveau) sont projetées à chaque image, aussi loin
+soit leur `worldY`. Ce seuil est volontairement **différent** pour une
+vraie tuile (`config.perspective.minVisibleScale`, très bas : on VEUT
+voir le chemin s'étirer loin vers l'horizon) et pour une fausse tuile
+(`config.tile.decoyMinVisibleScale`, nettement plus haut : elle ne sert
+qu'à brouiller la lecture juste avant l'atterrissage, pas à décorer
+tout l'horizon — voir docs/GAMEPLAY.md).
 
 **Point important d'architecture** : cette perspective est une pure
 affaire de *rendu*. `core/engine.js` (les règles du jeu) continue de
