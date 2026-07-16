@@ -64,7 +64,7 @@ src/
   assets/
     assetManifest.js             Registre central de tous les assets (voir plus bas)
     levelTrackData.js              La musique du niveau, encodée en base64 (généré, voir plus bas)
-    phuthon.ogg                     Fichier audio actuellement utilisé pour le niveau (test de comparaison, voir docs/GAMEPLAY.md)
+    phuthona.ogg                     Fichier audio actuellement utilisé pour le niveau (test de comparaison, voir docs/GAMEPLAY.md)
     audioniveau6.ogg                Fichier audio précédent, gardé pour comparaison/régénération
   main.js                    Chef d'orchestre : crée et relie tous les modules
 docs/                     Documentation (ce dossier)
@@ -233,7 +233,7 @@ en déduit où placer les tuiles.
 
 Les visuels (balle, tuiles, fond) restent **générés par du code**
 (formes simples sur le canvas). La musique, elle, est un vrai fichier
-(actuellement `assets/phuthon.ogg`, voir `docs/GAMEPLAY.md`), mais
+(actuellement `assets/phuthona.ogg`, voir `docs/GAMEPLAY.md`), mais
 c'est encore un choix temporaire (pas de sélection par le joueur).
 Chaque asset est référencé dans `src/assets/assetManifest.js`, avec son statut
 et, pour les visuels encore générés, leur futur chemin de fichier. Voir

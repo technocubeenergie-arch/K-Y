@@ -130,7 +130,10 @@
       // morceau n'est pas joué à la mécanique près.
       toleranceRatio: 0.3,
       // Limite le nombre de tuiles générées, même pour un long morceau.
-      maxTiles: 60,
+      // Réglé pour couvrir l'intégralité de phuthona.ogg (1min32, 152
+      // coups détectés sur toute sa durée) : augmenter si un futur
+      // morceau, plus long ou plus rythmé, en détecte davantage.
+      maxTiles: 160,
     },
 
     // Étoiles : la monnaie du jeu, gagnée en atterrissant pile au centre

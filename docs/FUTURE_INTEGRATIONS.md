@@ -57,7 +57,7 @@ du rythme réel de la musique du jeu (`audio/beatDetector.js` +
 `level/levelSequencer.buildSequence`, voir `docs/ARCHITECTURE.md` et
 `docs/GAMEPLAY.md`) — ce n'est plus un test, c'est le fonctionnement
 normal du jeu. Ce qui reste temporaire : la musique est un **seul
-fichier fixe**, choisi par nous (actuellement `src/assets/phuthon.ogg`,
+fichier fixe**, choisi par nous (actuellement `src/assets/phuthona.ogg`,
 embarqué en base64 dans `src/assets/levelTrackData.js` — voir
 `src/assets/assetManifest.js` pour le fichier actif), pas encore un
 fichier choisi par le joueur.
