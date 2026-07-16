@@ -99,6 +99,12 @@
       // Fraction des tuiles concernées par les fausses tuiles (0 =
       // jamais, 1 = à chaque tuile). 0,3 = environ 3 tuiles sur 10.
       decoyFrequency: 0.3,
+      // Nombre maximum de fois d'affilée où les fausses tuiles peuvent
+      // tomber du même bord avant qu'un changement de côté soit forcé
+      // (voir level/levelSequencer.js) : même un tirage bien réparti
+      // peut, par hasard, s'aligner plusieurs fois de suite, ce qui
+      // donne l'impression que "c'est toujours le même côté".
+      decoyMaxSameSideStreak: 2,
       decoyColor: '#334155',
     },
 

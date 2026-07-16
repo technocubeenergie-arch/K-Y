@@ -40,14 +40,21 @@
   // Décide si LA tuile d'indice `index` reçoit des fausses tuiles, et
   // de quel côté, sans utiliser Math.random() : un même morceau doit
   // toujours générer exactement le même niveau (rejouer, tester).
-  // Cette petite formule ("hash" classique) transforme un nombre entier
-  // en une valeur entre 0 et 1 qui paraît irrégulière mais reste
-  // identique à chaque calcul. Deux constantes différentes (12.9898 et
-  // 78.233) pour que "apparaît ou non" et "quel bord" ne soient pas
-  // corrélés entre eux.
+  // Ce "hash" entier (mélange de bits classique, inspiré de MurmurHash)
+  // transforme un nombre entier en une valeur entre 0 et 1 qui paraît
+  // irrégulière mais reste identique à chaque calcul — et surtout, ne
+  // produit pas de longues séries répétées d'affilée pour des entiers
+  // qui se suivent (contrairement à une formule à base de Math.sin,
+  // qui y était sujette : testé en jeu, jusqu'à 7 fausses tuiles de
+  // suite du même côté). `salt` sert à obtenir deux décisions
+  // indépendantes ("apparaît ou non" / "quel bord") à partir du même
+  // `index`.
   function pseudoRandom01(seed, salt) {
-    const x = Math.sin(seed * salt) * 43758.5453;
-    return x - Math.floor(x);
+    let x = (seed + salt) | 0;
+    x = Math.imul(x ^ (x >>> 16), 0x45d9f3b);
+    x = Math.imul(x ^ (x >>> 16), 0x45d9f3b);
+    x = x ^ (x >>> 16);
+    return (x >>> 0) / 4294967296;
   }
 
   // `beatTimes` : les horaires (secondes, triés du plus tôt au plus
@@ -58,14 +65,31 @@
     const scrollSpeed = config.scroll.speed;
     const xFractions = levelDef.resolvePositions(beatTimes.length);
 
+    // Même un tirage bien réparti (50/50) peut, par pur hasard, aligner
+    // plusieurs fois le même bord d'affilée (repéré en jeu : jusqu'à 8
+    // fois de suite) — statistiquement normal, mais ça donne
+    // l'impression que "c'est toujours le même côté". On force donc
+    // explicitement un changement de bord au-delà de
+    // `decoyMaxSameSideStreak` occurrences consécutives.
+    let lastSide = null;
+    let sameSideStreak = 0;
+
     const tiles = beatTimes.map((expectedTime, index) => {
       const worldY = scrollSpeed * expectedTime;
       const tile = new TH.Tile(index, worldY, xFractions[index], expectedTime);
-      const showDecoys = config.tile.decoyCount > 0 && pseudoRandom01(index, 12.9898) < config.tile.decoyFrequency;
+      const showDecoys = config.tile.decoyCount > 0 && pseudoRandom01(index, 0) < config.tile.decoyFrequency;
+
       if (showDecoys) {
-        const useLeftEdge = pseudoRandom01(index, 78.233) < 0.5;
-        tile.decoys = buildDecoys(tile, xFractions[index], levelDef.laneFractions, config, useLeftEdge);
+        const drawnSide = pseudoRandom01(index, 999331) < 0.5 ? 'left' : 'right';
+        const mustSwitch = drawnSide === lastSide && sameSideStreak >= config.tile.decoyMaxSameSideStreak;
+        const side = mustSwitch ? (drawnSide === 'left' ? 'right' : 'left') : drawnSide;
+
+        tile.decoys = buildDecoys(tile, xFractions[index], levelDef.laneFractions, config, side === 'left');
+
+        sameSideStreak = side === lastSide ? sameSideStreak + 1 : 1;
+        lastSide = side;
       }
+
       return tile;
     });
 
