@@ -76,6 +76,10 @@
         return tile.isPerfect ? config.tile.perfectColor : config.tile.hitColor;
       }
       if (tile.state === 'missed') return config.tile.missColor;
+      // Une plaque glissante se signale par sa couleur SEULEMENT tant
+      // qu'elle n'est pas encore atteinte (voir docs/GAMEPLAY.md) : une
+      // fois touchée, elle redevient une tuile "hit" comme les autres.
+      if (tile.slideDirection) return config.tile.slipperyColor;
       return config.tile.color;
     }
 
@@ -117,6 +121,9 @@
         // elles ne rapportent jamais rien.
         if (projected && tile.state === 'pending') {
           this._drawPerfectZone(projected.screenX, projected.screenY, projected.scale);
+          if (tile.slideDirection) {
+            this._drawSlideArrow(projected.screenX, projected.screenY, projected.scale, tile.slideDirection);
+          }
         }
       }
     }
@@ -151,6 +158,24 @@
       ctx.fill();
 
       return { screenX, screenY, scale };
+    }
+
+    // Petit triangle indiquant le sens du roulement d'une plaque
+    // glissante (voir docs/GAMEPLAY.md) : sans lui, la couleur seule ne
+    // dirait pas dans quel sens la balle va dériver après l'avoir
+    // touchée.
+    _drawSlideArrow(screenX, screenY, scale, direction) {
+      const { ctx } = this;
+      const size = 10 * scale;
+      const dir = direction === 'left' ? -1 : 1;
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.beginPath();
+      ctx.moveTo(screenX + dir * size, screenY);
+      ctx.lineTo(screenX - dir * size * 0.6, screenY - size * 0.7);
+      ctx.lineTo(screenX - dir * size * 0.6, screenY + size * 0.7);
+      ctx.closePath();
+      ctx.fill();
     }
 
     _drawPerfectZone(screenX, screenY, scale) {
