@@ -90,6 +90,32 @@
     return flux;
   }
 
+  // Une tranche d'analyse dure `windowSize / sampleRate` secondes
+  // (~23ms pour 1024 échantillons à 44100Hz) : sans correction, un
+  // horaire de coup est donc arrondi à la tranche la plus proche, avec
+  // une erreur pouvant aller jusqu'à la moitié de cette durée. Cette
+  // interpolation parabolique (technique classique d'analyse de
+  // signal) affine l'estimation en utilisant la valeur des DEUX
+  // tranches voisines du pic, pour retomber entre deux tranches plutôt
+  // que pile sur l'une d'elles quand la vraie note tombe entre les
+  // deux — un gain de précision réel, pas cosmétique, sur le
+  // synchronisme perçu.
+  function refinePeakPosition(flux, frame) {
+    if (frame <= 0 || frame >= flux.length - 1) return frame;
+    const left = flux[frame - 1];
+    const center = flux[frame];
+    const right = flux[frame + 1];
+    const denominator = left - 2 * center + right;
+    if (denominator === 0) return frame;
+
+    const offset = (0.5 * (left - right)) / denominator;
+    // Une correction de plus d'une demi-tranche signalerait un calcul
+    // aberrant (le vrai pic serait alors ailleurs) : on la limite par
+    // sécurité, elle ne doit qu'affiner, jamais déplacer le pic vers
+    // une autre tranche.
+    return frame + Math.max(-0.5, Math.min(0.5, offset));
+  }
+
   // Trouve le pouls régulier du morceau par autocorrélation : on
   // compare le flux à lui-même décalé de `lag` tranches, pour tous les
   // décalages plausibles (entre `minIntervalSeconds` et
@@ -202,7 +228,7 @@
       const localAverage = sum / (windowEnd - windowStart);
 
       if (bestValue > localAverage * options.sensitivity && bestValue > 0.0001) {
-        onsetTimes.push(bestFrame / framesPerSecond);
+        onsetTimes.push(refinePeakPosition(flux, bestFrame) / framesPerSecond);
         lastAcceptedFrame = bestFrame;
       }
     }
@@ -254,7 +280,7 @@
           const localAverage = sum / (windowEnd - windowStart);
 
           if (bestValue > localAverage * options.sensitivity && bestValue > 0.0001) {
-            filled.push(bestFrame / framesPerSecond);
+            filled.push(refinePeakPosition(flux, bestFrame) / framesPerSecond);
           }
         }
       }

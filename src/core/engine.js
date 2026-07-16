@@ -189,6 +189,20 @@
     getElapsedSeconds() {
       return this.clock.getElapsedSeconds();
     }
+
+    // Pour `config.debug.showTiming` (voir render/renderer.js) : l'écart
+    // exact, en secondes, entre le temps audio courant et l'horaire de
+    // la prochaine tuile — sert à calibrer `config.audio.globalOffsetMs`
+    // à l'oreille et à l'œil (voir docs/GAMEPLAY.md).
+    getDebugTimingInfo() {
+      const musicTime = this.clock.getElapsedSeconds();
+      const nextTile = this.sequence.tiles[this._nextHopIndex] || null;
+      return {
+        musicTime,
+        nextExpectedTime: nextTile ? nextTile.expectedTime : null,
+        delta: nextTile ? musicTime - nextTile.expectedTime : null,
+      };
+    }
   }
 
   TH.Engine = Engine;

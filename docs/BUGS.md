@@ -6,6 +6,84 @@
 
 ---
 
+## BUG-013 — Audit complet de la synchronisation audio/tuiles (signalé par Ylonna)
+
+- **Problème observé** : même après BUG-012, Ylonna a signalé que le
+  placement des tuiles/plateformes ne "sonnait" toujours pas
+  parfaitement juste à l'oreille et à l'écran.
+- **Démarche** : audit complet de toute la chaîne, poste par poste,
+  plutôt qu'une nouvelle correction ponctuelle :
+  1. instant exact de départ audio (`audio/audioManager.js`,
+     `playTrack` : `startTime = audioContext.currentTime + 0.15`) ;
+  2. instant exact de départ logique du niveau (`core/clock.js`,
+     `start(atTime)` reçoit ce même `startTime` — voir `main.js`,
+     `engine.start(startTime, sequence)`) ;
+  3. calcul des `expectedTime` des tuiles et `startTime`/`endTime` des
+     plateformes (`level/levelSequencer.js`) ;
+  4. formule de scroll visuel (`render/camera.js`, `project`) ;
+  5. moment exact où une tuile est censée être sous la balle
+     (comparaison entre les deux).
+- **Résultat de l'audit (vérifié par le calcul, pas seulement lu)** :
+  - Points 1-2 : `clock.start(atTime)` prend pour zéro EXACTEMENT le
+    même instant `AudioContext` que celui programmé pour le début du
+    son (`source.start(startTime)`) — donc `clock.getElapsedSeconds() = 0`
+    tombe exactement quand l'échantillon 0 du fichier commence à jouer.
+    Aucun décalage caché ici.
+  - Point 4 : à l'instant précis où `t = tile.expectedTime`,
+    `depth = worldY − scroll.speed×t = 0` (puisque
+    `worldY = scroll.speed × expectedTime`), donc `scale = 1` et
+    `screenY = hitLine.y` — une égalité EXACTE, pas approximative.
+    Aucun bug de formule.
+  - Cause principale identifiée : la PRÉCISION du beatmap lui-même
+    (point 3), pas le moteur de jeu. `audio/beatDetector.js` mesure
+    l'énergie par tranches de `windowSize` échantillons (~23ms) et
+    renvoyait l'horaire d'un coup arrondi à la tranche la plus proche —
+    jusqu'à ~11ms d'erreur possible par coup, cohérent avec "quelques
+    millisecondes" perçues à l'oreille sur un rhythm game.
+  - Cause secondaire : aucun réglage de calibration n'existait pour la
+    latence matérielle (haut-parleurs/casque), invisible dans
+    `AudioContext.currentTime` et variable selon l'appareil.
+- **Solution appliquée** :
+  - `audio/beatDetector.js` : nouvelle fonction `refinePeakPosition`
+    (interpolation parabolique du pic d'énergie à partir des deux
+    tranches voisines), appliquée partout où un horaire de coup est
+    calculé (`buildGridOnsets`, `fillMissedBeats`).
+  - `core/clock.js` : nouveau paramètre `offsetSeconds`, ajouté à
+    `getElapsedSeconds()`.
+  - `config/gameConfig.js` : `audio.globalOffsetMs` (0 par défaut, à
+    régler à l'oreille selon l'appareil) et `debug.showTiming` (false
+    par défaut).
+  - `core/engine.js` (`getDebugTimingInfo`) et `render/renderer.js`
+    (`_drawDebugTiming`) : affichage optionnel, en bas du canvas
+    (jamais superposé au HUD HTML), du temps audio courant, de
+    l'horaire de la prochaine tuile, et de l'écart exact entre les
+    deux — un outil de calibration, aucun effet sur les règles du jeu.
+- **Ce qui a été mesuré** : sur `phuthona.ogg`, correction moyenne de
+  l'interpolation ~2,8ms, maximum ~11,6ms (soit très exactement la
+  moitié d'une tranche d'analyse, comme attendu mathématiquement) —
+  confirme que l'essentiel du gain vient bien de cette correction, pas
+  d'un ajustement arbitraire.
+- **Ce qui reste à calibrer manuellement** : `config.audio.globalOffsetMs`
+  dépend du matériel de lecture (casque, haut-parleurs, appareil) et ne
+  peut pas être deviné depuis le code — à ajuster à l'oreille par
+  Ylonna avec `config.debug.showTiming` activé.
+- **Volontairement pas fait** : reconstruire tout le moteur autour d'une
+  machine à états (`HOPPING`/`ROLLING`/`FALLING`) et d'un objet
+  "beatmap" typé, comme suggéré. L'architecture actuelle fait déjà,
+  avec d'autres noms, exactement ce qui était demandé : une horloge
+  calée sur l'audio (`core/clock.js`), des événements avec horaires
+  propres (`tile.expectedTime`, `bridge.startTime`/`endTime`), une
+  position toujours RECALCULÉE depuis le temps écoulé (jamais accumulée
+  image par image). Réécrire cette structure sous une autre forme
+  n'aurait rien corrigé de plus que les points ci-dessus, pour un
+  risque de régression bien plus grand.
+- **Vérifié** : testé en navigateur réel (Playwright) — mesure directe
+  de la correction d'interpolation (moyenne/max ci-dessus) ; overlay de
+  debug vérifié visuellement par capture d'écran ; aucune régression
+  sur le score, la pause, l'échec ou le rejeu.
+
+---
+
 ## BUG-012 — Des coups bien audibles ne recevaient aucune tuile (signalé par Ylonna)
 
 - **Problème observé** : Ylonna a remarqué que la balle n'atterrissait

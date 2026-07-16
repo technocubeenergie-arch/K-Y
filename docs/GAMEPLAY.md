@@ -113,6 +113,41 @@ Un coup réel mais trop proche d'une tuile voisine pour être jouable
 reste un écart : c'est là qu'une plateforme de liaison prend le relais
 (voir plus bas).
 
+**Précision fine : la tranche d'analyse, et le décalage de
+calibration.** Après ce qui précède, Ylonna a signalé que ça ne
+"sonnait" toujours pas parfaitement juste. Audit complet de la chaîne
+(voir `docs/BUGS.md`, BUG-013) :
+- **Le calcul du défilement lui-même est exact** : une tuile a
+  `worldY = scroll.speed × expectedTime` (voir `level/levelSequencer.js`),
+  et la caméra calcule `profondeur = worldY − scroll.speed × t` (voir
+  `render/camera.js`) — au moment précis où `t = expectedTime`, la
+  profondeur vaut `0`, l'échelle vaut `1`, et la tuile est pile sur la
+  ligne d'impact. Ce n'est pas approximatif : c'est une égalité exacte,
+  vérifiable par le calcul.
+- **La vraie source d'imprécision restante était la tranche
+  d'analyse.** `audio/beatDetector.js` découpe le son en tranches de
+  `windowSize` échantillons (~23ms). Un horaire de coup était jusqu'ici
+  arrondi à la tranche la plus proche : jusqu'à ~11ms d'erreur possible
+  (la moitié d'une tranche). Corrigé par une interpolation parabolique
+  (`refinePeakPosition`, une technique classique d'analyse de signal) :
+  affine la position du pic en utilisant l'énergie des deux tranches
+  voisines, pour retomber ENTRE deux tranches quand c'est là que se
+  trouve la vraie note. Mesuré sur `phuthona.ogg` : correction moyenne
+  ~2,8ms, jusqu'à ~11,6ms sur certains coups.
+- **La latence matérielle (haut-parleurs/casque) reste, elle,
+  invérifiable depuis le code** : `AudioContext.currentTime` dit quand
+  un son est PROGRAMMÉ, pas l'instant exact où il sort physiquement du
+  haut-parleur (cette latence varie selon l'appareil). D'où
+  `config.audio.globalOffsetMs` : un réglage de calibration manuel, à
+  ajuster à l'oreille sur l'appareil utilisé (positif si les tuiles
+  semblent arriver trop tôt par rapport à ce qu'on entend, négatif si
+  elles semblent en retard). Pour le régler précisément, activer
+  `config.debug.showTiming` (voir `render/renderer.js`,
+  `_drawDebugTiming`) : affiche en bas du canvas le temps audio
+  courant, l'horaire de la prochaine tuile, et l'écart exact entre les
+  deux — purement un outil de calibration, aucun effet sur les règles
+  du jeu, désactivé par défaut.
+
 **Limites connues** (voir `docs/FUTURE_INTEGRATIONS.md` pour la
 suite) :
 - la détection suppose un **tempo stable** sur tout le morceau (une
