@@ -153,18 +153,23 @@ dessinées par `render/renderer.js`, sans zone bonus ni changement de
 couleur possible.
 
 Quelles tuiles reçoivent des fausses tuiles, et de quel bord ? Décidé
-par deux petites formules mathématiques indépendantes (des "hash", voir
-`pseudoRandom01` dans `levelSequencer.js`) plutôt que par un vrai tirage
-au sort (`Math.random()`) : ça donne un résultat qui semble irrégulier
-au joueur, tout en générant **toujours exactement le même niveau** pour
-un même morceau — important pour que "Réessayer"/"Rejouer" retombent
-sur le même défi, et pour pouvoir tester le jeu de façon fiable.
+par un "hash" (voir `pseudoRandom01` dans `levelSequencer.js`) plutôt
+que par un vrai tirage au sort (`Math.random()`) : ça donne un résultat
+qui semble irrégulier au joueur, tout en générant **toujours exactement
+le même niveau** pour un même morceau — important pour que
+"Réessayer"/"Rejouer" retombent sur le même défi, et pour pouvoir
+tester le jeu de façon fiable. Un tirage 50/50, même bien réparti, peut
+par pur hasard aligner plusieurs fois le même bord d'affilée (repéré en
+jeu jusqu'à 8 fois de suite) : un changement de côté est donc forcé
+au-delà de `tile.decoyMaxSameSideStreak` occurrences consécutives, pour
+que les deux bords soient bien utilisés au fil d'une partie.
 
 Réglages dans `gameConfig.js` (`tile.decoyCount`, `tile.decoyFrequency`,
-`tile.decoyColor`) : `decoyCount` contrôle combien de positions,
-comptées depuis le bord choisi (2 par défaut : les deux plus proches de
-ce bord), reçoivent une fausse tuile QUAND il y en a,
-`decoyFrequency` contrôle À QUELLE FRÉQUENCE ça arrive (0 = jamais,
+`tile.decoyMaxSameSideStreak`, `tile.decoyColor`) : `decoyCount`
+contrôle combien de positions, comptées depuis le bord choisi (2 par
+défaut : les deux plus proches de ce bord), reçoivent une fausse tuile
+QUAND il y en a, `decoyFrequency` contrôle À QUELLE FRÉQUENCE ça arrive
+(0 = jamais,
 1 = à chaque tuile ; actuellement 0,3, soit environ 3 tuiles sur 10).
 
 **Prévu pour plus tard** (voir `docs/FUTURE_INTEGRATIONS.md`) : un
