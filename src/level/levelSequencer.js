@@ -18,30 +18,35 @@
 (function (TH) {
   'use strict';
 
-  // Construit les "fausses tuiles" d'une tuile réelle : une tuile
-  // visuelle, sans conséquence sur les règles du jeu, posée sur une
-  // AUTRE position latérale que la vraie, au même horaire. Elles ne
-  // sont jamais ajoutées à `tiles` (voir plus bas) : `core/engine.js`
-  // ne les voit donc jamais, et n'a pas besoin de savoir qu'elles
-  // existent — atterrir dessus revient simplement à ne pas être aligné
-  // avec la vraie tuile, ce que le moteur détecte déjà (voir
-  // docs/GAMEPLAY.md).
-  function buildDecoys(realTile, realXFraction, laneFractions, config) {
-    const otherFractions = laneFractions.filter((fraction) => fraction !== realXFraction);
-    const decoyCount = Math.min(config.tile.decoyCount, otherFractions.length);
+  // Construit les "fausses tuiles" d'une tuile réelle : des tuiles
+  // visuelles, sans conséquence sur les règles du jeu, regroupées sur
+  // UN SEUL bord (gauche ou droite), au même horaire que la vraie —
+  // pas étalées sur toute la largeur. Elles ne sont jamais ajoutées à
+  // `tiles` (voir plus bas) : `core/engine.js` ne les voit donc
+  // jamais, et n'a pas besoin de savoir qu'elles existent — atterrir
+  // dessus revient simplement à ne pas être aligné avec la vraie
+  // tuile, ce que le moteur détecte déjà (voir docs/GAMEPLAY.md).
+  function buildDecoys(realTile, realXFraction, laneFractions, config, useLeftEdge) {
+    const sortedFractions = [...laneFractions].sort((a, b) => a - b);
+    const edgeLanes = useLeftEdge
+      ? sortedFractions.slice(0, config.tile.decoyCount)
+      : sortedFractions.slice(-config.tile.decoyCount);
 
-    return otherFractions
-      .slice(0, decoyCount)
+    return edgeLanes
+      .filter((fraction) => fraction !== realXFraction)
       .map((fraction) => new TH.Tile(realTile.index, realTile.worldY, fraction, realTile.expectedTime));
   }
 
-  // Décide si LA tuile d'indice `index` reçoit des fausses tuiles, sans
-  // utiliser Math.random() : un même morceau doit toujours générer
-  // exactement le même niveau (rejouer, tester). Cette petite formule
-  // ("hash" classique) transforme un nombre entier en une valeur entre
-  // 0 et 1 qui paraît irrégulière mais reste identique à chaque calcul.
-  function pseudoRandom01(seed) {
-    const x = Math.sin(seed * 12.9898) * 43758.5453;
+  // Décide si LA tuile d'indice `index` reçoit des fausses tuiles, et
+  // de quel côté, sans utiliser Math.random() : un même morceau doit
+  // toujours générer exactement le même niveau (rejouer, tester).
+  // Cette petite formule ("hash" classique) transforme un nombre entier
+  // en une valeur entre 0 et 1 qui paraît irrégulière mais reste
+  // identique à chaque calcul. Deux constantes différentes (12.9898 et
+  // 78.233) pour que "apparaît ou non" et "quel bord" ne soient pas
+  // corrélés entre eux.
+  function pseudoRandom01(seed, salt) {
+    const x = Math.sin(seed * salt) * 43758.5453;
     return x - Math.floor(x);
   }
 
@@ -56,9 +61,10 @@
     const tiles = beatTimes.map((expectedTime, index) => {
       const worldY = scrollSpeed * expectedTime;
       const tile = new TH.Tile(index, worldY, xFractions[index], expectedTime);
-      const showDecoys = config.tile.decoyCount > 0 && pseudoRandom01(index) < config.tile.decoyFrequency;
+      const showDecoys = config.tile.decoyCount > 0 && pseudoRandom01(index, 12.9898) < config.tile.decoyFrequency;
       if (showDecoys) {
-        tile.decoys = buildDecoys(tile, xFractions[index], levelDef.laneFractions, config);
+        const useLeftEdge = pseudoRandom01(index, 78.233) < 0.5;
+        tile.decoys = buildDecoys(tile, xFractions[index], levelDef.laneFractions, config, useLeftEdge);
       }
       return tile;
     });

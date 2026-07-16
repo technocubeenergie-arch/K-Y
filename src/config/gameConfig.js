@@ -81,12 +81,14 @@
       perfectZonePreviewColor: 'rgba(250, 204, 21, 0.6)',
 
       // "Fausses tuiles" (voir docs/GAMEPLAY.md) : DE TEMPS EN TEMPS, en
-      // plus de la vraie tuile (colorée normalement), combien d'AUTRES
-      // positions latérales affichent une tuile grise, non colorée,
-      // purement visuelle (aucune conséquence si la balle passe
-      // dessus : c'est déjà un "raté" comme atterrir dans le vide,
-      // voir docs/GAMEPLAY.md). 0 = fonctionnalité désactivée.
-      decoyCount: 4,
+      // plus de la vraie tuile (colorée normalement), le jeu affiche
+      // des tuiles grises, non colorées, purement visuelles (aucune
+      // conséquence si la balle passe dessus : c'est déjà un "raté"
+      // comme atterrir dans le vide, voir docs/GAMEPLAY.md).
+      // `decoyCount` : combien de positions, regroupées sur UN SEUL
+      // bord (gauche ou droite, jamais les deux), en reçoivent — pas
+      // étalées sur toute la largeur. 0 = fonctionnalité désactivée.
+      decoyCount: 2,
       // Fraction des tuiles concernées par les fausses tuiles (0 =
       // jamais, 1 = à chaque tuile). 0,3 = environ 3 tuiles sur 10.
       decoyFrequency: 0.3,
