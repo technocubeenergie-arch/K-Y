@@ -100,35 +100,6 @@
       this._musicGain = null;
     }
 
-    // Programme `count` clics courts, espacés de `intervalSeconds`, à des
-    // heures audio programmées À L'AVANCE (osc.start(t) précis, jamais de
-    // setTimeout qui dérive) — utilisé par le test de calibration (voir
-    // ui/calibrationScreen.js) pour que le joueur tape en rythme dessus.
-    // Renvoie les heures programmées (domaine AudioContext.currentTime),
-    // pour les comparer aux heures de tape captées par ce même horloge.
-    scheduleMetronome(count, intervalSeconds) {
-      if (!this._audioCtx) return [];
-      const startAt = this._audioCtx.currentTime + 0.3;
-      const clickTimes = [];
-
-      for (let i = 0; i < count; i++) {
-        const t = startAt + i * intervalSeconds;
-        clickTimes.push(t);
-
-        const osc = this._audioCtx.createOscillator();
-        const gain = this._audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, t);
-        gain.gain.setValueAtTime(0.5, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
-        osc.connect(gain).connect(this._sfxGain);
-        osc.start(t);
-        osc.stop(t + 0.1);
-      }
-
-      return clickTimes;
-    }
-
     _playBlip(freq, duration, type) {
       if (!this._audioCtx) return;
       const now = this._audioCtx.currentTime;
