@@ -26,8 +26,9 @@ expliqué simplement.
 - **Assets définitifs et Supabase = plus tard, pas maintenant.** Ce qui
   existe aujourd'hui doit juste être *prêt* à les accueillir (voir
   `docs/FUTURE_INTEGRATIONS.md`).
-- **Un seul niveau pour l'instant** (niveau d'entraînement, ~60
-  secondes), avant d'envisager plusieurs niveaux.
+- **Un seul niveau pour l'instant** (niveau d'entraînement, dont la
+  durée suit celle de la musique choisie — actuellement ~1min32,
+  `phuthona.ogg`), avant d'envisager plusieurs niveaux.
 - **Pédagogie** : toute explication donnée à Ylonna doit rester simple,
   courte, concrète — pas de jargon technique non expliqué.
 
@@ -172,7 +173,7 @@ pas se fier uniquement à un serveur local.
 Vérifier au minimum : au clic sur "Jouer", un message de chargement
 apparaît puis disparaît (~1s, le temps de décoder et analyser
 `src/assets/levelTrackData.js`, qui embarque actuellement
-`src/assets/phuthon.ogg`), le défilement (en perspective) est
+`src/assets/phuthona.ogg`), le défilement (en perspective) est
 visible, la balle suit souris/doigt/clavier (mouvement clavier fluide
 en continu, pas saccadé), les tuiles apparaissent avec un espacement
 irrégulier qui suit le rythme entendu, une tuile touchée devient verte
