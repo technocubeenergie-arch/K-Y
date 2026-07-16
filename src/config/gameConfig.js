@@ -26,14 +26,26 @@
       y: 560,
     },
 
+    // Réglages liés à la synchronisation audio/jeu (voir core/clock.js,
+    // docs/GAMEPLAY.md).
+    audio: {
+      // Décalage de calibration (millisecondes) entre le temps audio
+      // (AudioContext.currentTime) et le moment où le son est VRAIMENT
+      // entendu (haut-parleurs/casque, variable selon l'appareil).
+      // Valeur trouvée par Ylonna avec le test de calibration tap-along
+      // (voir docs/BUGS.md, BUG-014 et BUG-016) et adoptée comme réglage
+      // fixe du jeu : les tuiles arrivaient environ 250ms trop TARD par
+      // rapport à ce qu'elle entendait.
+      globalOffsetMs: -250,
+    },
+
     // Aides au réglage/diagnostic, désactivées par défaut (aucun
     // impact sur le jeu normal). Voir docs/GAMEPLAY.md.
     debug: {
       // Affiche en bas du canvas le temps audio courant, l'horaire de la
-      // prochaine tuile, l'écart entre les deux, et le décalage de
-      // calibration actuellement appliqué (voir ui/calibrationScreen.js) —
-      // un outil de développeur, distinct de l'écran de calibration
-      // accessible au joueur depuis l'écran de démarrage.
+      // prochaine tuile, l'écart entre les deux, et le décalage
+      // actuellement appliqué (`audio.globalOffsetMs`) — un outil de
+      // développeur, désactivé par défaut.
       showTiming: false,
     },
 
@@ -201,11 +213,6 @@
       // Clés utilisées dans le stockage local (voir localStore.js)
       highscoreKey: 'tilesHop.trainingLevel.highscore',
       starsKey: 'tilesHop.wallet.stars',
-      // Décalage de calibration audio (millisecondes), réglé par le
-      // joueur via l'écran de calibration (voir ui/calibrationScreen.js).
-      // Absent du stockage = 0 = pas de correction : le jeu reste bien
-      // réglé sans aucune intervention (voir core/clock.js).
-      audioOffsetKey: 'tilesHop.audio.offsetMs',
     },
   };
 })(window.TH = window.TH || {});

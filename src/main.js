@@ -44,20 +44,6 @@
   };
   const startStatus = document.getElementById('start-status');
 
-  const calibrationElements = {
-    screen: document.getElementById('screen-calibration'),
-    openButton: document.getElementById('btn-calibration-open'),
-    closeButton: document.getElementById('btn-calibration-close'),
-    startTestButton: document.getElementById('btn-calibration-start-test'),
-    tapButton: document.getElementById('btn-calibration-tap'),
-    applyButton: document.getElementById('btn-calibration-apply'),
-    retryButton: document.getElementById('btn-calibration-retry'),
-    instructions: document.getElementById('calibration-instructions'),
-    result: document.getElementById('calibration-result'),
-    resultText: document.getElementById('calibration-result-text'),
-    currentValue: document.getElementById('calibration-current-value'),
-  };
-
   // --- 2. Briques du jeu ---------------------------------------------------
   const eventBus = new TH.EventBus();
   const audioManager = new TH.AudioManager();
@@ -68,10 +54,7 @@
   const initialSequence = { tiles: [], scrollSpeed: config.scroll.speed, totalDurationSeconds: 0 };
   const camera = new TH.Camera(config.scroll.speed, config);
   const ball = new TH.Ball(config);
-  // Décalage de calibration lu depuis le stockage local (0 par défaut, si
-  // le joueur n'a jamais fait le test — voir ui/calibrationScreen.js) :
-  // le jeu reste bien réglé même sans intervention.
-  const clock = new TH.Clock(() => audioManager.getAudioTime(), localStore.getAudioOffsetMs());
+  const clock = new TH.Clock(() => audioManager.getAudioTime(), config.audio.globalOffsetMs);
 
   const engine = new TH.Engine({ config, clock, ball, sequence: initialSequence, eventBus, localStore });
   const renderer = new TH.Renderer(ctx, config, camera);
@@ -83,9 +66,6 @@
     onStart: handleStart,
     onTogglePause: handleTogglePause,
   });
-  new TH.CalibrationScreen(calibrationElements, audioManager, localStore, (offsetMs) =>
-    clock.setOffsetMs(offsetMs)
-  );
 
   // --- 3. Réactions audio (le son ne dirige jamais le jeu, il réagit) -----
   eventBus.on('tile:hit', ({ isPerfect }) => {

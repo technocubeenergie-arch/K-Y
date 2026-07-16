@@ -192,9 +192,7 @@
 
     // Pour `config.debug.showTiming` (voir render/renderer.js) : l'écart
     // exact, en secondes, entre le temps audio courant et l'horaire de
-    // la prochaine tuile — un outil de développeur bas niveau, distinct
-    // de l'écran de calibration accessible au joueur (voir
-    // ui/calibrationScreen.js, docs/GAMEPLAY.md).
+    // la prochaine tuile — un outil de développeur, voir docs/GAMEPLAY.md.
     getDebugTimingInfo() {
       const musicTime = this.clock.getElapsedSeconds();
       const nextTile = this.sequence.tiles[this._nextHopIndex] || null;
