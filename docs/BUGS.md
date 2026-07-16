@@ -6,6 +6,29 @@
 
 ---
 
+## BUG-015 — Après "Appliquer" sur l'écran de calibration, le texte gardait une instruction obsolète (signalé par Ylonna)
+
+- **Problème observé** : capture d'écran envoyée par Ylonna — après avoir
+  appuyé sur "Appliquer" (BUG-014), le bouton disparaît normalement
+  (pour éviter de l'appliquer deux fois), mais le texte au-dessus disait
+  toujours *"Appuie sur « Appliquer » pour garder ce réglage"* alors que
+  ce bouton n'existait plus. Confusion totale : impossible de savoir si
+  le réglage avait été pris en compte ou non.
+- **Cause** : `ui/calibrationScreen.js`, `_apply()` cachait le bouton
+  (`applyButton.classList.add('is-hidden')`) mais ne touchait jamais au
+  texte du résultat (`resultText`), resté figé sur la phrase écrite par
+  `_finishTest()` avant l'application.
+- **Solution appliquée** : `_apply()` remplace maintenant ce texte par
+  une confirmation claire ("Réglage enregistré ! Tu peux fermer cet
+  écran, ou refaire le test si tu veux.") au moment même où le bouton
+  disparaît, pour que les deux restent toujours cohérents.
+- **Vérifié** : reproduit d'abord le bug via Playwright (texte
+  d'instruction et bouton absent, exactement comme la capture d'écran),
+  puis testé le correctif : après clic sur "Appliquer", le texte affiche
+  bien la confirmation et non l'ancienne instruction.
+
+---
+
 ## BUG-014 — Le réglage de calibration audio agissait à l'envers, et était trop technique pour Ylonna
 
 - **Problème observé (deux volets, liés)** :

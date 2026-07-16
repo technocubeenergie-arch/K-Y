@@ -179,6 +179,11 @@
     _apply() {
       this._localStore.setAudioOffsetMs(this._pendingOffsetMs);
       this._onApply(this._pendingOffsetMs);
+      // Une fois appliqué, le bouton disparaît (pas de double-application) :
+      // il faut donc aussi changer le texte au-dessus, qui jusque-là disait
+      // encore "Appuie sur Appliquer" — sinon il pointe vers un bouton qui
+      // n'existe plus (voir docs/BUGS.md, BUG-015).
+      this._els.resultText.textContent = 'Réglage enregistré ! Tu peux fermer cet écran, ou refaire le test si tu veux.';
       this._renderCurrentValue();
       this._els.applyButton.classList.add('is-hidden');
     }
