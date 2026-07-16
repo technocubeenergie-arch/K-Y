@@ -72,7 +72,7 @@
     update(dt) {
       if (this.state !== 'playing') return;
 
-      this.ball.update(dt);
+      this.ball.update();
       this.ball.updateSquash(dt);
 
       const t = this.clock.getElapsedSeconds();
@@ -102,12 +102,6 @@
         tile.state = 'hit';
         this.score += 1;
         this.ball.playImpactSquash();
-
-        // Une "plaque glissante" (voir docs/GAMEPLAY.md) fait rouler la
-        // balle toute seule vers le bord indiqué jusqu'à la prochaine
-        // tuile ; une tuile normale arrête net un roulement en cours
-        // (`slideDirection` vaut alors `null`).
-        this.ball.startSliding(tile.slideDirection, this.config.ball.slideSpeed);
 
         // Atterrissage "parfait" : la balle est tout près du centre de la
         // tuile, pas juste quelque part dessus. Ça rapporte une étoile.

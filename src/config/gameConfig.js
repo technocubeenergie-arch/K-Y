@@ -56,10 +56,6 @@
       keyboardSpeed: 350,
       // Hauteur du saut visuel entre deux tuiles (en pixels).
       bounceHeight: 128,
-      // Vitesse de "roulement" (px/seconde) après une plaque glissante
-      // (voir docs/GAMEPLAY.md, entities/ball.js). Plus haut = plus dur
-      // à rattraper avant la tuile suivante.
-      slideSpeed: 150,
     },
 
     // Les tuiles
@@ -119,14 +115,6 @@
       // qu'elles disparaissent bien avant de devenir des points
       // minuscules empilés près de l'horizon.
       decoyMinVisibleScale: 0.32,
-
-      // "Plaques glissantes" (voir docs/GAMEPLAY.md) : une tuile
-      // normale, mais qui fait rouler la balle toute seule (vers la
-      // gauche ou la droite, voir level/levelData.js) une fois
-      // touchée. Toujours dessinée à PLAT (jamais inclinée) : seule
-      // cette couleur distincte la signale au joueur, tant qu'elle
-      // n'est pas encore atteinte.
-      slipperyColor: '#38bdf8',
     },
 
     // Défilement : vitesse constante (px/seconde) à laquelle le monde
