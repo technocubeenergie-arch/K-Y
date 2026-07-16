@@ -136,8 +136,9 @@ changer le niveau, c'est changer cette suite de lettres.
 
 DE TEMPS EN TEMPS (pas à chaque horaire, sinon ce serait trop chargé à
 lire), en plus de la VRAIE tuile (colorée normalement), le jeu affiche
-aussi des **fausses tuiles** : des tuiles grises, sans couleur, posées
-sur les autres positions latérales possibles au même moment. Elles ne
+aussi des **fausses tuiles** : des tuiles grises, sans couleur,
+regroupées sur UN SEUL bord (gauche ou droite, jamais les deux à la
+fois) au même moment — pas étalées sur toute la largeur. Elles ne
 servent qu'à rendre le chemin moins évident à lire d'un coup d'œil — un
 peu comme dans le vrai Tiles Hop.
 
@@ -151,17 +152,18 @@ Elles sont générées par `level/levelSequencer.js` (fonction
 dessinées par `render/renderer.js`, sans zone bonus ni changement de
 couleur possible.
 
-Quelles tuiles reçoivent des fausses tuiles ? Décidé par une petite
-formule mathématique (un "hash", voir `pseudoRandom01` dans
-`levelSequencer.js`) plutôt que par un vrai tirage au sort
-(`Math.random()`) : ça donne un résultat qui semble irrégulier au
-joueur, tout en générant **toujours exactement le même niveau** pour un
-même morceau — important pour que "Réessayer"/"Rejouer" retombent sur
-le même défi, et pour pouvoir tester le jeu de façon fiable.
+Quelles tuiles reçoivent des fausses tuiles, et de quel bord ? Décidé
+par deux petites formules mathématiques indépendantes (des "hash", voir
+`pseudoRandom01` dans `levelSequencer.js`) plutôt que par un vrai tirage
+au sort (`Math.random()`) : ça donne un résultat qui semble irrégulier
+au joueur, tout en générant **toujours exactement le même niveau** pour
+un même morceau — important pour que "Réessayer"/"Rejouer" retombent
+sur le même défi, et pour pouvoir tester le jeu de façon fiable.
 
 Réglages dans `gameConfig.js` (`tile.decoyCount`, `tile.decoyFrequency`,
-`tile.decoyColor`) : `decoyCount` contrôle combien des 4 autres
-positions reçoivent une fausse tuile QUAND elles en reçoivent,
+`tile.decoyColor`) : `decoyCount` contrôle combien de positions,
+comptées depuis le bord choisi (2 par défaut : les deux plus proches de
+ce bord), reçoivent une fausse tuile QUAND il y en a,
 `decoyFrequency` contrôle À QUELLE FRÉQUENCE ça arrive (0 = jamais,
 1 = à chaque tuile ; actuellement 0,3, soit environ 3 tuiles sur 10).
 
