@@ -59,6 +59,7 @@
   function buildSequence(beatTimes, levelDef, config) {
     const scrollSpeed = config.scroll.speed;
     const xFractions = levelDef.resolvePositions(beatTimes.length);
+    const slides = levelDef.resolveSlides(beatTimes.length);
 
     const sortedFractions = [...levelDef.laneFractions].sort((a, b) => a - b);
     const leftLanes = sortedFractions.slice(0, config.tile.decoyCount);
@@ -76,6 +77,7 @@
     const tiles = beatTimes.map((expectedTime, index) => {
       const worldY = scrollSpeed * expectedTime;
       const tile = new TH.Tile(index, worldY, xFractions[index], expectedTime);
+      tile.slideDirection = slides[index];
       const showDecoys = config.tile.decoyCount > 0 && pseudoRandom01(index, 0) < config.tile.decoyFrequency;
 
       if (showDecoys) {

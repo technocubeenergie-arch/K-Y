@@ -197,6 +197,54 @@ donc un seul point de décision pour l'échec (`core/engine.js`,
 `_processHop`), pour qu'un futur état "vole" sur la balle puisse
 facilement désactiver cet échec sans toucher au reste des règles.
 
+## Les plaques glissantes : la balle roule toute seule
+
+Certaines tuiles, en plus d'être une tuile normale, sont des **plaques
+glissantes** : une fois touchées, la balle se met à **rouler toute
+seule** vers la gauche ou vers la droite (selon la plaque), jusqu'à la
+tuile suivante. Le joueur garde le contrôle (souris/doigt/clavier
+fonctionnent normalement), mais doit maintenant compenser ce roulement
+en plus de viser la prochaine tuile — sinon la balle continue de
+dériver et peut finir hors de la tuile suivante.
+
+Visuellement, une plaque glissante reste **toujours à plat** (jamais
+inclinée à l'écran) : elle se reconnaît uniquement à sa couleur
+distincte (`tile.slipperyColor`) et à une petite flèche blanche
+indiquant le sens du roulement, affichée tant qu'elle n'est pas encore
+atteinte (même principe que la zone bonus, voir plus bas). Une fois
+touchée, elle redevient verte (ou dorée si parfaite) comme n'importe
+quelle tuile réussie.
+
+Le roulement s'arrête net dès que la balle touche une tuile **normale**
+(pas de plaque glissante) : `core/engine.js` (`_processHop`) appelle
+`ball.startSliding(tile.slideDirection, config.ball.slideSpeed)` à
+CHAQUE tuile touchée, glissante ou non — `slideDirection` vaut alors
+`'left'`, `'right'` ou `null`, et `null` coupe immédiatement tout
+roulement en cours. Si deux plaques glissantes se suivent, la seconde
+remplace simplement le roulement de la première (nouvelle vitesse,
+nouveau sens).
+
+Techniquement, `entities/ball.js` distingue toujours deux choses : la
+position voulue par le joueur (`targetX`, mise à jour par
+`core/input.js`) et le roulement (`slideVelocity`, ajouté À `targetX`
+à chaque image tant qu'il n'est pas nul) — la balle continue donc de
+dériver même si le joueur ne touche à rien, exactement comme sur de la
+glace.
+
+Quelles tuiles sont des plaques glissantes ? Décrit dans
+`level/levelData.js` (`SLIPPERY_PATTERN`), indépendamment du tracé
+latéral (`PATTERN`) : une simple liste "quel indice du motif, quel
+sens", facile à modifier sans savoir coder.
+
+Réglages dans `gameConfig.js` : `ball.slideSpeed` (vitesse du roulement
+en px/seconde — plus haut, plus dur à rattraper) et
+`tile.slipperyColor` (sa couleur, tant qu'elle n'est pas atteinte).
+
+Compatible avec les principes du jeu (voir "Sensations à préserver"
+plus bas) : le contrôle reste immédiat et précis dès que le joueur
+agit, rien n'est fait à sa place — la plaque glissante ajoute une
+difficulté environnementale, pas un raccourci.
+
 ## Que se passe-t-il à chaque "saut" (hop) ?
 
 À l'instant précis où une tuile atteint la ligne d'impact, le jeu

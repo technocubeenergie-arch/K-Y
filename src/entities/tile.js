@@ -33,6 +33,12 @@
       // latérales. Purement visuel : core/engine.js ne lit jamais cette
       // propriété, seul render/renderer.js s'en sert.
       this.decoys = null;
+      // 'left' | 'right' | null : une "plaque glissante" (voir
+      // docs/GAMEPLAY.md). Posé par level/levelSequencer.js. Lu par
+      // core/engine.js (pour faire rouler la balle une fois la tuile
+      // touchée) ET par render/renderer.js (pour la dessiner
+      // différemment tant qu'elle n'est pas atteinte).
+      this.slideDirection = null;
     }
 
     getCenterX(canvasWidth, tileWidth) {
