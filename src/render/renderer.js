@@ -23,6 +23,7 @@
       const t = engine.getElapsedSeconds();
 
       this._drawBackground();
+      this._drawBridges(engine.sequence.bridges, t);
       this._drawTiles(engine.sequence.tiles, t);
       this._drawHitLine();
       this._drawBall(engine);
@@ -84,6 +85,45 @@
     // plus petit côté.
     _safeCornerRadius(radius, width, height) {
       return Math.max(1, Math.min(radius, width / 2, height / 2));
+    }
+
+    // Une "plateforme de liaison" (voir docs/GAMEPLAY.md,
+    // level/levelSequencer.js) comble un long vide du rythme : dessinée
+    // comme un long ruban qui rétrécit vers l'horizon (même logique de
+    // perspective que les tuiles, mais étirée entre deux profondeurs
+    // au lieu d'une seule), plutôt qu'une simple tuile.
+    _drawBridges(bridges, t) {
+      const { ctx, config, camera } = this;
+      if (!bridges || bridges.length === 0) return;
+
+      const margin = config.tile.width / 2;
+      const usableWidth = config.canvas.width - margin * 2;
+
+      for (const bridge of bridges) {
+        const flatX = margin + bridge.xFraction * usableWidth;
+        const near = camera.project(bridge.startWorldY, flatX, t);
+        const far = camera.project(bridge.endWorldY, flatX, t);
+
+        if (near.scale < config.perspective.minVisibleScale && far.scale < config.perspective.minVisibleScale) {
+          continue; // les deux bouts sont trop loin pour être utiles
+        }
+
+        const nearWidth = config.bridge.width * near.scale;
+        const farWidth = config.bridge.width * far.scale;
+
+        ctx.fillStyle = config.bridge.color;
+        ctx.beginPath();
+        ctx.moveTo(near.screenX - nearWidth / 2, near.screenY);
+        ctx.lineTo(near.screenX + nearWidth / 2, near.screenY);
+        ctx.lineTo(far.screenX + farWidth / 2, far.screenY);
+        ctx.lineTo(far.screenX - farWidth / 2, far.screenY);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = Math.max(1, 2 * near.scale);
+        ctx.stroke();
+      }
     }
 
     _drawTiles(tiles, t) {
@@ -178,8 +218,9 @@
       const ball = engine.ball;
       if (!ball.isAlive) return;
 
-      const bouncePhase = engine.getBouncePhase();
-      const offsetY = ball.getBounceOffsetY(bouncePhase);
+      // Sur une plateforme de liaison (voir docs/GAMEPLAY.md), la balle
+      // roule en continu au lieu de sauter : pas de rebond.
+      const offsetY = engine.isOnBridge() ? 0 : ball.getBounceOffsetY(engine.getBouncePhase());
       const y = config.hitLine.y + offsetY;
 
       ctx.save();

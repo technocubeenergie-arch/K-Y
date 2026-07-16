@@ -176,6 +176,16 @@
       return TH.MathUtils.clamp((t - previousTime) / interval, 0, 1);
     }
 
+    // Vrai si la balle est actuellement sur une "plateforme de liaison"
+    // (voir level/levelSequencer.js, docs/GAMEPLAY.md) : le renderer
+    // s'en sert pour ne pas faire rebondir la balle pendant qu'elle la
+    // traverse — elle roule en continu au lieu de sauter.
+    isOnBridge() {
+      const t = this.clock.getElapsedSeconds();
+      const bridges = this.sequence.bridges || [];
+      return bridges.some((bridge) => t >= bridge.startTime && t <= bridge.endTime);
+    }
+
     getElapsedSeconds() {
       return this.clock.getElapsedSeconds();
     }

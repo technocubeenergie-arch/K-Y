@@ -215,7 +215,10 @@ en déduit où placer les tuiles.
    transforme cette liste d'horaires en objets `Tile`. La position
    latérale (quelle lettre FL/L/C/R/FR) vient de `levelDef`
    (`level/levelData.js`) : l'analyse audio ne peut donner QUE le
-   rythme, pas où placer la balle.
+   rythme, pas où placer la balle. La même fonction repère aussi les
+   longs vides entre deux tuiles (`buildBridges`) pour y placer une
+   plateforme de liaison (voir `docs/GAMEPLAY.md`) — une liste séparée
+   (`sequence.bridges`), jamais mêlée à `sequence.tiles`.
 3. **`core/engine.js`** ne suppose jamais un intervalle fixe entre deux
    tuiles : chaque `Tile` porte son propre `expectedTime`, et c'est
    cette valeur que la boucle de jeu compare au temps écoulé — jamais

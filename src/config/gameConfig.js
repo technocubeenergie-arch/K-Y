@@ -124,6 +124,25 @@
       speed: 125,
     },
 
+    // "Plateformes de liaison" (voir docs/GAMEPLAY.md) : quand deux
+    // tuiles consécutives sont séparées par un long vide dans le
+    // rythme, une plateforme continue vient combler l'espace au lieu
+    // de laisser un simple trou. La balle ne rebondit pas dessus, elle
+    // roule en continu jusqu'à la tuile suivante.
+    bridge: {
+      // Écart minimum (secondes) entre deux tuiles pour qu'une
+      // plateforme apparaisse entre elles. Sur phuthona.ogg, la
+      // plupart des écarts valent 0,4 à 0,9s ; au-delà, c'est un vrai
+      // "vide" dans le rythme plutôt qu'un simple tempo un peu plus
+      // lent.
+      minGapSeconds: 0.9,
+      color: '#22c55e',
+      // Largeur de la plateforme (px, à taille normale) : un peu plus
+      // large qu'une tuile pour bien lire que ce n'est pas une tuile
+      // comme les autres.
+      width: 160,
+    },
+
     // Détection de rythme (voir audio/beatDetector.js) : transforme la
     // musique du niveau (assets/levelTrackData.js) en horaires de
     // tuiles. C'est le rythme réel du morceau qui décide où sont les

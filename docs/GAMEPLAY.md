@@ -119,6 +119,41 @@ suite) :
   chargement de page : les parties suivantes ("Réessayer", "Rejouer")
   réutilisent le résultat déjà calculé, pour rejouer instantanément.
 
+## Les plateformes de liaison : combler les longs vides du rythme
+
+Certains écarts entre deux tuiles détectées sont nettement plus longs
+que la normale (une vraie pause dans le morceau, pas juste un tempo un
+peu plus lent). Plutôt que de laisser un simple trou dans le niveau,
+une **plateforme de liaison** vient combler cet espace — un long ruban
+continu, à la même position latérale que la tuile qui précède le vide,
+qui rétrécit vers l'horizon comme les tuiles (même logique de
+perspective, voir `render/camera.js`), mais étiré entre les deux
+tuiles au lieu d'être une simple forme ponctuelle.
+
+Pendant que la balle traverse cette plateforme, **elle ne rebondit
+plus** : elle roule en continu jusqu'à la tuile suivante, au lieu de
+faire son petit saut habituel entre chaque tuile.
+
+- **Détection** : `level/levelSequencer.js` (`buildBridges`) repère,
+  après avoir construit les tuiles, tout écart entre deux tuiles
+  consécutives supérieur à `config.bridge.minGapSeconds` (0,9s par
+  défaut — sur `phuthona.ogg`, la plupart des écarts valent 0,4 à
+  0,9s, donc au-delà c'est un vrai vide). Le résultat (`sequence.bridges`)
+  est une liste à part de `tiles` : ce n'est pas une tuile à toucher ou
+  à rater, `core/engine.js` ne juge jamais rien dessus.
+- **Rendu** : `render/renderer.js` (`_drawBridges`) projette les DEUX
+  bouts de la plateforme (début et fin du vide) avec `camera.project`,
+  et dessine un quadrilatère qui les relie — plus large qu'une tuile
+  (`config.bridge.width`), avec un contour clair pour bien la
+  distinguer.
+- **Rebond suspendu** : `core/engine.js` (`isOnBridge`) dit si l'horaire
+  actuel tombe dans une plateforme ; `render/renderer.js` (`_drawBall`)
+  s'en sert pour ne pas appeler `ball.getBounceOffsetY` pendant ce
+  temps-là (la balle reste à plat).
+
+Réglages dans `gameConfig.js` (`bridge.minGapSeconds`, `bridge.color`,
+`bridge.width`).
+
 ## Le chemin latéral des tuiles
 
 Le "chemin" que la balle doit suivre (gauche/droite, pas le rythme) est
