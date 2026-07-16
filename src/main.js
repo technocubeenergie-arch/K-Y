@@ -54,7 +54,7 @@
   const initialSequence = { tiles: [], scrollSpeed: config.scroll.speed, totalDurationSeconds: 0 };
   const camera = new TH.Camera(config.scroll.speed, config);
   const ball = new TH.Ball(config);
-  const clock = new TH.Clock(() => audioManager.getAudioTime());
+  const clock = new TH.Clock(() => audioManager.getAudioTime(), config.audio.globalOffsetMs / 1000);
 
   const engine = new TH.Engine({ config, clock, ball, sequence: initialSequence, eventBus, localStore });
   const renderer = new TH.Renderer(ctx, config, camera);

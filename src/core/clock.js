@@ -18,9 +18,19 @@
   'use strict';
 
   class Clock {
-    constructor(getAudioTime) {
+    // `offsetSeconds` (voir config.audio.globalOffsetMs) : décalage de
+    // calibration appliqué à CHAQUE lecture du temps. Une chaîne
+    // audio→haut-parleurs a toujours un peu de latence matérielle
+    // (variable selon l'appareil), invisible dans `AudioContext.currentTime`
+    // lui-même : ce réglage permet de la compenser à l'oreille, sans
+    // toucher au reste des calculs. Positif = les tuiles/la ligne
+    // d'impact "attendent" un peu plus longtemps avant de considérer
+    // qu'un horaire est arrivé (utile si le son sort plus tard que ce
+    // que le code croit).
+    constructor(getAudioTime, offsetSeconds = 0) {
       // Fonction optionnelle fournie par l'audio pour lire l'heure précise.
       this._getAudioTime = getAudioTime || null;
+      this._offsetSeconds = offsetSeconds;
       this._startTime = 0;
       this._pausedAt = 0;
       this._pauseAccumulated = 0;
@@ -61,7 +71,7 @@
     // Temps écoulé depuis start(), en secondes, hors pauses.
     getElapsedSeconds() {
       const reference = this._isPaused ? this._pausedAt : this._now();
-      return reference - this._startTime - this._pauseAccumulated;
+      return reference - this._startTime - this._pauseAccumulated + this._offsetSeconds;
     }
   }
 

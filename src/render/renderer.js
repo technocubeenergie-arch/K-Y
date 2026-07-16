@@ -27,6 +27,32 @@
       this._drawTiles(engine.sequence.tiles, t);
       this._drawHitLine();
       this._drawBall(engine);
+      if (this.config.debug.showTiming) this._drawDebugTiming(engine);
+    }
+
+    // Voir config.debug.showTiming, docs/GAMEPLAY.md : purement un outil
+    // de calibration, aucun effet sur les règles du jeu. Placé près du
+    // bas du canvas (pas en haut, comme le HUD en HTML par-dessus le
+    // canvas — voir css/style.css, #hud) pour ne jamais le recouvrir.
+    _drawDebugTiming(engine) {
+      const { ctx, config } = this;
+      const info = engine.getDebugTimingInfo();
+      const boxY = config.canvas.height - 62;
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+      ctx.fillRect(4, boxY, 196, 58);
+
+      ctx.fillStyle = '#4ade80';
+      ctx.font = '11px monospace';
+      ctx.textBaseline = 'top';
+      ctx.fillText(`musicTime: ${info.musicTime.toFixed(3)}s`, 10, boxY + 4);
+      ctx.fillText(
+        `prochaine tuile: ${info.nextExpectedTime !== null ? info.nextExpectedTime.toFixed(3) + 's' : '-'}`,
+        10,
+        boxY + 18
+      );
+      ctx.fillText(`écart: ${info.delta !== null ? Math.round(info.delta * 1000) + 'ms' : '-'}`, 10, boxY + 32);
+      ctx.fillText(`offset réglé: ${config.audio.globalOffsetMs}ms`, 10, boxY + 46);
     }
 
     _drawBackground() {
