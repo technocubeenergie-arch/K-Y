@@ -18,6 +18,7 @@
     constructor(storageConfig) {
       this._highscoreKey = storageConfig.highscoreKey;
       this._starsKey = storageConfig.starsKey;
+      this._audioOffsetKey = storageConfig.audioOffsetKey;
     }
 
     _readInt(key) {
@@ -58,6 +59,17 @@
       const newTotal = this.getStarBalance() + amount;
       this._writeInt(this._starsKey, newTotal);
       return newTotal;
+    }
+
+    // Décalage de calibration audio (millisecondes, signé — voir
+    // core/clock.js). Absent du stockage = 0 = pas de correction, le jeu
+    // reste bien réglé même si le joueur ne fait jamais la calibration.
+    getAudioOffsetMs() {
+      return this._readInt(this._audioOffsetKey);
+    }
+
+    setAudioOffsetMs(offsetMs) {
+      this._writeInt(this._audioOffsetKey, offsetMs);
     }
   }
 

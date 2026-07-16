@@ -137,16 +137,33 @@ calibration.** Après ce qui précède, Ylonna a signalé que ça ne
 - **La latence matérielle (haut-parleurs/casque) reste, elle,
   invérifiable depuis le code** : `AudioContext.currentTime` dit quand
   un son est PROGRAMMÉ, pas l'instant exact où il sort physiquement du
-  haut-parleur (cette latence varie selon l'appareil). D'où
-  `config.audio.globalOffsetMs` : un réglage de calibration manuel, à
-  ajuster à l'oreille sur l'appareil utilisé (positif si les tuiles
-  semblent arriver trop tôt par rapport à ce qu'on entend, négatif si
-  elles semblent en retard). Pour le régler précisément, activer
-  `config.debug.showTiming` (voir `render/renderer.js`,
-  `_drawDebugTiming`) : affiche en bas du canvas le temps audio
-  courant, l'horaire de la prochaine tuile, et l'écart exact entre les
-  deux — purement un outil de calibration, aucun effet sur les règles
-  du jeu, désactivé par défaut.
+  haut-parleur (cette latence varie selon l'appareil). C'est pour ça
+  qu'un réglage de calibration existe — mais pas besoin de toucher à un
+  fichier ni à un réglage technique pour s'en servir : voir "Régler la
+  synchro (calibration)" ci-dessous, l'écran fait tout.
+
+**Régler la synchro (calibration), sans rien éditer.** Depuis l'écran
+de démarrage, le bouton "Régler la synchro" ouvre un petit test
+(`ui/calibrationScreen.js`) : le jeu joue 6 bips espacés régulièrement,
+le joueur tape en rythme dessus (gros bouton rond, ou barre ESPACE), et
+c'est tout — le jeu calcule lui-même l'écart moyen entre les bips et
+les tapes, l'affiche en une phrase simple ("les tuiles arrivaient un
+peu trop tôt/tard, écart : X ms"), et un bouton "Appliquer" suffit à
+l'enregistrer. Ce réglage est ensuite sauvegardé sur l'appareil (voir
+`storage/localStore.js`, `getAudioOffsetMs`/`setAudioOffsetMs`) et
+repris à chaque partie, sans jamais redemander le test. **Aucune
+calibration n'est obligatoire** : sans y toucher, le réglage reste à 0
+(aucune correction) et le jeu est déjà bien synchronisé pour la
+plupart des appareils, grâce aux corrections de précision déjà faites
+plus haut (grille + coups manqués + interpolation).
+
+Le vieux réglage `config.debug.showTiming` (voir `render/renderer.js`,
+`_drawDebugTiming`) existe toujours, mais c'est désormais un outil de
+DÉVELOPPEUR bas niveau (affiche en bas du canvas le temps audio, l'horaire
+de la prochaine tuile, l'écart exact, et le décalage actuellement
+appliqué) — pas quelque chose que Ylonna a besoin d'activer : l'écran
+de calibration ci-dessus est la façon normale de régler la synchro en
+jouant.
 
 **Limites connues** (voir `docs/FUTURE_INTEGRATIONS.md` pour la
 suite) :

@@ -52,7 +52,7 @@
         boxY + 18
       );
       ctx.fillText(`écart: ${info.delta !== null ? Math.round(info.delta * 1000) + 'ms' : '-'}`, 10, boxY + 32);
-      ctx.fillText(`offset réglé: ${config.audio.globalOffsetMs}ms`, 10, boxY + 46);
+      ctx.fillText(`offset réglé: ${Math.round(info.offsetMs)}ms`, 10, boxY + 46);
     }
 
     _drawBackground() {

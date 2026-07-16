@@ -6,6 +6,74 @@
 
 ---
 
+## BUG-014 — Le réglage de calibration audio agissait à l'envers, et était trop technique pour Ylonna
+
+- **Problème observé (deux volets, liés)** :
+  1. En préparant un écran de calibration utilisable sans éditer de
+     fichier, relecture attentive de `core/clock.js` (BUG-013) : le
+     réglage `offsetSeconds` était AJOUTÉ tel quel à
+     `getElapsedSeconds()`, et `main.js` y passait `globalOffsetMs / 1000`
+     sans changer de signe. Résultat : augmenter `globalOffsetMs`
+     faisait juger une tuile "atteinte" PLUS TÔT dans le temps réel, pas
+     plus tard — l'inverse de ce que la documentation de BUG-013
+     affirmait ("positif si les tuiles semblent arriver trop tôt,
+     augmenter cette valeur"). Un joueur suivant ce conseil aurait donc
+     aggravé le décalage au lieu de le corriger.
+  2. Même corrigé, ce réglage restait une valeur de config à éditer à la
+     main, avec un outil de debug à activer pour voir l'effet — Ylonna a
+     signalé explicitement qu'elle ne pouvait pas utiliser cette
+     méthode ("je ne sais pas utiliser les réglages techniques"), et a
+     demandé un système utilisable "sans être développeur avancé" : soit
+     automatique, soit une interface simple dans le jeu, soit une bonne
+     valeur par défaut.
+- **Démarche** : preuve mathématique du bug de signe avant tout correctif
+  (voir raisonnement ci-dessous), puis conception d'un test de
+  calibration "tap-along" — technique standard des jeux de rythme (osu!,
+  etc.) qui mesure directement, sans device manuel, la combinaison
+  latence matérielle + temps de réaction naturel du joueur.
+- **Preuve du bug de signe** : le son perçu par le joueur est TOUJOURS en
+  retard par rapport à `AudioContext.currentTime` (latence de sortie
+  audio), jamais en avance. Donc `musicTime` brut (non corrigé) est
+  toujours EN AVANCE sur ce que le joueur entend réellement : une tuile
+  jugée "atteinte" au temps `expectedTime` par l'horloge brute arrive, à
+  l'oreille, un peu AVANT le son correspondant. Pour corriger, il faut
+  RALENTIR le jugement, donc SOUSTRAIRE la latence de `musicTime` — un
+  `offsetMs` positif (latence perçue) doit donc donner un
+  `offsetSeconds` NÉGATIF, pas positif comme avant.
+- **Solution appliquée** :
+  - `core/clock.js` : le constructeur prend maintenant `offsetMs`
+    directement (plus `offsetSeconds`), et calcule
+    `this._offsetSeconds = -offsetMs / 1000` en interne (voir
+    `setOffsetMs`/`getOffsetMs`) — tous les appelants raisonnent
+    désormais dans la convention intuitive "positif = son perçu en
+    retard", sans jamais gérer l'inversion de signe eux-mêmes.
+  - Nouvel écran "Régler la synchro" (`ui/calibrationScreen.js`,
+    bouton sur l'écran de démarrage) : 6 bips programmés précisément
+    (`audio/audioManager.js`, `scheduleMetronome`), le joueur tape
+    dessus (gros bouton ou barre ESPACE), le jeu calcule tout seul
+    l'écart moyen entre bips et tapes et l'affiche en phrase simple
+    ("les tuiles arrivaient un peu trop tôt/tard"). Un bouton "Appliquer"
+    suffit à enregistrer le résultat.
+  - `storage/localStore.js` : `getAudioOffsetMs`/`setAudioOffsetMs`
+    (même pattern que le score/les étoiles) — le réglage survit aux
+    rechargements, sans jamais toucher à un fichier.
+  - `config/gameConfig.js` : `audio.globalOffsetMs` (config statique)
+    supprimé — remplacé entièrement par le stockage local, qui vaut 0
+    par défaut si le joueur ne calibre jamais (comportement identique à
+    avant, sans configuration nécessaire).
+- **Ce qui reste "à calibrer manuellement"** : rien d'obligatoire. Le
+  test de calibration est optionnel et guidé pas à pas ; sans y toucher,
+  le jeu reste à 0ms de correction, un réglage sûr et déjà correct pour
+  la plupart des appareils grâce aux corrections de BUG-012/BUG-013.
+- **Vérifié** : testé en navigateur réel (Playwright) — ouverture de
+  l'écran, test tap-along complet, application du résultat, persistance
+  vérifiée après rechargement de la page ; overlay de debug
+  (`config.debug.showTiming`, toujours disponible comme outil bas
+  niveau) vérifié affichant le nouveau décalage réel appliqué ; aucune
+  régression sur le score, la pause, l'échec ou le rejeu.
+
+---
+
 ## BUG-013 — Audit complet de la synchronisation audio/tuiles (signalé par Ylonna)
 
 - **Problème observé** : même après BUG-012, Ylonna a signalé que le

@@ -147,10 +147,49 @@ h1 {
   cursor: default;
 }
 
+.is-hidden {
+  display: none !important;
+}
+
 #start-status {
   font-size: 13px;
   opacity: 0.7;
   min-height: 1.2em;
+}
+
+/* --- Écran "Régler la synchro" (calibration, voir ui/calibrationScreen.js) */
+
+/* Au-dessus des autres écrans : on y accède seulement depuis l'écran de
+   démarrage, encore visible en dessous tant qu'on ne l'a pas masqué. */
+#screen-calibration {
+  z-index: 20;
+}
+
+.screen button.secondary-button {
+  background: transparent;
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font-size: 14px;
+  padding: 8px 20px;
+}
+
+.calibration-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Un gros bouton rond, facile à taper vite et sans viser précisément. */
+#btn-calibration-tap {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+#calibration-current-value {
+  font-size: 13px;
+  opacity: 0.7;
 }
 
 footer {
