@@ -6,6 +6,48 @@
 
 ---
 
+## BUG-011 — Un petit bout de fausse tuile dépassait, collé à la vraie (signalé par Ylonna)
+
+- **Problème observé** : Ylonna a repéré, sur une capture d'écran, un
+  petit morceau de tuile grise isolé, collé au bord d'une vraie tuile
+  colorée — ni une vraie tuile complète, ni un bloc de fausses tuiles
+  net comme sur les autres tuiles du niveau.
+- **Contexte** : depuis les fausses tuiles regroupées sur un seul bord
+  (voir la PR "Regrouper les fausses tuiles sur un seul bord"),
+  `buildDecoys` prenait les `decoyCount` positions les plus proches
+  d'un bord, puis retirait celle qui coïncidait avec la vraie tuile —
+  mais sans jamais vérifier À L'AVANCE si la vraie tuile occupait déjà
+  une de ces positions.
+- **Cause identifiée** : quand la vraie tuile se trouve justement sur
+  l'une des positions du bord choisi (par exemple la vraie tuile est à
+  droite (R), et le bord choisi est aussi la droite (R/FR)), il ne
+  restait qu'UNE SEULE fausse tuile après filtrage (FR), au lieu des
+  deux prévues. Comme deux positions voisines se chevauchent toujours
+  un peu (les tuiles sont plus larges que l'écart entre deux positions),
+  cette fausse tuile isolée se retrouvait collée contre la vraie,
+  dépassant juste d'un côté — exactement le petit bout repéré en jeu.
+- **Solution appliquée** : `level/levelSequencer.js` (`buildSequence`)
+  vérifie maintenant, AVANT de choisir un bord, lequel des deux (s'il y
+  en a un) contient déjà la position de la vraie tuile, et écarte ce
+  bord-là. Le bord choisi a donc toujours ses `decoyCount` positions
+  entièrement libres, jamais de fausse tuile isolée.
+- **Effets secondaires** : aucun changement de comportement pour les
+  tuiles où la vraie tuile est au centre (les deux bords restent
+  possibles, comme avant) ; seul le cas où la vraie tuile est déjà sur
+  un bord change (ce bord est maintenant systématiquement évité).
+- **Point de vigilance** : `buildDecoys` garde son filtre de sécurité
+  (retirer la position de la vraie tuile des positions du bord), mais
+  il ne devrait plus jamais avoir d'effet réel maintenant que le bord
+  est choisi en amont pour l'éviter — un signe que quelque chose ne va
+  pas si ce filtre se déclenche à nouveau.
+- **Vérifié** : testé en navigateur réel (Playwright) — sur le niveau
+  réel généré depuis `phuthona.ogg`, toutes les tuiles avec des fausses
+  tuiles en ont maintenant exactement `decoyCount` (2), plus jamais 1 ;
+  vérifié visuellement par capture d'écran ; aucune régression sur le
+  score, la pause, l'échec ou le rejeu.
+
+---
+
 ## BUG-010 — La balle pouvait sortir de la zone où une tuile peut exister (signalé par Ylonna)
 
 - **Problème observé** : Ylonna a remarqué qu'en bougeant la balle tout

@@ -164,6 +164,15 @@ jeu jusqu'à 8 fois de suite) : un changement de côté est donc forcé
 au-delà de `tile.decoyMaxSameSideStreak` occurrences consécutives, pour
 que les deux bords soient bien utilisés au fil d'une partie.
 
+Un bord n'est choisi que s'il ne contient PAS la position de la vraie
+tuile : sinon, une seule fausse tuile resterait (l'autre étant filtrée
+pour ne pas doubler la vraie), collée contre elle et dépassant
+légèrement d'un côté — un petit bout de tuile qui semble ne rien faire
+là, repéré par Ylonna en jeu. Quand la vraie tuile est déjà sur une
+position d'un bord, ce bord est donc écarté au profit de l'autre
+(toujours entièrement libre, sauf configuration extrême de
+`decoyCount`).
+
 Réglages dans `gameConfig.js` (`tile.decoyCount`, `tile.decoyFrequency`,
 `tile.decoyMaxSameSideStreak`, `tile.decoyColor`,
 `tile.decoyMinVisibleScale`) : `decoyCount` contrôle combien de
