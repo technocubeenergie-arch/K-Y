@@ -12,11 +12,6 @@
 (function (TH) {
   'use strict';
 
-  // En-dessous de cette échelle, une tuile est trop petite/lointaine
-  // pour valoir la peine d'être dessinée (gain de performance, et ça
-  // évite un fouillis de pixels minuscules près de l'horizon).
-  const MIN_VISIBLE_SCALE = 0.04;
-
   class Renderer {
     constructor(ctx, config, camera) {
       this.ctx = ctx;
@@ -132,7 +127,7 @@
       const flatX = tile.getCenterX(config.canvas.width, config.tile.width);
       const { screenX, screenY, scale } = camera.project(tile.worldY, flatX, t);
 
-      if (scale < MIN_VISIBLE_SCALE) return null; // trop loin pour être utile
+      if (scale < config.perspective.minVisibleScale) return null; // trop loin pour être utile
       if (screenY < camera.horizonY - 5 || screenY > config.canvas.height + config.tile.height) {
         return null; // hors écran
       }

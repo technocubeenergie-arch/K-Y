@@ -38,6 +38,13 @@
       // "Force" de la perspective : une valeur plus petite rapproche
       // l'horizon et rend l'effet plus prononcé ; plus grande, plus doux.
       focalDepth: 260,
+      // En dessous de cette échelle (1 = taille normale), une tuile
+      // n'est plus dessinée du tout : trop loin, trop petite pour être
+      // utile, ça ne ferait que des points minuscules près de
+      // l'horizon. Plus haut = les tuiles lointaines disparaissent
+      // plus tôt (vue plus dégagée) ; plus bas = on voit plus loin dans
+      // le niveau, mais avec plus de petits points à l'écran.
+      minVisibleScale: 0.32,
     },
 
     // La balle
