@@ -210,6 +210,61 @@
     return onsetTimes;
   }
 
+  // La grille avance par pas fixes de `intervalFrames` : un coup RÉEL
+  // qui tombe entre deux positions de la grille (par exemple une
+  // syncope, ou une légère variation de tempo à cet endroit précis)
+  // n'est jamais cherché, puisque la recherche ne regarde qu'autour de
+  // chaque position de la grille elle-même — même si ce coup est fort
+  // et parfaitement audible. Cette passe repère les écarts anormalement
+  // grands entre deux coups acceptés (plus d'1,5× le pouls détecté) et
+  // cherche, DANS cet écart, le plus gros sursaut d'énergie avec le
+  // même critère que `buildGridOnsets` (dépasser la moyenne locale de
+  // `sensitivity`). Un écart sans aucun sursaut suffisant reste tel
+  // quel : c'est alors une vraie pause (voir level/levelSequencer.js,
+  // qui y place une plateforme de liaison).
+  function fillMissedBeats(onsetTimes, flux, framesPerSecond, intervalFrames, options) {
+    const localWindowFrames = Math.max(1, Math.round(options.localWindowSeconds * framesPerSecond));
+    const minIntervalFrames = Math.max(1, Math.round(options.minIntervalSeconds * framesPerSecond));
+    const gapThresholdFrames = intervalFrames * 1.5;
+
+    const filled = [onsetTimes[0]];
+
+    for (let i = 1; i < onsetTimes.length; i++) {
+      const previousFrame = Math.round(filled[filled.length - 1] * framesPerSecond);
+      const nextFrame = Math.round(onsetTimes[i] * framesPerSecond);
+
+      if (nextFrame - previousFrame > gapThresholdFrames) {
+        const searchStart = previousFrame + minIntervalFrames;
+        const searchEnd = nextFrame - minIntervalFrames;
+
+        let bestFrame = -1;
+        let bestValue = 0;
+        for (let f = searchStart; f < searchEnd; f++) {
+          if (flux[f] > bestValue) {
+            bestValue = flux[f];
+            bestFrame = f;
+          }
+        }
+
+        if (bestFrame >= 0) {
+          const windowStart = Math.max(0, bestFrame - localWindowFrames);
+          const windowEnd = Math.min(flux.length, bestFrame + localWindowFrames);
+          let sum = 0;
+          for (let j = windowStart; j < windowEnd; j++) sum += flux[j];
+          const localAverage = sum / (windowEnd - windowStart);
+
+          if (bestValue > localAverage * options.sensitivity && bestValue > 0.0001) {
+            filled.push(bestFrame / framesPerSecond);
+          }
+        }
+      }
+
+      filled.push(onsetTimes[i]);
+    }
+
+    return filled;
+  }
+
   // Analyse un AudioBuffer déjà décodé et renvoie la liste des horaires
   // (en secondes depuis le début du morceau) où un "coup" a été détecté.
   function detectOnsets(audioBuffer, userOptions) {
@@ -221,7 +276,8 @@
 
     const intervalFrames = estimateTempoIntervalFrames(flux, framesPerSecond, options);
     const phaseFrames = estimateBeatPhaseFrames(flux, intervalFrames);
-    return buildGridOnsets(flux, framesPerSecond, intervalFrames, phaseFrames, options);
+    const gridOnsets = buildGridOnsets(flux, framesPerSecond, intervalFrames, phaseFrames, options);
+    return fillMissedBeats(gridOnsets, flux, framesPerSecond, intervalFrames, options);
   }
 
   TH.BeatDetector = { detectOnsets };

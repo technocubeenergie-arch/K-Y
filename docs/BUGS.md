@@ -6,6 +6,52 @@
 
 ---
 
+## BUG-012 — Des coups bien audibles ne recevaient aucune tuile (signalé par Ylonna)
+
+- **Problème observé** : Ylonna a remarqué que la balle n'atterrissait
+  pas sur une tuile à chaque battement entendu — certains coups de la
+  musique restaient sans tuile.
+- **Contexte** : coïncide avec l'ajout des plateformes de liaison (voir
+  section correspondante dans `docs/GAMEPLAY.md`) : les longs écarts
+  entre deux tuiles, jusque-là invisibles, sont devenus visibles (une
+  plateforme verte), ce qui a permis de remarquer qu'un coup s'entendait
+  souvent PENDANT la traversée de ces plateformes.
+- **Cause identifiée** : `audio/beatDetector.js` (`buildGridOnsets`)
+  cherche un coup uniquement autour de chaque position d'une grille à
+  pas fixe (`intervalFrames`) : un coup réel qui tombe ENTRE deux
+  positions de cette grille (une syncope, une petite variation de
+  tempo à cet endroit précis) n'est jamais cherché, même s'il est fort
+  et parfaitement audible. Vérifié précisément : sur les 12 écarts
+  jugés "longs" (plus de 0,9s) au moment du signalement, les 12
+  contenaient un sursaut d'énergie net (7 à 12 fois la moyenne locale,
+  largement au-dessus du seuil de détection) pile au milieu — donc un
+  vrai coup manqué, pas une pause.
+- **Solution appliquée** : `audio/beatDetector.js` (`fillMissedBeats`)
+  ajoute une seconde passe après la grille : pour tout écart supérieur
+  à 1,5× le pouls détecté, elle cherche le plus gros sursaut d'énergie
+  dans cet écart (même critère que la grille), et l'ajoute comme
+  nouvelle tuile s'il est suffisamment marqué ET assez loin des deux
+  tuiles voisines pour rester jouable (`minIntervalSeconds`, voir
+  BUG-009 — sinon le niveau deviendrait injouable à cet endroit).
+- **Effets secondaires** : sur `phuthona.ogg`, 7 tuiles supplémentaires
+  récupérées (152 → 159), et le nombre de plateformes de liaison réduit
+  d'autant (12 → 5) : les 5 restantes correspondent à des coups réels
+  mais trop proches d'une tuile voisine pour être ajoutés sans casser
+  la jouabilité — c'est précisément le cas que les plateformes de
+  liaison doivent couvrir, donc un comportement voulu, pas un défaut
+  restant.
+- **Point de vigilance** : cette passe partage le même critère de
+  détection (`sensitivity`, comparaison à la moyenne locale) que la
+  grille — ne pas dupliquer ce réglage séparément, pour que les deux
+  passes restent cohérentes entre elles.
+- **Vérifié** : testé en navigateur réel (Playwright) — mesure directe
+  de l'énergie exactement au milieu de chaque écart restant, confirmant
+  qu'ils contiennent bien un sursaut réel mais trop proche d'une tuile
+  voisine pour être jouable ; aucune régression sur le score, la pause,
+  l'échec ou le rejeu.
+
+---
+
 ## BUG-011 — Un petit bout de fausse tuile dépassait, collé à la vraie (signalé par Ylonna)
 
 - **Problème observé** : Ylonna a repéré, sur une capture d'écran, un
