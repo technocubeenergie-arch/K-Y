@@ -56,10 +56,6 @@
       keyboardSpeed: 350,
       // Hauteur du saut visuel entre deux tuiles (en pixels).
       bounceHeight: 128,
-      // Vitesse de "roulement" (px/seconde) après une plaque glissante
-      // (voir docs/GAMEPLAY.md, entities/ball.js). Plus haut = plus dur
-      // à rattraper avant la tuile suivante.
-      slideSpeed: 150,
     },
 
     // Les tuiles
@@ -119,14 +115,6 @@
       // qu'elles disparaissent bien avant de devenir des points
       // minuscules empilés près de l'horizon.
       decoyMinVisibleScale: 0.32,
-
-      // "Plaques glissantes" (voir docs/GAMEPLAY.md) : une tuile
-      // normale, mais qui fait rouler la balle toute seule (vers la
-      // gauche ou la droite, voir level/levelData.js) une fois
-      // touchée. Toujours dessinée à PLAT (jamais inclinée) : seule
-      // cette couleur distincte la signale au joueur, tant qu'elle
-      // n'est pas encore atteinte.
-      slipperyColor: '#38bdf8',
     },
 
     // Défilement : vitesse constante (px/seconde) à laquelle le monde
@@ -134,6 +122,25 @@
     // (voir level/levelSequencer.js et core/engine.js).
     scroll: {
       speed: 125,
+    },
+
+    // "Plateformes de liaison" (voir docs/GAMEPLAY.md) : quand deux
+    // tuiles consécutives sont séparées par un long vide dans le
+    // rythme, une plateforme continue vient combler l'espace au lieu
+    // de laisser un simple trou. La balle ne rebondit pas dessus, elle
+    // roule en continu jusqu'à la tuile suivante.
+    bridge: {
+      // Écart minimum (secondes) entre deux tuiles pour qu'une
+      // plateforme apparaisse entre elles. Sur phuthona.ogg, la
+      // plupart des écarts valent 0,4 à 0,9s ; au-delà, c'est un vrai
+      // "vide" dans le rythme plutôt qu'un simple tempo un peu plus
+      // lent.
+      minGapSeconds: 0.9,
+      color: '#22c55e',
+      // Largeur de la plateforme (px, à taille normale) : un peu plus
+      // large qu'une tuile pour bien lire que ce n'est pas une tuile
+      // comme les autres.
+      width: 160,
     },
 
     // Détection de rythme (voir audio/beatDetector.js) : transforme la

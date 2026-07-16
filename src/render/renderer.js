@@ -23,6 +23,7 @@
       const t = engine.getElapsedSeconds();
 
       this._drawBackground();
+      this._drawBridges(engine.sequence.bridges, t);
       this._drawTiles(engine.sequence.tiles, t);
       this._drawHitLine();
       this._drawBall(engine);
@@ -76,10 +77,6 @@
         return tile.isPerfect ? config.tile.perfectColor : config.tile.hitColor;
       }
       if (tile.state === 'missed') return config.tile.missColor;
-      // Une plaque glissante se signale par sa couleur SEULEMENT tant
-      // qu'elle n'est pas encore atteinte (voir docs/GAMEPLAY.md) : une
-      // fois touchée, elle redevient une tuile "hit" comme les autres.
-      if (tile.slideDirection) return config.tile.slipperyColor;
       return config.tile.color;
     }
 
@@ -88,6 +85,45 @@
     // plus petit côté.
     _safeCornerRadius(radius, width, height) {
       return Math.max(1, Math.min(radius, width / 2, height / 2));
+    }
+
+    // Une "plateforme de liaison" (voir docs/GAMEPLAY.md,
+    // level/levelSequencer.js) comble un long vide du rythme : dessinée
+    // comme un long ruban qui rétrécit vers l'horizon (même logique de
+    // perspective que les tuiles, mais étirée entre deux profondeurs
+    // au lieu d'une seule), plutôt qu'une simple tuile.
+    _drawBridges(bridges, t) {
+      const { ctx, config, camera } = this;
+      if (!bridges || bridges.length === 0) return;
+
+      const margin = config.tile.width / 2;
+      const usableWidth = config.canvas.width - margin * 2;
+
+      for (const bridge of bridges) {
+        const flatX = margin + bridge.xFraction * usableWidth;
+        const near = camera.project(bridge.startWorldY, flatX, t);
+        const far = camera.project(bridge.endWorldY, flatX, t);
+
+        if (near.scale < config.perspective.minVisibleScale && far.scale < config.perspective.minVisibleScale) {
+          continue; // les deux bouts sont trop loin pour être utiles
+        }
+
+        const nearWidth = config.bridge.width * near.scale;
+        const farWidth = config.bridge.width * far.scale;
+
+        ctx.fillStyle = config.bridge.color;
+        ctx.beginPath();
+        ctx.moveTo(near.screenX - nearWidth / 2, near.screenY);
+        ctx.lineTo(near.screenX + nearWidth / 2, near.screenY);
+        ctx.lineTo(far.screenX + farWidth / 2, far.screenY);
+        ctx.lineTo(far.screenX - farWidth / 2, far.screenY);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = Math.max(1, 2 * near.scale);
+        ctx.stroke();
+      }
     }
 
     _drawTiles(tiles, t) {
@@ -121,9 +157,6 @@
         // elles ne rapportent jamais rien.
         if (projected && tile.state === 'pending') {
           this._drawPerfectZone(projected.screenX, projected.screenY, projected.scale);
-          if (tile.slideDirection) {
-            this._drawSlideArrow(projected.screenX, projected.screenY, projected.scale, tile.slideDirection);
-          }
         }
       }
     }
@@ -160,24 +193,6 @@
       return { screenX, screenY, scale };
     }
 
-    // Petit triangle indiquant le sens du roulement d'une plaque
-    // glissante (voir docs/GAMEPLAY.md) : sans lui, la couleur seule ne
-    // dirait pas dans quel sens la balle va dériver après l'avoir
-    // touchée.
-    _drawSlideArrow(screenX, screenY, scale, direction) {
-      const { ctx } = this;
-      const size = 10 * scale;
-      const dir = direction === 'left' ? -1 : 1;
-
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      ctx.beginPath();
-      ctx.moveTo(screenX + dir * size, screenY);
-      ctx.lineTo(screenX - dir * size * 0.6, screenY - size * 0.7);
-      ctx.lineTo(screenX - dir * size * 0.6, screenY + size * 0.7);
-      ctx.closePath();
-      ctx.fill();
-    }
-
     _drawPerfectZone(screenX, screenY, scale) {
       const { ctx, config } = this;
       const width = config.tile.width * config.tile.perfectZoneRatio * scale;
@@ -203,8 +218,9 @@
       const ball = engine.ball;
       if (!ball.isAlive) return;
 
-      const bouncePhase = engine.getBouncePhase();
-      const offsetY = ball.getBounceOffsetY(bouncePhase);
+      // Sur une plateforme de liaison (voir docs/GAMEPLAY.md), la balle
+      // roule en continu au lieu de sauter : pas de rebond.
+      const offsetY = engine.isOnBridge() ? 0 : ball.getBounceOffsetY(engine.getBouncePhase());
       const y = config.hitLine.y + offsetY;
 
       ctx.save();

@@ -44,18 +44,6 @@
     'C', 'L', 'C', 'R', 'C',
   ];
 
-  // Les "plaques glissantes" (voir docs/GAMEPLAY.md) : certaines tuiles
-  // du motif ci-dessus, une fois touchées, font ROULER la balle toute
-  // seule vers la gauche ou la droite, au lieu de la laisser où le
-  // joueur l'a posée. Indépendant du chemin latéral (PATTERN) : on
-  // indique juste, ICI, quels indices DU MOTIF (0 = la 1ère lettre du
-  // motif, 1 = la 2e...) sont glissants, et dans quel sens. Absent de
-  // cette liste = tuile normale.
-  const SLIPPERY_PATTERN = {
-    6: 'right', // le 'R' à l'index 6 du motif
-    20: 'left', // le 'L' à l'index 20 du motif
-  };
-
   function resolvePositions(requiredHopCount) {
     const positions = [];
     for (let i = 0; i < requiredHopCount; i++) {
@@ -65,21 +53,11 @@
     return positions;
   }
 
-  function resolveSlides(requiredHopCount) {
-    const slides = [];
-    for (let i = 0; i < requiredHopCount; i++) {
-      const patternIndex = i % PATTERN.length;
-      slides.push(SLIPPERY_PATTERN[patternIndex] || null);
-    }
-    return slides;
-  }
-
   TH.Levels = TH.Levels || {};
   TH.Levels.training = {
     id: 'training',
     name: "Niveau d'entraînement",
     resolvePositions,
-    resolveSlides,
     // Toutes les positions latérales possibles (FL/L/C/R/FR) : sert à
     // placer les "fausses tuiles" sur les positions NON choisies à
     // chaque horaire (voir level/levelSequencer.js et docs/GAMEPLAY.md).

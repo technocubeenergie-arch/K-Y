@@ -119,6 +119,41 @@ suite) :
   chargement de page : les parties suivantes ("Réessayer", "Rejouer")
   réutilisent le résultat déjà calculé, pour rejouer instantanément.
 
+## Les plateformes de liaison : combler les longs vides du rythme
+
+Certains écarts entre deux tuiles détectées sont nettement plus longs
+que la normale (une vraie pause dans le morceau, pas juste un tempo un
+peu plus lent). Plutôt que de laisser un simple trou dans le niveau,
+une **plateforme de liaison** vient combler cet espace — un long ruban
+continu, à la même position latérale que la tuile qui précède le vide,
+qui rétrécit vers l'horizon comme les tuiles (même logique de
+perspective, voir `render/camera.js`), mais étiré entre les deux
+tuiles au lieu d'être une simple forme ponctuelle.
+
+Pendant que la balle traverse cette plateforme, **elle ne rebondit
+plus** : elle roule en continu jusqu'à la tuile suivante, au lieu de
+faire son petit saut habituel entre chaque tuile.
+
+- **Détection** : `level/levelSequencer.js` (`buildBridges`) repère,
+  après avoir construit les tuiles, tout écart entre deux tuiles
+  consécutives supérieur à `config.bridge.minGapSeconds` (0,9s par
+  défaut — sur `phuthona.ogg`, la plupart des écarts valent 0,4 à
+  0,9s, donc au-delà c'est un vrai vide). Le résultat (`sequence.bridges`)
+  est une liste à part de `tiles` : ce n'est pas une tuile à toucher ou
+  à rater, `core/engine.js` ne juge jamais rien dessus.
+- **Rendu** : `render/renderer.js` (`_drawBridges`) projette les DEUX
+  bouts de la plateforme (début et fin du vide) avec `camera.project`,
+  et dessine un quadrilatère qui les relie — plus large qu'une tuile
+  (`config.bridge.width`), avec un contour clair pour bien la
+  distinguer.
+- **Rebond suspendu** : `core/engine.js` (`isOnBridge`) dit si l'horaire
+  actuel tombe dans une plateforme ; `render/renderer.js` (`_drawBall`)
+  s'en sert pour ne pas appeler `ball.getBounceOffsetY` pendant ce
+  temps-là (la balle reste à plat).
+
+Réglages dans `gameConfig.js` (`bridge.minGapSeconds`, `bridge.color`,
+`bridge.width`).
+
 ## Le chemin latéral des tuiles
 
 Le "chemin" que la balle doit suivre (gauche/droite, pas le rythme) est
@@ -196,54 +231,6 @@ par-dessus une fausse tuile, ou le vide, sans perdre. Le moteur garde
 donc un seul point de décision pour l'échec (`core/engine.js`,
 `_processHop`), pour qu'un futur état "vole" sur la balle puisse
 facilement désactiver cet échec sans toucher au reste des règles.
-
-## Les plaques glissantes : la balle roule toute seule
-
-Certaines tuiles, en plus d'être une tuile normale, sont des **plaques
-glissantes** : une fois touchées, la balle se met à **rouler toute
-seule** vers la gauche ou vers la droite (selon la plaque), jusqu'à la
-tuile suivante. Le joueur garde le contrôle (souris/doigt/clavier
-fonctionnent normalement), mais doit maintenant compenser ce roulement
-en plus de viser la prochaine tuile — sinon la balle continue de
-dériver et peut finir hors de la tuile suivante.
-
-Visuellement, une plaque glissante reste **toujours à plat** (jamais
-inclinée à l'écran) : elle se reconnaît uniquement à sa couleur
-distincte (`tile.slipperyColor`) et à une petite flèche blanche
-indiquant le sens du roulement, affichée tant qu'elle n'est pas encore
-atteinte (même principe que la zone bonus, voir plus bas). Une fois
-touchée, elle redevient verte (ou dorée si parfaite) comme n'importe
-quelle tuile réussie.
-
-Le roulement s'arrête net dès que la balle touche une tuile **normale**
-(pas de plaque glissante) : `core/engine.js` (`_processHop`) appelle
-`ball.startSliding(tile.slideDirection, config.ball.slideSpeed)` à
-CHAQUE tuile touchée, glissante ou non — `slideDirection` vaut alors
-`'left'`, `'right'` ou `null`, et `null` coupe immédiatement tout
-roulement en cours. Si deux plaques glissantes se suivent, la seconde
-remplace simplement le roulement de la première (nouvelle vitesse,
-nouveau sens).
-
-Techniquement, `entities/ball.js` distingue toujours deux choses : la
-position voulue par le joueur (`targetX`, mise à jour par
-`core/input.js`) et le roulement (`slideVelocity`, ajouté À `targetX`
-à chaque image tant qu'il n'est pas nul) — la balle continue donc de
-dériver même si le joueur ne touche à rien, exactement comme sur de la
-glace.
-
-Quelles tuiles sont des plaques glissantes ? Décrit dans
-`level/levelData.js` (`SLIPPERY_PATTERN`), indépendamment du tracé
-latéral (`PATTERN`) : une simple liste "quel indice du motif, quel
-sens", facile à modifier sans savoir coder.
-
-Réglages dans `gameConfig.js` : `ball.slideSpeed` (vitesse du roulement
-en px/seconde — plus haut, plus dur à rattraper) et
-`tile.slipperyColor` (sa couleur, tant qu'elle n'est pas atteinte).
-
-Compatible avec les principes du jeu (voir "Sensations à préserver"
-plus bas) : le contrôle reste immédiat et précis dès que le joueur
-agit, rien n'est fait à sa place — la plaque glissante ajoute une
-difficulté environnementale, pas un raccourci.
 
 ## Que se passe-t-il à chaque "saut" (hop) ?
 

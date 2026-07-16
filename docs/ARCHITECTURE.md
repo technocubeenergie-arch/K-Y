@@ -45,10 +45,10 @@ src/
     gameLoop.js                La boucle requestAnimationFrame (input → engine → rendu)
     input.js                   Traduit souris/doigt/clavier en "va vers X" (déplacement clavier fluide, image par image)
   entities/
-    ball.js                  La balle : position, rebond visuel, roulement (plaque glissante)
+    ball.js                  La balle : position, rebond visuel
     tile.js                   Une tuile : position, état (pending/hit/missed), atterrissage parfait
   level/
-    levelData.js              La "recette" du tracé latéral (motif de lettres) et des plaques glissantes
+    levelData.js              La "recette" du tracé latéral (motif de lettres)
     levelSequencer.js          Transforme des horaires détectés + le tracé en vraies tuiles
   render/
     camera.js                  Défilement + projection en perspective (position/échelle écran)
@@ -134,15 +134,12 @@ eventBus.on('tile:hit', ({ isPerfect }) => {
    souris/tactile, lui, met déjà à jour la cible directement à chaque
    déplacement, sans attendre cette étape.
 3. `engine.update(dt)` :
-   - met à jour la position de la balle (`ball.update(dt)`, qui
-     applique aussi le roulement d'une éventuelle plaque glissante —
-     voir `docs/GAMEPLAY.md`),
+   - met à jour la position de la balle (`ball.update()`),
    - lit le temps écoulé via `clock.getElapsedSeconds()`,
    - vérifie si une nouvelle tuile vient d'atteindre la ligne d'impact
      (voir `docs/GAMEPLAY.md` pour le calcul du rythme),
    - si oui : compare la position de la balle à celle de la tuile,
-     marque la tuile `hit` ou `missed`, met à jour le score, démarre ou
-     arrête le roulement de la balle (`ball.startSliding`), émet les
+     marque la tuile `hit` ou `missed`, met à jour le score, émet les
      événements correspondants.
 4. `renderer.render(engine)` redessine tout : fond, tuiles (dont la
    position à l'écran est calculée par `camera.js` à partir du temps
@@ -218,7 +215,10 @@ en déduit où placer les tuiles.
    transforme cette liste d'horaires en objets `Tile`. La position
    latérale (quelle lettre FL/L/C/R/FR) vient de `levelDef`
    (`level/levelData.js`) : l'analyse audio ne peut donner QUE le
-   rythme, pas où placer la balle.
+   rythme, pas où placer la balle. La même fonction repère aussi les
+   longs vides entre deux tuiles (`buildBridges`) pour y placer une
+   plateforme de liaison (voir `docs/GAMEPLAY.md`) — une liste séparée
+   (`sequence.bridges`), jamais mêlée à `sequence.tiles`.
 3. **`core/engine.js`** ne suppose jamais un intervalle fixe entre deux
    tuiles : chaque `Tile` porte son propre `expectedTime`, et c'est
    cette valeur que la boucle de jeu compare au temps écoulé — jamais

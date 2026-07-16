@@ -52,6 +52,33 @@
     return (x >>> 0) / 4294967296;
   }
 
+  // Repère les longs "vides" entre deux tuiles consécutives (voir
+  // docs/GAMEPLAY.md) : au lieu de laisser un simple trou dans le
+  // rythme, une plateforme de liaison vient combler l'espace, sur la
+  // même position latérale que la tuile qui précède le vide (là où se
+  // trouve la balle au moment où le vide commence). Renvoyé à part de
+  // `tiles` : ce n'est pas une tuile à toucher/rater, juste un élément
+  // visuel + un signal pour ne pas faire rebondir la balle pendant la
+  // traversée (voir core/engine.js, `isOnBridge`).
+  function buildBridges(tiles, config) {
+    const bridges = [];
+    for (let i = 1; i < tiles.length; i++) {
+      const previousTile = tiles[i - 1];
+      const nextTile = tiles[i];
+      const gap = nextTile.expectedTime - previousTile.expectedTime;
+      if (gap < config.bridge.minGapSeconds) continue;
+
+      bridges.push({
+        startTime: previousTile.expectedTime,
+        endTime: nextTile.expectedTime,
+        startWorldY: previousTile.worldY,
+        endWorldY: nextTile.worldY,
+        xFraction: previousTile.xFraction,
+      });
+    }
+    return bridges;
+  }
+
   // `beatTimes` : les horaires (secondes, triés du plus tôt au plus
   // tard) des "coups" détectés dans la musique. La position latérale
   // (quelle lettre FL/L/C/R/FR) est décidée par `levelDef` : l'analyse
@@ -59,7 +86,6 @@
   function buildSequence(beatTimes, levelDef, config) {
     const scrollSpeed = config.scroll.speed;
     const xFractions = levelDef.resolvePositions(beatTimes.length);
-    const slides = levelDef.resolveSlides(beatTimes.length);
 
     const sortedFractions = [...levelDef.laneFractions].sort((a, b) => a - b);
     const leftLanes = sortedFractions.slice(0, config.tile.decoyCount);
@@ -77,7 +103,6 @@
     const tiles = beatTimes.map((expectedTime, index) => {
       const worldY = scrollSpeed * expectedTime;
       const tile = new TH.Tile(index, worldY, xFractions[index], expectedTime);
-      tile.slideDirection = slides[index];
       const showDecoys = config.tile.decoyCount > 0 && pseudoRandom01(index, 0) < config.tile.decoyFrequency;
 
       if (showDecoys) {
@@ -120,6 +145,7 @@
 
     return {
       tiles,
+      bridges: buildBridges(tiles, config),
       totalDurationSeconds: lastTile ? lastTile.expectedTime : 0,
       scrollSpeed,
     };

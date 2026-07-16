@@ -3,19 +3,15 @@
  * ------------------------------------------------------------
  * Role: la balle du joueur.
  *
- * Trois choses complètement séparées à l'intérieur :
+ * Deux choses complètement séparées à l'intérieur :
  *  1) La position X : contrôlée par le joueur (souris/doigt/clavier).
  *  2) Le petit rebond visuel : une animation automatique qui suit
  *     le rythme de la musique, juste pour donner l'impression que
  *     la balle "saute" en cadence. Elle n'affecte jamais le X.
- *  3) Le "roulement" (voir `startSliding`) : après une plaque
- *     glissante, la balle dérive TOUTE SEULE sur le côté, en plus de
- *     ce que fait le joueur, jusqu'à la prochaine tuile.
  *
- * La balle ne sait pas ce qu'est une tuile (ni une plaque glissante) :
- * elle ne fait que suivre le doigt du joueur, sautiller en rythme, et
- * dériver quand on le lui demande. La détection de collision et la
- * décision de faire rouler la balle se font ailleurs (engine.js).
+ * La balle ne sait pas ce qu'est une tuile : elle ne fait que
+ * suivre le doigt du joueur et sautiller en rythme. La détection
+ * de collision se fait ailleurs (engine.js).
  * ------------------------------------------------------------
  */
 (function (TH) {
@@ -43,11 +39,6 @@
       this.bounceHeight = config.ball.bounceHeight;
       this.squash = 1; // 1 = taille normale, <1 = écrasée à l'impact
       this.isAlive = true;
-
-      // Vitesse de "roulement" involontaire (px/seconde), déclenchée
-      // par une plaque glissante (voir `startSliding`). 0 = pas de
-      // roulement en cours.
-      this.slideVelocity = 0;
     }
 
     reset(config) {
@@ -55,7 +46,6 @@
       this.targetX = this.x;
       this.squash = 1;
       this.isAlive = true;
-      this.slideVelocity = 0;
     }
 
     setTargetX(x) {
@@ -66,24 +56,9 @@
       this.setTargetX(this.targetX + deltaX);
     }
 
-    // Appelé par engine.js à chaque tuile touchée : `direction` vaut
-    // 'left', 'right' (plaque glissante) ou null (tuile normale, ça
-    // arrête un roulement en cours — on est de nouveau sur une tuile
-    // qui tient en place).
-    startSliding(direction, speed) {
-      if (direction === 'left') this.slideVelocity = -speed;
-      else if (direction === 'right') this.slideVelocity = speed;
-      else this.slideVelocity = 0;
-    }
-
     // Suivi direct de la cible : un contrôle précis et immédiat,
-    // comme dans Tiles Hop (on lit tout de suite où va la balle) — SAUF
-    // le roulement d'une plaque glissante, qui pousse la cible tout
-    // seul, en plus de ce que fait le joueur (souris/doigt/clavier).
-    update(dt) {
-      if (this.slideVelocity !== 0) {
-        this.targetX = TH.MathUtils.clamp(this.targetX + this.slideVelocity * dt, this._minX, this._maxX);
-      }
+    // comme dans Tiles Hop (on lit tout de suite où va la balle).
+    update() {
       this.x = this.targetX;
     }
 
