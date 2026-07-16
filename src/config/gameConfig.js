@@ -38,13 +38,14 @@
       // "Force" de la perspective : une valeur plus petite rapproche
       // l'horizon et rend l'effet plus prononcé ; plus grande, plus doux.
       focalDepth: 260,
-      // En dessous de cette échelle (1 = taille normale), une tuile
-      // n'est plus dessinée du tout : trop loin, trop petite pour être
-      // utile, ça ne ferait que des points minuscules près de
-      // l'horizon. Plus haut = les tuiles lointaines disparaissent
-      // plus tôt (vue plus dégagée) ; plus bas = on voit plus loin dans
-      // le niveau, mais avec plus de petits points à l'écran.
-      minVisibleScale: 0.32,
+      // En dessous de cette échelle (1 = taille normale), une VRAIE
+      // tuile n'est plus dessinée du tout (trop loin pour même valoir
+      // un pixel). Volontairement très bas : on VEUT voir le chemin des
+      // vraies tuiles s'étirer loin vers l'horizon (l'effet "route qui
+      // s'éloigne" recherché depuis le début) — voir
+      // `tile.decoyMinVisibleScale` pour les fausses tuiles, qui ont
+      // une règle différente.
+      minVisibleScale: 0.04,
     },
 
     // La balle
@@ -106,6 +107,14 @@
       // donne l'impression que "c'est toujours le même côté".
       decoyMaxSameSideStreak: 2,
       decoyColor: '#334155',
+      // Contrairement aux vraies tuiles (voir `perspective.minVisibleScale`,
+      // très bas exprès pour qu'on voie le chemin s'étirer loin vers
+      // l'horizon), les fausses tuiles n'ont pas besoin d'être visibles
+      // de loin : elles ne servent qu'à brouiller la lecture juste
+      // avant l'atterrissage. Valeur nettement plus haute, pour
+      // qu'elles disparaissent bien avant de devenir des points
+      // minuscules empilés près de l'horizon.
+      decoyMinVisibleScale: 0.32,
     },
 
     // Défilement : vitesse constante (px/seconde) à laquelle le monde

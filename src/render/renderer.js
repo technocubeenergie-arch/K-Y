@@ -98,14 +98,17 @@
         // sont à la même distance (même worldY) que la vraie tuile,
         // mais sur d'autres positions latérales, donc ne se chevauchent
         // jamais avec elle à l'écran — l'ordre entre les deux n'a pas
-        // d'importance.
+        // d'importance. Seuil de visibilité différent (voir
+        // `tile.decoyMinVisibleScale`) : elles disparaissent bien avant
+        // les vraies tuiles, qui doivent rester visibles loin vers
+        // l'horizon.
         if (tile.decoys) {
           for (const decoy of tile.decoys) {
-            this._drawSingleTile(decoy, t, this.config.tile.decoyColor);
+            this._drawSingleTile(decoy, t, this.config.tile.decoyColor, this.config.tile.decoyMinVisibleScale);
           }
         }
 
-        const projected = this._drawSingleTile(tile, t, this._tileColor(tile));
+        const projected = this._drawSingleTile(tile, t, this._tileColor(tile), this.config.perspective.minVisibleScale);
 
         // Tant que la tuile n'a pas encore été atteinte, on montre
         // directement dessus la zone bonus à viser (voir docs/GAMEPLAY.md).
@@ -121,13 +124,14 @@
     // Dessine UNE tuile (vraie ou fausse) et renvoie sa position/échelle
     // à l'écran, ou `null` si elle n'est pas visible (trop loin, ou hors
     // écran) — pour éviter de dupliquer ce calcul de projection entre
-    // `_drawTiles` et `_drawPerfectZone`.
-    _drawSingleTile(tile, t, color) {
+    // `_drawTiles` et `_drawPerfectZone`. `minScale` est différent pour
+    // une vraie tuile et une fausse tuile (voir `_drawTiles`).
+    _drawSingleTile(tile, t, color, minScale) {
       const { ctx, config, camera } = this;
       const flatX = tile.getCenterX(config.canvas.width, config.tile.width);
       const { screenX, screenY, scale } = camera.project(tile.worldY, flatX, t);
 
-      if (scale < config.perspective.minVisibleScale) return null; // trop loin pour être utile
+      if (scale < minScale) return null; // trop loin pour être utile
       if (screenY < camera.horizonY - 5 || screenY > config.canvas.height + config.tile.height) {
         return null; // hors écran
       }

@@ -165,12 +165,21 @@ au-delà de `tile.decoyMaxSameSideStreak` occurrences consécutives, pour
 que les deux bords soient bien utilisés au fil d'une partie.
 
 Réglages dans `gameConfig.js` (`tile.decoyCount`, `tile.decoyFrequency`,
-`tile.decoyMaxSameSideStreak`, `tile.decoyColor`) : `decoyCount`
-contrôle combien de positions, comptées depuis le bord choisi (2 par
-défaut : les deux plus proches de ce bord), reçoivent une fausse tuile
-QUAND il y en a, `decoyFrequency` contrôle À QUELLE FRÉQUENCE ça arrive
+`tile.decoyMaxSameSideStreak`, `tile.decoyColor`,
+`tile.decoyMinVisibleScale`) : `decoyCount` contrôle combien de
+positions, comptées depuis le bord choisi (2 par défaut : les deux plus
+proches de ce bord), reçoivent une fausse tuile QUAND il y en a,
+`decoyFrequency` contrôle À QUELLE FRÉQUENCE ça arrive
 (0 = jamais,
 1 = à chaque tuile ; actuellement 0,3, soit environ 3 tuiles sur 10).
+
+Les fausses tuiles disparaissent aussi **plus tôt** que les vraies
+quand elles s'éloignent (`tile.decoyMinVisibleScale`, plus haut que
+`config.perspective.minVisibleScale` qui régit les vraies tuiles) :
+elles ne servent qu'à brouiller la lecture juste avant l'atterrissage,
+pas à décorer tout l'horizon. Les vraies tuiles, elles, doivent bien
+rester visibles loin dans le niveau — c'est tout l'intérêt de la vue
+en perspective (voir `docs/ARCHITECTURE.md`).
 
 **Prévu pour plus tard** (voir `docs/FUTURE_INTEGRATIONS.md`) : un
 objet de boutique (une "balle volante") qui permettrait de sauter
