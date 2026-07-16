@@ -26,26 +26,14 @@
       y: 560,
     },
 
-    // Réglages liés à la synchronisation audio/jeu (voir core/clock.js,
-    // docs/GAMEPLAY.md).
-    audio: {
-      // Décalage de calibration (millisecondes) entre le temps audio
-      // (AudioContext.currentTime) et le moment où le son est VRAIMENT
-      // entendu (haut-parleurs/casque, variable selon l'appareil).
-      // 0 = pas de correction. Si les tuiles semblent arriver un peu
-      // trop TÔT par rapport à ce qu'on entend, augmenter cette valeur
-      // (par exemple 30) ; si elles semblent arriver trop TARD, la
-      // rendre négative. À régler à l'oreille, tuile par tuile, avec
-      // `debug.showTiming` activé ci-dessous pour voir l'écart exact.
-      globalOffsetMs: 0,
-    },
-
     // Aides au réglage/diagnostic, désactivées par défaut (aucun
     // impact sur le jeu normal). Voir docs/GAMEPLAY.md.
     debug: {
-      // Affiche en haut à gauche le temps audio courant, l'horaire de
-      // la prochaine tuile, et l'écart entre les deux — utile pour
-      // calibrer `audio.globalOffsetMs` à l'oreille et à l'œil.
+      // Affiche en bas du canvas le temps audio courant, l'horaire de la
+      // prochaine tuile, l'écart entre les deux, et le décalage de
+      // calibration actuellement appliqué (voir ui/calibrationScreen.js) —
+      // un outil de développeur, distinct de l'écran de calibration
+      // accessible au joueur depuis l'écran de démarrage.
       showTiming: false,
     },
 
@@ -213,6 +201,11 @@
       // Clés utilisées dans le stockage local (voir localStore.js)
       highscoreKey: 'tilesHop.trainingLevel.highscore',
       starsKey: 'tilesHop.wallet.stars',
+      // Décalage de calibration audio (millisecondes), réglé par le
+      // joueur via l'écran de calibration (voir ui/calibrationScreen.js).
+      // Absent du stockage = 0 = pas de correction : le jeu reste bien
+      // réglé sans aucune intervention (voir core/clock.js).
+      audioOffsetKey: 'tilesHop.audio.offsetMs',
     },
   };
 })(window.TH = window.TH || {});

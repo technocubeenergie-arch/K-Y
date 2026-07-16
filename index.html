@@ -26,6 +26,26 @@
       <p>Fais glisser ton doigt (ou utilise les flèches ← →) pour déplacer la balle et atterrir sur les tuiles, au rythme de la musique.</p>
       <button id="btn-start" type="button">Jouer</button>
       <p id="start-status"></p>
+      <button id="btn-calibration-open" type="button" class="secondary-button">Régler la synchro</button>
+    </div>
+
+    <div id="screen-calibration" class="screen">
+      <h2>Régler la synchro</h2>
+      <div id="calibration-instructions">
+        <p>Ce test dit au jeu s'il doit faire arriver les tuiles un tout petit peu plus tôt ou plus tard, pour bien tomber en rythme avec ce que tu entends.</p>
+        <p>Appuie sur « Commencer », puis tape sur le gros bouton (ou la barre ESPACE) en rythme avec chaque bip.</p>
+        <button id="btn-calibration-start-test" type="button">Commencer le test</button>
+      </div>
+      <button id="btn-calibration-tap" type="button" class="is-hidden">Tape ici en rythme !</button>
+      <div id="calibration-result" class="is-hidden">
+        <p id="calibration-result-text"></p>
+        <button id="btn-calibration-apply" type="button">Appliquer ce réglage</button>
+      </div>
+      <p id="calibration-current-value"></p>
+      <div class="calibration-actions">
+        <button id="btn-calibration-retry" type="button" class="secondary-button">Recommencer le test</button>
+        <button id="btn-calibration-close" type="button" class="secondary-button">Retour</button>
+      </div>
     </div>
 
     <div id="screen-pause" class="screen">
@@ -78,6 +98,7 @@
   <script src="src/storage/localStore.js"></script>
   <script src="src/ui/hud.js"></script>
   <script src="src/ui/screens.js"></script>
+  <script src="src/ui/calibrationScreen.js"></script>
   <script src="src/core/input.js"></script>
   <script src="src/main.js"></script>
 </body>
