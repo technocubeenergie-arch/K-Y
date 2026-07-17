@@ -159,6 +159,11 @@
       // niveaux du jeu, c'est simplement la longueur de cette liste :
       // ajouter un nombre à la fin ajoute un niveau.
       speedMultipliers: [1, 1.25, 1.5],
+      // Combien de temps (secondes) le bandeau "Niveau X" met à arriver
+      // depuis l'horizon jusqu'à la ligne d'impact, sur le chemin, au
+      // début de chaque nouveau niveau (sauf le tout premier) — voir
+      // render/renderer.js, `showLevelBanner`.
+      bannerLeadSeconds: 1.4,
     },
 
     // "Plateformes de liaison" (voir docs/GAMEPLAY.md) : quand deux
