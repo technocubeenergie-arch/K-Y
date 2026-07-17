@@ -120,7 +120,12 @@ eventBus.on('tile:hit', ({ isPerfect }) => {
 ```
 
 Événements existants aujourd'hui : `game:start`, `game:pause`,
-`game:resume`, `game:over`, `game:complete`, `tile:hit`, `tile:miss`.
+`game:resume`, `game:over`, `game:complete`, `tile:hit`, `tile:miss`,
+`level:start`, `level:complete` (voir docs/GAMEPLAY.md, section
+"Une partie, plusieurs niveaux" — `level:complete` signale la fin d'un
+niveau qui N'EST PAS le dernier, `main.js` reconstruit alors le niveau
+suivant, plus rapide, et appelle `engine.startNextLevel()`, qui émet à
+son tour `level:start`).
 
 ## Le flux principal (une image de jeu)
 

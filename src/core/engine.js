@@ -24,12 +24,18 @@
       this.events = eventBus;
       this.localStore = localStore;
 
-      this.state = 'idle'; // idle | playing | paused | gameover | complete
+      this.state = 'idle'; // idle | playing | paused | gameover | levelComplete | complete
       this.score = 0;
       // Étoiles gagnées PENDANT LA PARTIE EN COURS (remise à zéro à chaque
       // start()). Le total cumulé, lui, vit dans localStore (voir plus bas).
       this.runStars = 0;
       this._nextHopIndex = 0;
+      // Niveau courant (0 = premier niveau) au sein d'une partie — voir
+      // docs/GAMEPLAY.md, config.levels.speedMultipliers pour le nombre
+      // total de niveaux. Remis à 0 uniquement par start() (un échec, à
+      // n'importe quel niveau, ramène toujours au niveau 1 — voir
+      // main.js).
+      this.levelIndex = 0;
     }
 
     // `syncStartTime` (optionnel) est l'heure audio exacte à laquelle
@@ -45,6 +51,7 @@
       this.score = 0;
       this.runStars = 0;
       this._nextHopIndex = 0;
+      this.levelIndex = 0;
       this.sequence.tiles.forEach((tile) => {
         tile.state = 'pending';
         tile.isPerfect = false;
@@ -54,6 +61,35 @@
       this.events.emit('game:start', {
         starBalance: this.localStore.getStarBalance(),
         totalTiles: this.sequence.tiles.length,
+        levelIndex: this.levelIndex,
+        totalLevels: this.config.levels.speedMultipliers.length,
+      });
+    }
+
+    // Passe au niveau suivant SANS rien remettre à zéro (contrairement à
+    // start()) : le score et les étoiles continuent de s'additionner sur
+    // toute la partie — seul un échec (_fail) remet tout à zéro, jamais
+    // la réussite d'un niveau (voir docs/GAMEPLAY.md). `sequence` est le
+    // niveau suivant déjà construit par main.js (musique rejouée plus
+    // vite, tuiles recalculées en conséquence — voir
+    // level/levelSequencer.js).
+    startNextLevel(syncStartTime, sequence) {
+      this.sequence = sequence;
+      this.levelIndex += 1;
+      this._nextHopIndex = 0;
+      this.sequence.tiles.forEach((tile) => {
+        tile.state = 'pending';
+        tile.isPerfect = false;
+      });
+      this.ball.reset(this.config);
+      this.clock.start(syncStartTime);
+      this.state = 'playing';
+      this.events.emit('level:start', {
+        totalTiles: this.sequence.tiles.length,
+        levelIndex: this.levelIndex,
+        totalLevels: this.config.levels.speedMultipliers.length,
+        score: this.score,
+        runStars: this.runStars,
       });
     }
 
@@ -141,6 +177,11 @@
         isNewHighscore,
         runStars: this.runStars,
         starBalance: this.localStore.getStarBalance(),
+        // Niveau atteint (1-based, plus parlant qu'un index) et nombre
+        // total de niveaux — utile surtout sur l'écran d'échec, pour
+        // montrer jusqu'où la partie est allée (voir ui/screens.js).
+        levelReached: this.levelIndex + 1,
+        totalLevels: this.config.levels.speedMultipliers.length,
       };
     }
 
@@ -152,9 +193,32 @@
       this.events.emit('game:over', this._buildRunSummaryPayload());
     }
 
+    // Fin des tuiles du niveau EN COURS : soit il reste des niveaux à
+    // jouer (on prévient main.js, qui reconstruira le niveau suivant,
+    // plus rapide, et appellera startNextLevel), soit c'était le
+    // dernier — la partie entière est gagnée.
     _complete() {
-      this.state = 'complete';
+      const totalLevels = this.config.levels.speedMultipliers.length;
+      const isLastLevel = this.levelIndex + 1 >= totalLevels;
+
       this.clock.pause();
+
+      if (!isLastLevel) {
+        // État distinct de 'playing' : update() ne fait plus rien tant
+        // que main.js n'a pas appelé startNextLevel avec le niveau
+        // suivant (le temps, très bref, de relancer la musique plus
+        // vite et reconstruire les tuiles correspondantes).
+        this.state = 'levelComplete';
+        this.events.emit('level:complete', {
+          levelIndex: this.levelIndex,
+          totalLevels,
+          score: this.score,
+          runStars: this.runStars,
+        });
+        return;
+      }
+
+      this.state = 'complete';
       this.events.emit('game:complete', this._buildRunSummaryPayload());
     }
 

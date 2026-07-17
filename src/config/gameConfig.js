@@ -147,6 +147,20 @@
       speed: 125,
     },
 
+    // Progression des niveaux (voir docs/GAMEPLAY.md) : une partie,
+    // c'est plusieurs niveaux à la suite, sur la même musique, chacun
+    // plus rapide que le précédent (la musique elle-même est rejouée
+    // plus vite, voir audio/audioManager.js et level/levelSequencer.js).
+    // Un raté, à n'importe quel niveau, ramène toujours au niveau 1
+    // (comme le vrai jeu Tiles Hop) — voir main.js.
+    levels: {
+      // Un nombre par niveau = son multiplicateur de vitesse (1 =
+      // vitesse normale, comme avant l'ajout des niveaux). Le NOMBRE de
+      // niveaux du jeu, c'est simplement la longueur de cette liste :
+      // ajouter un nombre à la fin ajoute un niveau.
+      speedMultipliers: [1, 1.25, 1.5],
+    },
+
     // "Plateformes de liaison" (voir docs/GAMEPLAY.md) : quand deux
     // tuiles consécutives sont séparées par un long vide dans le
     // rythme, une plateforme continue vient combler l'espace au lieu

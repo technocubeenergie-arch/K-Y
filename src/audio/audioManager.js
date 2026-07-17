@@ -77,10 +77,17 @@
     // audio/beatDetector.js). Renvoie l'heure audio exacte de
     // démarrage, pour que l'horloge du jeu (core/clock.js) s'aligne
     // dessus.
-    playTrack(audioBuffer) {
+    //
+    // `playbackRate` (voir config.levels.speedMultipliers) : rejoue le
+    // même fichier plus vite pour un niveau plus difficile — un coup à
+    // l'origine à l'instant T est alors entendu à T / playbackRate (le
+    // niveau, lui, doit prévoir le même calcul, voir
+    // level/levelSequencer.js).
+    playTrack(audioBuffer, playbackRate = 1) {
       const gain = this._createMusicGain();
       const source = this._audioCtx.createBufferSource();
       source.buffer = audioBuffer;
+      source.playbackRate.value = playbackRate;
       source.connect(gain);
 
       const startTime = this._audioCtx.currentTime + 0.15;
