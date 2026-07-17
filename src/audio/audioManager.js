@@ -77,10 +77,17 @@
     // audio/beatDetector.js). Renvoie l'heure audio exacte de
     // démarrage, pour que l'horloge du jeu (core/clock.js) s'aligne
     // dessus.
-    playTrack(audioBuffer) {
+    //
+    // `playbackRate` (voir config.levels.speedMultipliers) : rejoue le
+    // même fichier plus vite pour un niveau plus difficile — un coup à
+    // l'origine à l'instant T est alors entendu à T / playbackRate (le
+    // niveau, lui, doit prévoir le même calcul, voir
+    // level/levelSequencer.js).
+    playTrack(audioBuffer, playbackRate = 1) {
       const gain = this._createMusicGain();
       const source = this._audioCtx.createBufferSource();
       source.buffer = audioBuffer;
+      source.playbackRate.value = playbackRate;
       source.connect(gain);
 
       const startTime = this._audioCtx.currentTime + 0.15;
@@ -98,35 +105,6 @@
       const gainToDisconnect = this._musicGain;
       setTimeout(() => gainToDisconnect.disconnect(), 200);
       this._musicGain = null;
-    }
-
-    // Programme `count` clics courts, espacés de `intervalSeconds`, à des
-    // heures audio programmées À L'AVANCE (osc.start(t) précis, jamais de
-    // setTimeout qui dérive) — utilisé par le test de calibration (voir
-    // ui/calibrationScreen.js) pour que le joueur tape en rythme dessus.
-    // Renvoie les heures programmées (domaine AudioContext.currentTime),
-    // pour les comparer aux heures de tape captées par ce même horloge.
-    scheduleMetronome(count, intervalSeconds) {
-      if (!this._audioCtx) return [];
-      const startAt = this._audioCtx.currentTime + 0.3;
-      const clickTimes = [];
-
-      for (let i = 0; i < count; i++) {
-        const t = startAt + i * intervalSeconds;
-        clickTimes.push(t);
-
-        const osc = this._audioCtx.createOscillator();
-        const gain = this._audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, t);
-        gain.gain.setValueAtTime(0.5, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
-        osc.connect(gain).connect(this._sfxGain);
-        osc.start(t);
-        osc.stop(t + 0.1);
-      }
-
-      return clickTimes;
     }
 
     _playBlip(freq, duration, type) {

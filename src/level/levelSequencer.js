@@ -80,11 +80,21 @@
   }
 
   // `beatTimes` : les horaires (secondes, triés du plus tôt au plus
-  // tard) des "coups" détectés dans la musique. La position latérale
-  // (quelle lettre FL/L/C/R/FR) est décidée par `levelDef` : l'analyse
-  // audio ne peut donner QUE le rythme, pas où placer la balle.
-  function buildSequence(beatTimes, levelDef, config) {
+  // tard) des "coups" détectés dans la musique, à vitesse normale. La
+  // position latérale (quelle lettre FL/L/C/R/FR) est décidée par
+  // `levelDef` : l'analyse audio ne peut donner QUE le rythme, pas où
+  // placer la balle.
+  //
+  // `speedMultiplier` (voir config.levels.speedMultipliers) : pour un
+  // niveau plus rapide, la musique est rejouée plus vite (voir
+  // audio/audioManager.js, `playTrack`) — un coup entendu à l'origine à
+  // l'instant T est alors entendu à l'instant T / speedMultiplier. On
+  // applique EXACTEMENT le même calcul ici, pour que les tuiles restent
+  // en rythme avec la musique accélérée (sinon elles resteraient aux
+  // horaires d'origine, alors que la musique, elle, serait déjà passée).
+  function buildSequence(beatTimes, levelDef, config, speedMultiplier = 1) {
     const scrollSpeed = config.scroll.speed;
+    const compressedBeatTimes = beatTimes.map((time) => time / speedMultiplier);
     const xFractions = levelDef.resolvePositions(beatTimes.length);
 
     const sortedFractions = [...levelDef.laneFractions].sort((a, b) => a - b);
@@ -100,7 +110,7 @@
     let lastSide = null;
     let sameSideStreak = 0;
 
-    const tiles = beatTimes.map((expectedTime, index) => {
+    const tiles = compressedBeatTimes.map((expectedTime, index) => {
       const worldY = scrollSpeed * expectedTime;
       const tile = new TH.Tile(index, worldY, xFractions[index], expectedTime);
       const showDecoys = config.tile.decoyCount > 0 && pseudoRandom01(index, 0) < config.tile.decoyFrequency;

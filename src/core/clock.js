@@ -18,34 +18,30 @@
   'use strict';
 
   class Clock {
-    // `offsetMs` (voir storage/localStore.js:getAudioOffsetMs, réglé par
-    // ui/calibrationScreen.js) : décalage de calibration appliqué à CHAQUE
-    // lecture du temps. Une chaîne audio→haut-parleurs a toujours un peu
-    // de latence matérielle (variable selon l'appareil), invisible dans
-    // `AudioContext.currentTime` lui-même ; le test de calibration mesure
-    // cette latence (plus le temps de réaction naturel du joueur) et la
-    // fournit ici. Positif = le son est perçu un peu APRÈS l'horaire que
-    // le code croit : on retarde d'autant le moment où une tuile est jugée
-    // "atteinte", pour rester calé sur ce qu'on ENTEND plutôt que sur
-    // l'horloge brute (voir `setOffsetMs` pour le détail du calcul).
+    // `offsetMs` (voir config.audio.globalOffsetMs) : décalage de
+    // calibration appliqué à CHAQUE lecture du temps. Une chaîne
+    // audio→haut-parleurs a toujours un peu de latence matérielle
+    // (variable selon l'appareil), invisible dans
+    // `AudioContext.currentTime` lui-même. Positif = le son est perçu un
+    // peu APRÈS l'horaire que le code croit : on retarde d'autant le
+    // moment où une tuile est jugée "atteinte", pour rester calé sur ce
+    // qu'on ENTEND plutôt que sur l'horloge brute. Une horloge qui
+    // AVANCE de `offsetMs` doit en réalité RALENTIR son jugement
+    // d'autant, donc `offsetSeconds` (ajouté dans getElapsedSeconds
+    // ci-dessous) est de signe OPPOSÉ à `offsetMs` (voir docs/BUGS.md,
+    // BUG-014).
     constructor(getAudioTime, offsetMs = 0) {
       // Fonction optionnelle fournie par l'audio pour lire l'heure précise.
       this._getAudioTime = getAudioTime || null;
-      this._offsetSeconds = 0;
-      this.setOffsetMs(offsetMs);
+      this._offsetSeconds = -offsetMs / 1000;
       this._startTime = 0;
       this._pausedAt = 0;
       this._pauseAccumulated = 0;
       this._isPaused = true;
     }
 
-    // Une horloge qui AVANCE de `offsetMs` (temps perçu en retard) doit en
-    // réalité RALENTIR son jugement d'autant, donc `offsetSeconds` (ajouté
-    // dans getElapsedSeconds ci-dessous) est de signe OPPOSÉ à `offsetMs`.
-    setOffsetMs(offsetMs) {
-      this._offsetSeconds = -offsetMs / 1000;
-    }
-
+    // Pour `config.debug.showTiming` (voir render/renderer.js) : affiche
+    // le décalage réellement appliqué.
     getOffsetMs() {
       return -this._offsetSeconds * 1000;
     }

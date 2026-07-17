@@ -59,9 +59,8 @@ src/
   ui/
     hud.js                      Score, progression et étoiles affichés pendant la partie
     screens.js                   Écrans démarrage / pause / échec / fin
-    calibrationScreen.js           Écran "Régler la synchro" : test tap-along, décalage calculé automatiquement (voir docs/BUGS.md, BUG-014)
   storage/
-    localStore.js               Sauvegarde du meilleur score, de la tirelire d'étoiles, et du décalage de calibration audio (temporaire, local)
+    localStore.js               Sauvegarde du meilleur score et de la tirelire d'étoiles (temporaire, local)
   assets/
     assetManifest.js             Registre central de tous les assets (voir plus bas)
     levelTrackData.js              La musique du niveau, encodée en base64 (généré, voir plus bas)
@@ -89,15 +88,9 @@ C'est la règle la plus importante pour garder le code "propre" :
 - **`audio/`** : ne décide jamais des règles. Il **réagit** aux
   événements du jeu (`tile:hit`, `game:over`...) émis par `engine.js`,
   via `main.js` qui fait le lien.
-- **`ui/` (hud, screens, calibrationScreen)** : pareil, réagit aux
-  événements, ne pilote rien. `calibrationScreen.js` fait exception sur
-  un point : il appelle directement `clock.setOffsetMs()` (callback
-  passé par `main.js`) pour appliquer le réglage de calibration tout de
-  suite, sans attendre un redémarrage — mais ne décide jamais des
-  règles du jeu pour autant.
-- **`storage/`** : indépendant, fournit `getHighScore()` /
-  `setHighScore()`, `getStarBalance()` / `addStars()`, et
-  `getAudioOffsetMs()` / `setAudioOffsetMs()` (voir BUG-014).
+- **`ui/` (hud, screens)** : pareil, réagit aux événements, ne pilote rien.
+- **`storage/`** : indépendant, fournit juste `getHighScore()` /
+  `setHighScore()`.
 - **`main.js`** : le seul fichier qui a le droit de connaître **tous**
   les modules. Il les construit et les branche ensemble, puis les laisse
   travailler.
@@ -127,7 +120,12 @@ eventBus.on('tile:hit', ({ isPerfect }) => {
 ```
 
 Événements existants aujourd'hui : `game:start`, `game:pause`,
-`game:resume`, `game:over`, `game:complete`, `tile:hit`, `tile:miss`.
+`game:resume`, `game:over`, `game:complete`, `tile:hit`, `tile:miss`,
+`level:start`, `level:complete` (voir docs/GAMEPLAY.md, section
+"Une partie, plusieurs niveaux" — `level:complete` signale la fin d'un
+niveau qui N'EST PAS le dernier, `main.js` reconstruit alors le niveau
+suivant, plus rapide, et appelle `engine.startNextLevel()`, qui émet à
+son tour `level:start`).
 
 ## Le flux principal (une image de jeu)
 

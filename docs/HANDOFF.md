@@ -26,9 +26,13 @@ expliqué simplement.
 - **Assets définitifs et Supabase = plus tard, pas maintenant.** Ce qui
   existe aujourd'hui doit juste être *prêt* à les accueillir (voir
   `docs/FUTURE_INTEGRATIONS.md`).
-- **Un seul niveau pour l'instant** (niveau d'entraînement, dont la
-  durée suit celle de la musique choisie — actuellement ~1min32,
-  `phuthona.ogg`), avant d'envisager plusieurs niveaux.
+- **Plusieurs niveaux, une seule musique.** Depuis que le niveau
+  d'entraînement a été validé comme "parfaitement fonctionnel et
+  amusant" par Ylonna, une partie enchaîne plusieurs niveaux sur la même
+  musique (actuellement ~1min32, `phuthona.ogg`), chacun plus rapide que
+  le précédent (voir `docs/GAMEPLAY.md`, `config.levels.speedMultipliers`) —
+  ce n'est PAS plusieurs musiques différentes, seulement la même
+  rejouée en accéléré.
 - **Pédagogie** : toute explication donnée à Ylonna doit rester simple,
   courte, concrète — pas de jargon technique non expliqué.
 
@@ -39,14 +43,18 @@ clic → décodage + analyse du rythme de la musique du jeu (~1s, message
 de chargement pendant ce temps) → jeu (défilement automatique en
 perspective façon "vu depuis derrière la balle", contrôle de la balle
 au clavier/souris/tactile, tuiles placées sur le rythme réel détecté,
-étoiles gagnées sur atterrissage parfait) → écran d'échec (avec
-meilleur score et étoiles) ou écran de victoire → possibilité de
-rejouer (instantané, la musique déjà analysée est réutilisée). Testé
-en conditions automatisées (Playwright), y compris en ouvrant
-`index.html` directement (`file://`, sans serveur, comme le fait
-Ylonna) : défilement, collisions, échec, retry, pause (audio compris),
-fin de niveau, mouvement clavier continu, gain/persistance des étoiles
-fonctionnent tous correctement, sans erreur console.
+étoiles gagnées sur atterrissage parfait) → 3 niveaux enchaînés sur la
+même musique, chacun plus rapide que le précédent (score et étoiles
+continuent de s'accumuler d'un niveau à l'autre) → écran d'échec, à
+n'importe quel niveau (avec le niveau atteint, meilleur score et
+étoiles), qui ramène toujours au niveau 1 — ou écran de victoire une
+fois les 3 niveaux terminés → possibilité de rejouer (instantané, la
+musique déjà analysée est réutilisée). Testé en conditions automatisées
+(Playwright), y compris en ouvrant `index.html` directement (`file://`,
+sans serveur, comme le fait Ylonna) : défilement, collisions, échec,
+retry, pause (audio compris), progression entre niveaux (vitesse
+comprise), fin de partie, mouvement clavier continu, gain/persistance
+des étoiles fonctionnent tous correctement, sans erreur console.
 
 Historique des retours déjà pris en compte : mouvement clavier rendu
 fluide (BUG-004), vitesse clavier ajustée plusieurs fois suite aux
@@ -106,8 +114,11 @@ automatique basé sur le temps, une tuile pour chaque "coup" détecté
 dans la musique du jeu (donc un espacement irrégulier, pas un tempo
 fixe), toute la tuile compte comme réussie mais une petite zone dorée
 au centre rapporte en plus une étoile, échec immédiat si raté à côté.
-Les étoiles sont une monnaie persistante prévue pour une future
-boutique (non construite).
+Une partie enchaîne plusieurs niveaux sur la même musique, rejouée de
+plus en plus vite (`config.levels.speedMultipliers`) ; un échec, à
+n'importe quel niveau, ramène toujours au niveau 1. Les étoiles sont
+une monnaie persistante prévue pour une future boutique (non
+construite).
 
 **Important pour la suite** : le moteur ne suppose pas d'intervalle
 fixe entre deux tuiles (`core/engine.js` lit `tile.expectedTime` au cas
@@ -140,9 +151,13 @@ et déjà prévenus (pas des bugs actifs).
    `docs/FUTURE_INTEGRATIONS.md` section 2. Puis construire la
    boutique pour dépenser les étoiles (catalogue, écran, inventaire
    possédé) — section 3.
-4. Envisager un deuxième niveau **seulement** une fois le premier
-   validé comme "parfaitement fonctionnel et amusant" (consigne
-   explicite : pas de contenu supplémentaire avant ça).
+4. **Fait** : plusieurs niveaux sur la même musique, chacun plus rapide
+   que le précédent (`config.levels.speedMultipliers`), un échec à
+   n'importe quel niveau ramenant au niveau 1 — voir
+   `docs/GAMEPLAY.md`. Reste à ajuster selon le ressenti de Ylonna : le
+   nombre de niveaux (actuellement 3) et l'écart de vitesse entre eux
+   (actuellement 25% par niveau) sont de simples nombres dans
+   `gameConfig.js`, faciles à changer sans savoir coder.
 5. Plus tard seulement : remplacement des assets et intégration
    Supabase (voir `docs/FUTURE_INTEGRATIONS.md`).
 
@@ -179,10 +194,15 @@ en continu, pas saccadé), les tuiles apparaissent avec un espacement
 irrégulier qui suit le rythme entendu, une tuile touchée devient verte
 (dorée si atterrissage parfait, avec incrément des étoiles dans le
 HUD) et incrémente le score, une tuile ratée déclenche l'écran
-d'échec, le bouton pause fonctionne (le son se fige aussi, pas
-seulement le jeu), terminer le niveau affiche l'écran de victoire,
-rejouer est instantané (musique déjà analysée réutilisée), et le solde
-d'étoiles survit à un rechargement de la page (localStorage).
+d'échec (avec le niveau atteint), le bouton pause fonctionne (le son se
+fige aussi, pas seulement le jeu), terminer un niveau qui n'est pas le
+dernier relance directement la musique plus vite au niveau suivant
+(HUD "Niveau X / Y" mis à jour, score/étoiles conservés, aucun écran
+affiché entre les deux), terminer TOUS les niveaux affiche l'écran de
+victoire, un échec à n'importe quel niveau puis "Réessayer" repart bien
+du niveau 1, rejouer est instantané (musique déjà analysée réutilisée),
+et le solde d'étoiles survit à un rechargement de la page
+(localStorage).
 
 ## Comment intégrer plus tard les assets finaux et Supabase
 

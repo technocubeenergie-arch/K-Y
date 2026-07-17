@@ -6,6 +6,69 @@
 
 ---
 
+## BUG-016 — Retrait de l'écran de calibration temporaire, une fois la bonne valeur trouvée (demandé par Ylonna)
+
+- **Contexte** : l'écran de calibration tap-along (BUG-014, corrigé en
+  BUG-015) a rempli son rôle : Ylonna l'a utilisé et a mesuré, sur son
+  appareil, un décalage d'environ 250ms (les tuiles arrivaient un peu
+  trop tard par rapport à ce qu'elle entendait). Une fois ce réglage
+  appliqué, elle a confirmé que la synchronisation devenait vraiment
+  bonne à l'oreille.
+- **Demande** : intégrer directement cette valeur comme réglage par
+  défaut du jeu, et retirer tout le système de test/calibration
+  temporaire pour revenir à une version simple et propre — plus besoin
+  d'un écran dédié une fois la bonne valeur connue.
+- **Solution appliquée** :
+  - `config/gameConfig.js` : `audio.globalOffsetMs` remis en dur à
+    `-250` (voir `core/clock.js` pour la convention de signe : "trop
+    tard" correspond à un décalage négatif).
+  - Supprimés entièrement : `src/ui/calibrationScreen.js` (le module),
+    le bouton et l'écran HTML correspondants (`index.html`), leur CSS
+    (`css/style.css`), `audio/audioManager.js:scheduleMetronome`,
+    `storage/localStore.js:getAudioOffsetMs`/`setAudioOffsetMs`, la clé
+    `storage.audioOffsetKey`, et `core/clock.js:setOffsetMs` (devenu
+    inutile : le décalage est maintenant fixé une fois au démarrage,
+    jamais changé en cours de route).
+  - `core/clock.js` garde `getOffsetMs()` (toujours utile à l'overlay
+    de debug, `config.debug.showTiming`) et la correction de signe de
+    BUG-014, désormais appliquée directement dans le constructeur.
+- **Ce qui reste si un jour ça sonne à nouveau décalé** (nouvel
+  appareil, nouvelle musique) : ajuster `config.audio.globalOffsetMs`
+  à la main, avec `config.debug.showTiming` activé pour voir l'écart
+  exact — voir `docs/GAMEPLAY.md`. Rien n'empêche de refaire un écran
+  de calibration plus tard si ce cas redevient fréquent ; il a
+  simplement été retiré pendant qu'il n'était plus utile pour ne pas
+  garder de code mort.
+- **Vérifié** : testé en navigateur réel (Playwright) — plus aucune
+  trace du bouton/écran de calibration, overlay de debug affichant bien
+  `-250ms`, partie complète (score, étoiles, pause, reprise) sans
+  erreur.
+
+---
+
+## BUG-015 — Après "Appliquer" sur l'écran de calibration, le texte gardait une instruction obsolète (signalé par Ylonna)
+
+- **Problème observé** : capture d'écran envoyée par Ylonna — après avoir
+  appuyé sur "Appliquer" (BUG-014), le bouton disparaît normalement
+  (pour éviter de l'appliquer deux fois), mais le texte au-dessus disait
+  toujours *"Appuie sur « Appliquer » pour garder ce réglage"* alors que
+  ce bouton n'existait plus. Confusion totale : impossible de savoir si
+  le réglage avait été pris en compte ou non.
+- **Cause** : `ui/calibrationScreen.js`, `_apply()` cachait le bouton
+  (`applyButton.classList.add('is-hidden')`) mais ne touchait jamais au
+  texte du résultat (`resultText`), resté figé sur la phrase écrite par
+  `_finishTest()` avant l'application.
+- **Solution appliquée** : `_apply()` remplace maintenant ce texte par
+  une confirmation claire ("Réglage enregistré ! Tu peux fermer cet
+  écran, ou refaire le test si tu veux.") au moment même où le bouton
+  disparaît, pour que les deux restent toujours cohérents.
+- **Vérifié** : reproduit d'abord le bug via Playwright (texte
+  d'instruction et bouton absent, exactement comme la capture d'écran),
+  puis testé le correctif : après clic sur "Appliquer", le texte affiche
+  bien la confirmation et non l'ancienne instruction.
+
+---
+
 ## BUG-014 — Le réglage de calibration audio agissait à l'envers, et était trop technique pour Ylonna
 
 - **Problème observé (deux volets, liés)** :

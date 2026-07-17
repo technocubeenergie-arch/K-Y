@@ -2,7 +2,9 @@
  * screens.js
  * ------------------------------------------------------------
  * Role: les écrans qui recouvrent le jeu entre les parties :
- * écran de démarrage, pause, échec, et fin de niveau réussie.
+ * écran de démarrage, pause, échec, et victoire (tous les niveaux
+ * terminés — voir core/engine.js pour la transition silencieuse
+ * entre deux niveaux, qui ne montre aucun écran).
  *
  * Comme hud.js, ce module réagit aux événements du jeu (il ne
  * décide jamais des règles). Il connaît juste 3 actions possibles
@@ -54,6 +56,7 @@
 
     _showFail(payload) {
       const text = this._formatResult(payload);
+      this._els.failLevel.textContent = 'Niveau atteint : ' + payload.levelReached + ' / ' + payload.totalLevels;
       this._els.failScore.textContent = text.score;
       this._els.failHighscore.textContent = text.highscore;
       this._els.failStars.textContent = text.stars;

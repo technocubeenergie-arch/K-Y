@@ -137,33 +137,26 @@ calibration.** Après ce qui précède, Ylonna a signalé que ça ne
 - **La latence matérielle (haut-parleurs/casque) reste, elle,
   invérifiable depuis le code** : `AudioContext.currentTime` dit quand
   un son est PROGRAMMÉ, pas l'instant exact où il sort physiquement du
-  haut-parleur (cette latence varie selon l'appareil). C'est pour ça
-  qu'un réglage de calibration existe — mais pas besoin de toucher à un
-  fichier ni à un réglage technique pour s'en servir : voir "Régler la
-  synchro (calibration)" ci-dessous, l'écran fait tout.
+  haut-parleur (cette latence varie selon l'appareil). D'où
+  `config.audio.globalOffsetMs`.
 
-**Régler la synchro (calibration), sans rien éditer.** Depuis l'écran
-de démarrage, le bouton "Régler la synchro" ouvre un petit test
-(`ui/calibrationScreen.js`) : le jeu joue 6 bips espacés régulièrement,
-le joueur tape en rythme dessus (gros bouton rond, ou barre ESPACE), et
-c'est tout — le jeu calcule lui-même l'écart moyen entre les bips et
-les tapes, l'affiche en une phrase simple ("les tuiles arrivaient un
-peu trop tôt/tard, écart : X ms"), et un bouton "Appliquer" suffit à
-l'enregistrer. Ce réglage est ensuite sauvegardé sur l'appareil (voir
-`storage/localStore.js`, `getAudioOffsetMs`/`setAudioOffsetMs`) et
-repris à chaque partie, sans jamais redemander le test. **Aucune
-calibration n'est obligatoire** : sans y toucher, le réglage reste à 0
-(aucune correction) et le jeu est déjà bien synchronisé pour la
-plupart des appareils, grâce aux corrections de précision déjà faites
-plus haut (grille + coups manqués + interpolation).
+**Le décalage de calibration est maintenant une valeur fixe, déjà
+réglée.** Un écran de calibration temporaire (test "tape en rythme sur
+des bips", voir `docs/BUGS.md`, BUG-014) a permis à Ylonna de mesurer,
+sur son appareil, l'écart entre le son et les tuiles : environ 250ms
+(les tuiles arrivaient un peu trop tard). Une fois cette valeur connue
+et confirmée bonne à l'oreille, l'écran de test a été retiré
+(`docs/BUGS.md`, BUG-016) et son résultat directement intégré comme
+réglage par défaut du jeu (`config.audio.globalOffsetMs = -250`,
+voir `core/clock.js` pour la convention de signe) : plus besoin de
+calibrer quoi que ce soit avant de jouer.
 
-Le vieux réglage `config.debug.showTiming` (voir `render/renderer.js`,
-`_drawDebugTiming`) existe toujours, mais c'est désormais un outil de
-DÉVELOPPEUR bas niveau (affiche en bas du canvas le temps audio, l'horaire
-de la prochaine tuile, l'écart exact, et le décalage actuellement
-appliqué) — pas quelque chose que Ylonna a besoin d'activer : l'écran
-de calibration ci-dessus est la façon normale de régler la synchro en
-jouant.
+Le réglage `config.debug.showTiming` (voir `render/renderer.js`,
+`_drawDebugTiming`) reste un outil de DÉVELOPPEUR bas niveau : affiche
+en bas du canvas le temps audio, l'horaire de la prochaine tuile,
+l'écart exact, et le décalage actuellement appliqué — utile seulement
+si `globalOffsetMs` doit un jour être réajusté (nouvel appareil,
+nouvelle musique).
 
 **Limites connues** (voir `docs/FUTURE_INTEGRATIONS.md` pour la
 suite) :
@@ -389,15 +382,58 @@ dernière tuile passée et la prochaine (voir `core/engine.js`,
 change jamais la position latérale de la balle, donc il n'affecte
 jamais si on touche ou rate une tuile.
 
+## Une partie, plusieurs niveaux : la même musique, de plus en plus vite
+
+Une partie n'est pas un seul niveau, mais une **suite de niveaux** sur
+la même musique (`config.levels.speedMultipliers`, actuellement
+`[1, 1.25, 1.5]` — 3 niveaux, chacun 25% plus rapide que le précédent ;
+ajouter un nombre à cette liste ajoute un niveau).
+
+**Comment un niveau devient "plus rapide" sans casser le rythme.** Ce
+n'est PAS le défilement visuel (`config.scroll.speed`) qui change — ça
+ne suffirait pas (voir `render/camera.js` : `depth = worldY −
+scrollSpeed × t` atteint zéro pile à `t = expectedTime` quel que soit
+`scrollSpeed`, donc le changer seul ne réduit pas le temps de réaction
+réel, juste l'apparence). Le vrai levier, c'est de rejouer LA MÊME
+musique plus vite (`AudioBufferSourceNode.playbackRate`, voir
+`audio/audioManager.js`, `playTrack`) et de comprimer les horaires des
+tuiles d'autant (`level/levelSequencer.js`, `buildSequence`) : un coup
+détecté à l'origine à l'instant `T` (vitesse normale) est reprogrammé à
+`T / speedMultiplier`. Puisque la musique ET les tuiles sont comprimées
+EXACTEMENT du même facteur, elles restent parfaitement en rythme l'une
+avec l'autre — seul le temps réel disponible entre deux tuiles diminue,
+ce qui rend le niveau vraiment plus difficile (comme le vrai jeu Tiles
+Hop, où la même chanson est rejouée en accéléré aux niveaux avancés).
+Effet secondaire attendu (et sans conséquence) : la musique accélérée
+sonne un peu plus aiguë, exactement comme n'importe quelle vidéo/musique
+jouée en accéléré.
+
+**Passage d'un niveau à l'autre.** Terminer toutes les tuiles d'un
+niveau (sauf le dernier) ne montre AUCUN écran : la musique repart
+immédiatement au niveau suivant, plus rapide (`core/engine.js`,
+`startNextLevel`, événement `level:start`) — le score et les étoiles
+continuent de s'additionner, ils ne repartent jamais à zéro entre deux
+niveaux (contrairement à un échec, voir plus bas). Le HUD affiche en
+permanence "Niveau X / Y".
+
+**Un échec, à N'IMPORTE quel niveau, ramène toujours au niveau 1** — un
+principe et non un raffinement du réglage : la difficulté d'un jeu à
+niveaux ne fonctionne que si l'échec a un vrai coût. Comme le vrai jeu
+Tiles Hop, il n'y a pas de "reprise au niveau raté". L'écran d'échec
+indique le niveau atteint ("Niveau atteint : X / Y"), et "Réessayer"
+repart systématiquement du niveau 1, à vitesse normale.
+
 ## Conditions de victoire / d'échec
 
 - **Échec (`game:over`)** : la balle n'est pas alignée avec une tuile au
-  moment où celle-ci atteint la ligne d'impact. La musique s'arrête, un
-  son d'échec joue, l'écran "Raté !" apparaît avec le score et le
-  meilleur score.
-- **Victoire (`game:complete`)** : toutes les tuiles du niveau ont été
-  touchées avec succès. Une petite fanfare joue, l'écran "Bravo, niveau
-  terminé !" apparaît.
+  moment où celle-ci atteint la ligne d'impact, À N'IMPORTE quel niveau.
+  La musique s'arrête, un son d'échec joue, l'écran "Raté !" apparaît
+  avec le niveau atteint, le score et le meilleur score.
+- **Victoire (`game:complete`)** : toutes les tuiles de TOUS les niveaux
+  ont été touchées avec succès (voir section précédente — terminer un
+  niveau qui n'est pas le dernier ne déclenche pas cette condition,
+  juste le niveau suivant). Une petite fanfare joue, l'écran "Bravo,
+  tous les niveaux sont terminés !" apparaît.
 
 ## Score et meilleur score
 

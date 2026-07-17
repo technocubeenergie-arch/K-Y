@@ -26,14 +26,26 @@
       y: 560,
     },
 
+    // Réglages liés à la synchronisation audio/jeu (voir core/clock.js,
+    // docs/GAMEPLAY.md).
+    audio: {
+      // Décalage de calibration (millisecondes) entre le temps audio
+      // (AudioContext.currentTime) et le moment où le son est VRAIMENT
+      // entendu (haut-parleurs/casque, variable selon l'appareil).
+      // Valeur trouvée par Ylonna avec le test de calibration tap-along
+      // (voir docs/BUGS.md, BUG-014 et BUG-016) et adoptée comme réglage
+      // fixe du jeu : les tuiles arrivaient environ 250ms trop TARD par
+      // rapport à ce qu'elle entendait.
+      globalOffsetMs: -250,
+    },
+
     // Aides au réglage/diagnostic, désactivées par défaut (aucun
     // impact sur le jeu normal). Voir docs/GAMEPLAY.md.
     debug: {
       // Affiche en bas du canvas le temps audio courant, l'horaire de la
-      // prochaine tuile, l'écart entre les deux, et le décalage de
-      // calibration actuellement appliqué (voir ui/calibrationScreen.js) —
-      // un outil de développeur, distinct de l'écran de calibration
-      // accessible au joueur depuis l'écran de démarrage.
+      // prochaine tuile, l'écart entre les deux, et le décalage
+      // actuellement appliqué (`audio.globalOffsetMs`) — un outil de
+      // développeur, désactivé par défaut.
       showTiming: false,
     },
 
@@ -135,6 +147,20 @@
       speed: 125,
     },
 
+    // Progression des niveaux (voir docs/GAMEPLAY.md) : une partie,
+    // c'est plusieurs niveaux à la suite, sur la même musique, chacun
+    // plus rapide que le précédent (la musique elle-même est rejouée
+    // plus vite, voir audio/audioManager.js et level/levelSequencer.js).
+    // Un raté, à n'importe quel niveau, ramène toujours au niveau 1
+    // (comme le vrai jeu Tiles Hop) — voir main.js.
+    levels: {
+      // Un nombre par niveau = son multiplicateur de vitesse (1 =
+      // vitesse normale, comme avant l'ajout des niveaux). Le NOMBRE de
+      // niveaux du jeu, c'est simplement la longueur de cette liste :
+      // ajouter un nombre à la fin ajoute un niveau.
+      speedMultipliers: [1, 1.25, 1.5],
+    },
+
     // "Plateformes de liaison" (voir docs/GAMEPLAY.md) : quand deux
     // tuiles consécutives sont séparées par un long vide dans le
     // rythme, une plateforme continue vient combler l'espace au lieu
@@ -201,11 +227,6 @@
       // Clés utilisées dans le stockage local (voir localStore.js)
       highscoreKey: 'tilesHop.trainingLevel.highscore',
       starsKey: 'tilesHop.wallet.stars',
-      // Décalage de calibration audio (millisecondes), réglé par le
-      // joueur via l'écran de calibration (voir ui/calibrationScreen.js).
-      // Absent du stockage = 0 = pas de correction : le jeu reste bien
-      // réglé sans aucune intervention (voir core/clock.js).
-      audioOffsetKey: 'tilesHop.audio.offsetMs',
     },
   };
 })(window.TH = window.TH || {});
