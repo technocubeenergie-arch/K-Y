@@ -173,8 +173,10 @@
       // render/renderer.js, `_drawSingleLevelBanner`. Volontairement
       // BAS (contrairement aux tuiles, qui vont bien plus loin) : le
       // bandeau reste ainsi toujours plus HAUT à l'écran, bien au-dessus
-      // de la balle, au lieu de grossir jusqu'à la recouvrir.
-      bannerMaxScale: 1.2,
+      // de la balle, au lieu de grossir jusqu'à la recouvrir. Réduit de
+      // moitié (1,2 → 0,6) à la demande de Ylonna pour le remonter
+      // encore plus haut.
+      bannerMaxScale: 0.6,
     },
 
     // "Plateformes de liaison" (voir docs/GAMEPLAY.md) : quand deux
