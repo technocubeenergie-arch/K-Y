@@ -17,6 +17,10 @@
       this.ctx = ctx;
       this.config = config;
       this.camera = camera;
+      // Bandeau "Niveau X" (voir showLevelBanner ci-dessous) : { text,
+      // worldY } ou null. PAS un écran séparé : il arrive et défile sur
+      // le chemin, exactement comme une tuile (voir docs/GAMEPLAY.md).
+      this._banner = null;
     }
 
     render(engine) {
@@ -26,8 +30,68 @@
       this._drawBridges(engine.sequence.bridges, t);
       this._drawTiles(engine.sequence.tiles, t);
       this._drawHitLine();
+      if (this._banner) this._drawLevelBanner(t);
       this._drawBall(engine);
       if (this.config.debug.showTiming) this._drawDebugTiming(engine);
+    }
+
+    // Programme l'apparition du bandeau annonçant un nouveau niveau
+    // (voir main.js, événement `level:start`) : il apparaît minuscule à
+    // l'horizon, sur le chemin, puis grandit et défile vers la balle
+    // exactement comme une tuile (même `camera.project`, voir
+    // `_drawLevelBanner`) — jamais un écran séparé qui interromprait le
+    // jeu. `worldY` détermine à quelle distance il apparaît (voir
+    // config.levels.bannerLeadSeconds, main.js).
+    showLevelBanner(text, worldY) {
+      this._banner = { text, worldY };
+    }
+
+    // Voir showLevelBanner : dessine le bandeau à sa position/échelle
+    // actuelle sur le chemin, et l'efface tout seul une fois qu'il a
+    // bien dépassé la ligne d'impact (comme une tuile qui continuerait
+    // de grossir indéfiniment sinon, immobile à l'écran).
+    //
+    // Une vraie PLATEFORME barre tout le chemin (même logique qu'une
+    // tuile géante, voir `_drawSingleTile`/`_drawBridges`), avec le
+    // texte dessus : ça se lit comme un élément DU PARCOURS qui défile
+    // à la suite des tuiles, pas comme du texte flottant par-dessus le
+    // jeu (retour de Ylonna après avoir vu le premier essai).
+    _drawLevelBanner(t) {
+      const { ctx, config, camera } = this;
+      const banner = this._banner;
+      const { screenX, screenY, scale } = camera.project(banner.worldY, config.canvas.width / 2, t);
+
+      if (scale > 3) {
+        this._banner = null;
+        return;
+      }
+
+      const width = config.canvas.width * 0.88 * scale;
+      const height = 50 * scale;
+
+      ctx.save();
+      ctx.globalAlpha = TH.MathUtils.clamp(scale * 1.5, 0, 1);
+
+      ctx.fillStyle = config.tile.perfectColor;
+      ctx.beginPath();
+      ctx.roundRect(
+        screenX - width / 2,
+        screenY - height / 2,
+        width,
+        height,
+        this._safeCornerRadius(10 * scale, width, height)
+      );
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.lineWidth = Math.max(1, 2 * scale);
+      ctx.stroke();
+
+      ctx.fillStyle = '#1c1305';
+      ctx.font = `bold ${22 * scale}px 'Segoe UI', Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(banner.text, screenX, screenY);
+      ctx.restore();
     }
 
     // Voir config.debug.showTiming, docs/GAMEPLAY.md : purement un outil

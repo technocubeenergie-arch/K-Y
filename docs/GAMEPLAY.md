@@ -409,12 +409,23 @@ sonne un peu plus aiguë, exactement comme n'importe quelle vidéo/musique
 jouée en accéléré.
 
 **Passage d'un niveau à l'autre.** Terminer toutes les tuiles d'un
-niveau (sauf le dernier) ne montre AUCUN écran : la musique repart
-immédiatement au niveau suivant, plus rapide (`core/engine.js`,
-`startNextLevel`, événement `level:start`) — le score et les étoiles
-continuent de s'additionner, ils ne repartent jamais à zéro entre deux
-niveaux (contrairement à un échec, voir plus bas). Le HUD affiche en
-permanence "Niveau X / Y".
+niveau (sauf le dernier) ne montre AUCUN écran séparé (comme le vrai
+jeu Tiles Hop) : la musique repart immédiatement au niveau suivant,
+plus rapide (`core/engine.js`, `startNextLevel`, événement
+`level:start`) — le score et les étoiles continuent de s'additionner,
+ils ne repartent jamais à zéro entre deux niveaux (contrairement à un
+échec, voir plus bas). Le HUD affiche en permanence "Niveau X / Y".
+
+Le nouveau niveau est annoncé directement **sur le chemin qui défile**,
+pas par une fenêtre qui recouvrirait le jeu : un bandeau "NIVEAU X"
+apparaît minuscule à l'horizon, puis grandit et défile vers la balle
+exactement comme une tuile, avec la même projection en perspective
+(`render/renderer.js`, `showLevelBanner`/`_drawLevelBanner`, même
+`camera.project` que les tuiles et plateformes — voir
+`config.levels.bannerLeadSeconds` pour son temps de trajet). Il
+disparaît tout seul une fois bien passé la ligne d'impact ; la balle,
+elle, continue de sauter sur les tuiles pendant que le bandeau défile —
+rien ne s'arrête pour l'afficher.
 
 **Un échec, à N'IMPORTE quel niveau, ramène toujours au niveau 1** — un
 principe et non un raffinement du réglage : la difficulté d'un jeu à

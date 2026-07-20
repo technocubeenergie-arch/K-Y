@@ -95,6 +95,14 @@
     engine.startNextLevel(startTime, cachedSequences[nextLevelIndex]);
   });
 
+  // Annonce le nouveau niveau directement SUR LE CHEMIN (comme le vrai
+  // jeu Tiles Hop, voir docs/GAMEPLAY.md), jamais avec un écran séparé :
+  // le bandeau arrive et défile tout seul, sans interrompre le jeu.
+  eventBus.on('level:start', ({ levelIndex }) => {
+    const worldY = config.scroll.speed * config.levels.bannerLeadSeconds;
+    renderer.showLevelBanner('NIVEAU ' + (levelIndex + 1), worldY);
+  });
+
   // --- 4. Actions déclenchées par les boutons ------------------------------
 
   // Le niveau est généré à partir du RYTHME RÉEL de la musique du jeu
