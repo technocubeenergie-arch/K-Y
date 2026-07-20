@@ -3,7 +3,7 @@
  * ------------------------------------------------------------
  * Role: le SEUL fichier qui touche à l'API audio du navigateur
  * (Web Audio). Le reste du jeu ne connaît jamais AudioContext :
- * il appelle juste audioManager.scheduleLevels(), .playStarSound(), etc.
+ * il appelle juste audioManager.scheduleLevels(), .playFailSound(), etc.
  *
  * Pourquoi c'est important : le jour où la musique du niveau change
  * (un autre fichier, ou un vrai sélecteur pour le joueur), on ne
@@ -147,14 +147,6 @@
       osc.connect(gain).connect(this._sfxGain);
       osc.start(now);
       osc.stop(now + duration + 0.05);
-    }
-
-    // Son distinct pour un atterrissage "parfait" (voir engine.js) :
-    // deux notes rapides et aiguës, pour bien le distinguer d'un simple
-    // atterrissage réussi.
-    playStarSound() {
-      this._playBlip(880, 0.08, 'triangle');
-      setTimeout(() => this._playBlip(1318.51, 0.12, 'triangle'), 60);
     }
 
     playFailSound() {

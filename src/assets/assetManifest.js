@@ -46,12 +46,6 @@
         futurePath: 'assets/audio/sfx/complete.wav',
         note: 'Petite fanfare jouée à la fin du niveau.',
       },
-      star: {
-        status: 'procedural',
-        source: 'audioManager.js#playStarSound',
-        futurePath: 'assets/audio/sfx/star.wav',
-        note: 'Petit carillon joué pour un atterrissage "parfait" (voir docs/GAMEPLAY.md).',
-      },
     },
 
     visuals: {
