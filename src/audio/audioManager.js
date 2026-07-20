@@ -3,7 +3,7 @@
  * ------------------------------------------------------------
  * Role: le SEUL fichier qui touche à l'API audio du navigateur
  * (Web Audio). Le reste du jeu ne connaît jamais AudioContext :
- * il appelle juste audioManager.playTrack(), .playLandSound(), etc.
+ * il appelle juste audioManager.scheduleLevels(), .playLandSound(), etc.
  *
  * Pourquoi c'est important : le jour où la musique du niveau change
  * (un autre fichier, ou un vrai sélecteur pour le joueur), on ne
@@ -18,6 +18,11 @@
       this._audioCtx = null;
       this._musicGain = null;
       this._sfxGain = null;
+      // Toutes les lectures programmées par scheduleLevels (voir plus
+      // bas), pour pouvoir toutes les annuler d'un coup dans stopMusic —
+      // y compris celles pas encore commencées (niveaux futurs déjà
+      // programmés à l'avance).
+      this._scheduledSources = [];
     }
 
     // Doit être appelé suite à un clic/tap du joueur (règle des
@@ -63,8 +68,8 @@
 
     // Décode des données audio déjà en mémoire (un ArrayBuffer) en un
     // AudioBuffer exploitable — par ex. par audio/beatDetector.js pour
-    // en extraire le rythme, puis par playTrack() ci-dessous pour le
-    // jouer. C'est le SEUL endroit du jeu qui décode un fichier audio.
+    // en extraire le rythme, puis par scheduleLevels() ci-dessous pour
+    // le jouer. C'est le SEUL endroit du jeu qui décode un fichier audio.
     // (La musique du niveau est embarquée en base64 dans le JS — voir
     // assets/levelTrackData.js et utils/base64.js — donc aucun
     // téléchargement réseau n'est nécessaire ici.)
@@ -72,36 +77,59 @@
       return this._audioCtx.decodeAudioData(arrayBuffer);
     }
 
-    // Joue un fichier audio déjà décodé (voir decodeArrayBuffer), pour
-    // le niveau généré à partir de son rythme réel (voir
-    // audio/beatDetector.js). Renvoie l'heure audio exacte de
-    // démarrage, pour que l'horloge du jeu (core/clock.js) s'aligne
-    // dessus.
-    //
-    // `playbackRate` (voir config.levels.speedMultipliers) : rejoue le
-    // même fichier plus vite pour un niveau plus difficile — un coup à
-    // l'origine à l'instant T est alors entendu à T / playbackRate (le
-    // niveau, lui, doit prévoir le même calcul, voir
-    // level/levelSequencer.js).
-    playTrack(audioBuffer, playbackRate = 1) {
+    // Programme TOUTE la partie (tous les niveaux) EN AVANCE, sur UNE
+    // SEULE piste partagée : chaque niveau est une lecture du même
+    // fichier (voir decodeArrayBuffer), à sa propre vitesse
+    // (`speedMultipliers`, voir config.levels.speedMultipliers),
+    // démarrant PILE quand la lecture du niveau précédent s'arrête —
+    // bout à bout, sans le moindre silence ni redémarrage audible entre
+    // deux niveaux (voir docs/GAMEPLAY.md, "aucune coupure"). Renvoie
+    // l'heure de démarrage du tout premier niveau, pour caler l'horloge
+    // du jeu dessus (core/clock.js, voir main.js) — cette même horloge
+    // ne sera JAMAIS redémarrée entre deux niveaux.
+    scheduleLevels(audioBuffer, speedMultipliers) {
       const gain = this._createMusicGain();
-      const source = this._audioCtx.createBufferSource();
-      source.buffer = audioBuffer;
-      source.playbackRate.value = playbackRate;
-      source.connect(gain);
+      this._scheduledSources = [];
 
-      const startTime = this._audioCtx.currentTime + 0.15;
-      source.start(startTime);
-      return startTime;
+      const baseStartTime = this._audioCtx.currentTime + 0.15;
+      let cursor = baseStartTime;
+
+      for (const rate of speedMultipliers) {
+        const source = this._audioCtx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.playbackRate.value = rate;
+        source.connect(gain);
+
+        const levelDurationSeconds = audioBuffer.duration / rate;
+        const nextCursor = cursor + levelDurationSeconds;
+        source.start(cursor);
+        source.stop(nextCursor); // jamais laissé jouer sur le niveau suivant
+        this._scheduledSources.push(source);
+        cursor = nextCursor;
+      }
+
+      return baseStartTime;
     }
 
-    // Coupe immédiatement toute note en cours ou déjà programmée.
+    // Coupe immédiatement toute note en cours, ET annule toute lecture
+    // pas encore commencée (niveaux suivants déjà programmés à l'avance
+    // par scheduleLevels) : sans ça, la musique d'un niveau jamais
+    // atteint (partie arrêtée avant, par un échec) continuerait de
+    // démarrer toute seule plus tard.
     stopMusic() {
       if (!this._musicGain) return;
       const now = this._audioCtx.currentTime;
       this._musicGain.gain.cancelScheduledValues(now);
       this._musicGain.gain.setValueAtTime(this._musicGain.gain.value, now);
       this._musicGain.gain.linearRampToValueAtTime(0, now + 0.08);
+      for (const source of this._scheduledSources) {
+        try {
+          source.stop(now);
+        } catch (error) {
+          // Déjà arrêtée (a fini de jouer naturellement) : rien à faire.
+        }
+      }
+      this._scheduledSources = [];
       const gainToDisconnect = this._musicGain;
       setTimeout(() => gainToDisconnect.disconnect(), 200);
       this._musicGain = null;

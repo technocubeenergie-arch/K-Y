@@ -157,12 +157,16 @@
       // Un nombre par niveau = son multiplicateur de vitesse (1 =
       // vitesse normale, comme avant l'ajout des niveaux). Le NOMBRE de
       // niveaux du jeu, c'est simplement la longueur de cette liste :
-      // ajouter un nombre à la fin ajoute un niveau.
-      speedMultipliers: [1, 1.25, 1.5],
+      // ajouter un nombre à la fin ajoute un niveau. SEUL endroit à
+      // modifier pour rééquilibrer la difficulté : tout le reste du jeu
+      // (musique, tuiles, plateformes de liaison, bandeaux) est
+      // recalculé à partir de ces nombres (voir
+      // level/levelSequencer.js, audio/audioManager.js).
+      speedMultipliers: [1, 1.5, 2],
       // Combien de temps (secondes) le bandeau "Niveau X" met à arriver
       // depuis l'horizon jusqu'à la ligne d'impact, sur le chemin, au
       // début de chaque nouveau niveau (sauf le tout premier) — voir
-      // render/renderer.js, `showLevelBanner`.
+      // level/levelSequencer.js, `combineLevelSequences`.
       bannerLeadSeconds: 1.4,
     },
 

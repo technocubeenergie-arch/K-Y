@@ -24,18 +24,20 @@
       this.events = eventBus;
       this.localStore = localStore;
 
-      this.state = 'idle'; // idle | playing | paused | gameover | levelComplete | complete
+      this.state = 'idle'; // idle | playing | paused | gameover | complete
       this.score = 0;
       // Étoiles gagnées PENDANT LA PARTIE EN COURS (remise à zéro à chaque
       // start()). Le total cumulé, lui, vit dans localStore (voir plus bas).
       this.runStars = 0;
       this._nextHopIndex = 0;
-      // Niveau courant (0 = premier niveau) au sein d'une partie — voir
-      // docs/GAMEPLAY.md, config.levels.speedMultipliers pour le nombre
-      // total de niveaux. Remis à 0 uniquement par start() (un échec, à
-      // n'importe quel niveau, ramène toujours au niveau 1 — voir
-      // main.js).
-      this.levelIndex = 0;
+      // Niveau courant (0 = premier niveau), déduit de `_nextHopIndex`
+      // et de `sequence.levelTileStartIndex` (voir `_levelIndexForTileIndex`
+      // plus bas) — jamais remis à zéro "en dur" à un changement de
+      // niveau : toute la partie est UNE SEULE séquence continue (voir
+      // level/levelSequencer.js, `combineLevelSequences`), l'horloge ne
+      // redémarre jamais entre deux niveaux (voir docs/GAMEPLAY.md,
+      // "aucune coupure").
+      this._currentLevelIndex = 0;
     }
 
     // `syncStartTime` (optionnel) est l'heure audio exacte à laquelle
@@ -43,7 +45,9 @@
     // en même temps qu'elle (voir main.js).
     // `sequenceOverride` (optionnel) remplace le niveau en cours par un
     // autre (par exemple un niveau généré à partir d'une musique
-    // importée, voir main.js et level/levelSequencer.js).
+    // importée, voir main.js et level/levelSequencer.js). C'est la
+    // séquence COMBINÉE de tous les niveaux de la partie (voir
+    // `level/levelSequencer.js`, `combineLevelSequences`).
     start(syncStartTime, sequenceOverride) {
       if (sequenceOverride) this.sequence = sequenceOverride;
 
@@ -51,7 +55,7 @@
       this.score = 0;
       this.runStars = 0;
       this._nextHopIndex = 0;
-      this.levelIndex = 0;
+      this._currentLevelIndex = 0;
       this.sequence.tiles.forEach((tile) => {
         tile.state = 'pending';
         tile.isPerfect = false;
@@ -60,36 +64,9 @@
       this.clock.start(syncStartTime);
       this.events.emit('game:start', {
         starBalance: this.localStore.getStarBalance(),
-        totalTiles: this.sequence.tiles.length,
-        levelIndex: this.levelIndex,
-        totalLevels: this.config.levels.speedMultipliers.length,
-      });
-    }
-
-    // Passe au niveau suivant SANS rien remettre à zéro (contrairement à
-    // start()) : le score et les étoiles continuent de s'additionner sur
-    // toute la partie — seul un échec (_fail) remet tout à zéro, jamais
-    // la réussite d'un niveau (voir docs/GAMEPLAY.md). `sequence` est le
-    // niveau suivant déjà construit par main.js (musique rejouée plus
-    // vite, tuiles recalculées en conséquence — voir
-    // level/levelSequencer.js).
-    startNextLevel(syncStartTime, sequence) {
-      this.sequence = sequence;
-      this.levelIndex += 1;
-      this._nextHopIndex = 0;
-      this.sequence.tiles.forEach((tile) => {
-        tile.state = 'pending';
-        tile.isPerfect = false;
-      });
-      this.ball.reset(this.config);
-      this.clock.start(syncStartTime);
-      this.state = 'playing';
-      this.events.emit('level:start', {
-        totalTiles: this.sequence.tiles.length,
-        levelIndex: this.levelIndex,
-        totalLevels: this.config.levels.speedMultipliers.length,
-        score: this.score,
-        runStars: this.runStars,
+        totalTiles: this._levelTileCount(0),
+        levelIndex: 0,
+        totalLevels: this.sequence.levelTileStartIndex.length,
       });
     }
 
@@ -122,9 +99,57 @@
         this._nextHopIndex++;
       }
 
+      this._checkLevelChange();
+
       if (this._nextHopIndex >= tiles.length && this.state === 'playing') {
         this._complete();
       }
+    }
+
+    // Détecte qu'on vient de franchir la frontière d'un nouveau niveau
+    // (voir `sequence.levelTileStartIndex`, construit par
+    // `level/levelSequencer.js`, `combineLevelSequences`) — PURE
+    // information pour le HUD (voir ui/hud.js) : ça ne touche JAMAIS à
+    // l'horloge, à la balle, ou à l'état des tuiles. Le bandeau
+    // "NIVEAU X" sur le chemin, lui, n'a même pas besoin de cet
+    // événement : il est positionné une fois pour toutes dans le monde
+    // (voir `sequence.levelBanners`, render/renderer.js).
+    _checkLevelChange() {
+      const tileIndex = Math.min(this._nextHopIndex, this.sequence.tiles.length - 1);
+      if (tileIndex < 0) return;
+
+      const newLevelIndex = this._levelIndexForTileIndex(tileIndex);
+      if (newLevelIndex === this._currentLevelIndex) return;
+
+      this._currentLevelIndex = newLevelIndex;
+      this.events.emit('level:reached', {
+        levelIndex: newLevelIndex,
+        totalLevels: this.sequence.levelTileStartIndex.length,
+        totalTiles: this._levelTileCount(newLevelIndex),
+        score: this.score,
+        runStars: this.runStars,
+      });
+    }
+
+    // À quel niveau appartient la tuile d'indice `tileIndex`, d'après
+    // `sequence.levelTileStartIndex` (l'indice de la première tuile de
+    // chaque niveau, dans l'ordre).
+    _levelIndexForTileIndex(tileIndex) {
+      const starts = this.sequence.levelTileStartIndex;
+      let level = 0;
+      for (let i = 1; i < starts.length; i++) {
+        if (tileIndex >= starts[i]) level = i;
+      }
+      return level;
+    }
+
+    // Combien de tuiles contient le niveau `levelIndex` — pour le HUD
+    // (voir ui/hud.js, "X / Y tuiles de CE niveau").
+    _levelTileCount(levelIndex) {
+      const starts = this.sequence.levelTileStartIndex;
+      const start = starts[levelIndex];
+      const end = levelIndex + 1 < starts.length ? starts[levelIndex + 1] : this.sequence.tiles.length;
+      return end - start;
     }
 
     _processHop(tile) {
@@ -180,8 +205,8 @@
         // Niveau atteint (1-based, plus parlant qu'un index) et nombre
         // total de niveaux — utile surtout sur l'écran d'échec, pour
         // montrer jusqu'où la partie est allée (voir ui/screens.js).
-        levelReached: this.levelIndex + 1,
-        totalLevels: this.config.levels.speedMultipliers.length,
+        levelReached: this._currentLevelIndex + 1,
+        totalLevels: this.sequence.levelTileStartIndex.length,
       };
     }
 
@@ -193,32 +218,13 @@
       this.events.emit('game:over', this._buildRunSummaryPayload());
     }
 
-    // Fin des tuiles du niveau EN COURS : soit il reste des niveaux à
-    // jouer (on prévient main.js, qui reconstruira le niveau suivant,
-    // plus rapide, et appellera startNextLevel), soit c'était le
-    // dernier — la partie entière est gagnée.
+    // Toutes les tuiles de TOUS les niveaux ont été touchées (la partie
+    // entière est une seule séquence continue, voir
+    // level/levelSequencer.js, combineLevelSequences) : la partie est
+    // gagnée.
     _complete() {
-      const totalLevels = this.config.levels.speedMultipliers.length;
-      const isLastLevel = this.levelIndex + 1 >= totalLevels;
-
-      this.clock.pause();
-
-      if (!isLastLevel) {
-        // État distinct de 'playing' : update() ne fait plus rien tant
-        // que main.js n'a pas appelé startNextLevel avec le niveau
-        // suivant (le temps, très bref, de relancer la musique plus
-        // vite et reconstruire les tuiles correspondantes).
-        this.state = 'levelComplete';
-        this.events.emit('level:complete', {
-          levelIndex: this.levelIndex,
-          totalLevels,
-          score: this.score,
-          runStars: this.runStars,
-        });
-        return;
-      }
-
       this.state = 'complete';
+      this.clock.pause();
       this.events.emit('game:complete', this._buildRunSummaryPayload());
     }
 
