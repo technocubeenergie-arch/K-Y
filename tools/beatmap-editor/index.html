@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Éditeur de rythme (beatmap)</title>
+  <link rel="stylesheet" href="css/editor.css" />
+</head>
+<body>
+  <h1>Éditeur de rythme</h1>
+  <p class="intro">
+    Un outil à part, séparé du jeu : il sert à écouter une musique et à placer soi-même, à l'oreille, les
+    tuiles et les tapis glissants — au lieu de les laisser détectés automatiquement. Voir
+    <code>docs/BEATMAP_EDITOR.md</code> pour le mode d'emploi complet.
+  </p>
+
+  <section id="loader">
+    <h2>1. Choisir une musique</h2>
+    <input type="file" id="file-input" accept="audio/*" />
+    <p id="song-name"></p>
+  </section>
+
+  <section id="player" class="is-hidden">
+    <h2>2. Écouter et enregistrer</h2>
+    <div id="time-display">0:00 / 0:00</div>
+    <div class="controls">
+      <button id="btn-play" type="button">▶ Lancer</button>
+      <button id="btn-pause" type="button">⏸ Pause</button>
+      <button id="btn-restart" type="button">⟲ Recommencer</button>
+    </div>
+
+    <button id="btn-tap" type="button" class="tap-button">
+      Appuie ici<br />
+      <small>court = tuile, long = tapis</small>
+    </button>
+    <p class="hint">Astuce : la barre ESPACE fait exactement pareil que ce bouton.</p>
+
+    <div id="current-take">
+      <h3>Prise en cours</h3>
+      <ul id="current-take-list"></ul>
+    </div>
+
+    <button id="btn-new-take" type="button">Valider cette prise et recommencer</button>
+  </section>
+
+  <section id="takes-section" class="is-hidden">
+    <h2>3. Prises enregistrées</h2>
+    <ul id="takes-list"></ul>
+  </section>
+
+  <section id="merge-section" class="is-hidden">
+    <h2>4. Fusionner les prises</h2>
+    <p class="hint">
+      Plus tu as de prises, plus le résultat fusionné est fiable. Recommence 4 ou 5 fois avant de fusionner
+      pour un meilleur résultat.
+    </p>
+    <div class="tolerance-controls">
+      <label>Tolérance tuiles (ms) : <input type="number" id="tile-tolerance" value="150" min="10" step="10" /></label>
+      <label>Tolérance tapis (ms) : <input type="number" id="longplate-tolerance" value="300" min="10" step="10" /></label>
+    </div>
+    <button id="btn-merge" type="button">Fusionner maintenant</button>
+    <div id="merged-result"></div>
+  </section>
+
+  <section id="export-section" class="is-hidden">
+    <h2>5. Exporter</h2>
+    <button id="btn-export" type="button">Télécharger le fichier .json</button>
+  </section>
+
+  <footer>Outil indépendant du jeu — voir docs/BEATMAP_EDITOR.md</footer>
+
+  <!-- Ordre important, même principe que index.html du jeu : chaque
+       fichier ajoute des propriétés à l'objet global BE. -->
+  <script src="src/audioPlayer.js"></script>
+  <script src="src/recorder.js"></script>
+  <script src="src/takesStore.js"></script>
+  <script src="src/merger.js"></script>
+  <script src="src/exporter.js"></script>
+  <script src="src/ui.js"></script>
+</body>
+</html>
