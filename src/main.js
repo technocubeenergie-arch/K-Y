@@ -81,28 +81,6 @@
   eventBus.on('game:pause', () => audioManager.pause());
   eventBus.on('game:resume', () => audioManager.resumeIfNeeded());
 
-  // Passage au niveau suivant (voir core/engine.js, `_complete`) : la
-  // même musique est rejouée, juste plus vite (voir
-  // config.levels.speedMultipliers), et les tuiles du niveau suivant
-  // (déjà construites, voir cachedSequences ci-dessous) prennent le
-  // relais. Le score et les étoiles, eux, continuent sans repartir à
-  // zéro (voir engine.startNextLevel).
-  eventBus.on('level:complete', ({ levelIndex }) => {
-    audioManager.stopMusic();
-    const nextLevelIndex = levelIndex + 1;
-    const nextSpeedMultiplier = config.levels.speedMultipliers[nextLevelIndex];
-    const startTime = audioManager.playTrack(cachedAudioBuffer, nextSpeedMultiplier);
-    engine.startNextLevel(startTime, cachedSequences[nextLevelIndex]);
-  });
-
-  // Annonce le nouveau niveau directement SUR LE CHEMIN (comme le vrai
-  // jeu Tiles Hop, voir docs/GAMEPLAY.md), jamais avec un écran séparé :
-  // le bandeau arrive et défile tout seul, sans interrompre le jeu.
-  eventBus.on('level:start', ({ levelIndex }) => {
-    const worldY = config.scroll.speed * config.levels.bannerLeadSeconds;
-    renderer.showLevelBanner('NIVEAU ' + (levelIndex + 1), worldY);
-  });
-
   // --- 4. Actions déclenchées par les boutons ------------------------------
 
   // Le niveau est généré à partir du RYTHME RÉEL de la musique du jeu
@@ -112,22 +90,22 @@
   // qu'une fois : les parties suivantes réutilisent le résultat, pour
   // rejouer instantanément.
   //
-  // `cachedSequences[i]` : le niveau i, déjà construit avec le bon
-  // multiplicateur de vitesse (voir config.levels.speedMultipliers et
-  // level/levelSequencer.js) — construit une fois pour toutes après
-  // l'analyse, pour que passer d'un niveau à l'autre soit instantané.
+  // `cachedSequence` : TOUTE la partie (tous les niveaux), déjà
+  // combinée en une seule séquence continue (voir
+  // level/levelSequencer.js, `combineLevelSequences`) — construite une
+  // fois pour toutes après l'analyse.
   let cachedAudioBuffer = null;
-  let cachedSequences = null;
+  let cachedSequence = null;
 
   async function handleStart() {
     domRefs.startButton.disabled = true;
-    startStatus.textContent = cachedSequences ? '' : 'Analyse du rythme en cours…';
+    startStatus.textContent = cachedSequence ? '' : 'Analyse du rythme en cours…';
 
     try {
       audioManager.init();
       await audioManager.resumeIfNeeded();
 
-      if (!cachedAudioBuffer || !cachedSequences) {
+      if (!cachedAudioBuffer || !cachedSequence) {
         const arrayBuffer = TH.Base64.toArrayBuffer(TH.LevelTrackData);
         const audioBuffer = await audioManager.decodeArrayBuffer(arrayBuffer);
 
@@ -141,16 +119,34 @@
         }
 
         cachedAudioBuffer = audioBuffer;
-        cachedSequences = config.levels.speedMultipliers.map((speedMultiplier) =>
-          TH.LevelSequencer.buildSequence(onsets, TH.Levels.training, config, speedMultiplier)
-        );
+
+        // Chaque niveau commence exactement là où le précédent s'arrête
+        // (voir docs/GAMEPLAY.md, "aucune coupure entre deux niveaux") :
+        // sa durée réelle est celle du fichier entier rejoué à sa
+        // propre vitesse (`audioBuffer.duration / speedMultiplier`),
+        // pas juste l'horaire de sa dernière tuile — la musique
+        // continue après le dernier coup détecté, et audioManager la
+        // joue jusqu'au bout (voir scheduleLevels).
+        let cumulativeStartTime = 0;
+        const perLevelSequences = config.levels.speedMultipliers.map((speedMultiplier) => {
+          const sequence = TH.LevelSequencer.buildSequence(
+            onsets,
+            TH.Levels.training,
+            config,
+            speedMultiplier,
+            cumulativeStartTime
+          );
+          cumulativeStartTime += audioBuffer.duration / speedMultiplier;
+          return sequence;
+        });
+        cachedSequence = TH.LevelSequencer.combineLevelSequences(perLevelSequences, config);
       }
 
       startStatus.textContent = '';
       domRefs.startButton.disabled = false;
 
-      const startTime = audioManager.playTrack(cachedAudioBuffer, config.levels.speedMultipliers[0]);
-      engine.start(startTime, cachedSequences[0]);
+      const startTime = audioManager.scheduleLevels(cachedAudioBuffer, config.levels.speedMultipliers);
+      engine.start(startTime, cachedSequence);
     } catch (error) {
       startStatus.textContent = 'Impossible de lire ce fichier audio.';
       domRefs.startButton.disabled = false;

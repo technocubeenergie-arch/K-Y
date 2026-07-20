@@ -386,8 +386,11 @@ jamais si on touche ou rate une tuile.
 
 Une partie n'est pas un seul niveau, mais une **suite de niveaux** sur
 la même musique (`config.levels.speedMultipliers`, actuellement
-`[1, 1.25, 1.5]` — 3 niveaux, chacun 25% plus rapide que le précédent ;
-ajouter un nombre à cette liste ajoute un niveau).
+`[1, 1.5, 2]` — 3 niveaux : vitesse normale, puis 50% plus rapide, puis
+2 fois plus rapide que le niveau 1 ; ajouter un nombre à cette liste
+ajoute un niveau). C'est le SEUL endroit à modifier pour rééquilibrer
+la difficulté — tout le reste (musique, tuiles, plateformes de liaison,
+bandeaux) est recalculé automatiquement à partir de ces nombres.
 
 **Comment un niveau devient "plus rapide" sans casser le rythme.** Ce
 n'est PAS le défilement visuel (`config.scroll.speed`) qui change — ça
@@ -395,10 +398,9 @@ ne suffirait pas (voir `render/camera.js` : `depth = worldY −
 scrollSpeed × t` atteint zéro pile à `t = expectedTime` quel que soit
 `scrollSpeed`, donc le changer seul ne réduit pas le temps de réaction
 réel, juste l'apparence). Le vrai levier, c'est de rejouer LA MÊME
-musique plus vite (`AudioBufferSourceNode.playbackRate`, voir
-`audio/audioManager.js`, `playTrack`) et de comprimer les horaires des
-tuiles d'autant (`level/levelSequencer.js`, `buildSequence`) : un coup
-détecté à l'origine à l'instant `T` (vitesse normale) est reprogrammé à
+musique plus vite (`AudioBufferSourceNode.playbackRate`) et de
+comprimer les horaires des tuiles d'autant : un coup détecté à
+l'origine à l'instant `T` (vitesse normale) est reprogrammé à
 `T / speedMultiplier`. Puisque la musique ET les tuiles sont comprimées
 EXACTEMENT du même facteur, elles restent parfaitement en rythme l'une
 avec l'autre — seul le temps réel disponible entre deux tuiles diminue,
@@ -408,24 +410,53 @@ Effet secondaire attendu (et sans conséquence) : la musique accélérée
 sonne un peu plus aiguë, exactement comme n'importe quelle vidéo/musique
 jouée en accéléré.
 
-**Passage d'un niveau à l'autre.** Terminer toutes les tuiles d'un
-niveau (sauf le dernier) ne montre AUCUN écran séparé (comme le vrai
-jeu Tiles Hop) : la musique repart immédiatement au niveau suivant,
-plus rapide (`core/engine.js`, `startNextLevel`, événement
-`level:start`) — le score et les étoiles continuent de s'additionner,
-ils ne repartent jamais à zéro entre deux niveaux (contrairement à un
-échec, voir plus bas). Le HUD affiche en permanence "Niveau X / Y".
+**Aucune coupure entre deux niveaux — ni sonore, ni visuelle.** Ylonna
+a signalé qu'un redémarrage (même bref) entre deux niveaux cassait la
+sensation de continuité. La partie entière est donc bâtie comme
+**UNE SEULE séquence continue**, jamais comme plusieurs niveaux
+redémarrés bout à bout :
+- **Une seule horloge, jamais réinitialisée.** `core/engine.js` ne
+  redémarre `core/clock.js` qu'UNE fois, au tout début de la partie
+  (`start()`) — jamais entre deux niveaux. Le "temps écoulé" ne fait
+  qu'augmenter du début à la fin de toute la partie.
+- **Une seule séquence de tuiles, construite d'un coup.** Chaque niveau
+  est d'abord construit séparément (`level/levelSequencer.js`,
+  `buildSequence`, avec son propre `speedMultiplier`), mais avec un
+  `timeOffset` qui le fait démarrer EXACTEMENT là où le niveau
+  précédent s'arrête (la durée réelle du fichier entier rejoué à sa
+  vitesse, `audioBuffer.duration / speedMultiplier` — pas seulement
+  l'horaire de sa dernière tuile, puisque la musique continue après le
+  dernier coup détecté). Les niveaux sont ensuite assemblés par
+  `combineLevelSequences` en une seule liste de tuiles, avec les
+  plateformes de liaison recalculées sur l'ENSEMBLE (pas niveau par
+  niveau, pour attraper aussi un éventuel écart à la frontière).
+- **Toute la musique programmée à l'avance, bout à bout.**
+  `audio/audioManager.js` (`scheduleLevels`) programme, dès le clic sur
+  "Jouer", les 3 lectures du fichier (une par niveau, à sa vitesse) sur
+  UNE SEULE piste audio, chacune démarrant pile à l'instant où la
+  précédente s'arrête (mêmes calculs de durée que ci-dessus) — comme un
+  DJ qui enchaîne parfaitement deux mixages, sans le moindre silence ni
+  redémarrage audible.
+- **Le changement de niveau est juste une étiquette, pas un événement de
+  jeu.** `core/engine.js` sait à tout moment dans quel niveau on se
+  trouve (`sequence.levelTileStartIndex`, la position de la première
+  tuile de chaque niveau dans la liste combinée) et prévient le HUD
+  quand elle change (`level:reached`) — mais ça ne touche JAMAIS à
+  l'horloge, à la balle, ni à l'état des tuiles. Le score et les
+  étoiles continuent de s'additionner sans jamais repartir à zéro
+  (contrairement à un échec, voir plus bas). Le HUD affiche en
+  permanence "Niveau X / Y".
 
 Le nouveau niveau est annoncé directement **sur le chemin qui défile**,
-pas par une fenêtre qui recouvrirait le jeu : un bandeau "NIVEAU X"
-apparaît minuscule à l'horizon, puis grandit et défile vers la balle
-exactement comme une tuile, avec la même projection en perspective
-(`render/renderer.js`, `showLevelBanner`/`_drawLevelBanner`, même
+pas par une fenêtre qui recouvrirait le jeu : un bandeau "NIVEAU X" a
+une position FIXE dans le monde (juste avant la première tuile de ce
+niveau, voir `combineLevelSequences`), et apparaît/grandit/défile vers
+la balle exactement comme une tuile géante, avec la même projection en
+perspective (`render/renderer.js`, `_drawLevelBanners`, même
 `camera.project` que les tuiles et plateformes — voir
-`config.levels.bannerLeadSeconds` pour son temps de trajet). Il
-disparaît tout seul une fois bien passé la ligne d'impact ; la balle,
-elle, continue de sauter sur les tuiles pendant que le bandeau défile —
-rien ne s'arrête pour l'afficher.
+`config.levels.bannerLeadSeconds` pour son avance). Rien ne s'arrête
+pour l'afficher : la balle continue de sauter sur les tuiles pendant
+que le bandeau défile.
 
 **Un échec, à N'IMPORTE quel niveau, ramène toujours au niveau 1** — un
 principe et non un raffinement du réglage : la difficulté d'un jeu à

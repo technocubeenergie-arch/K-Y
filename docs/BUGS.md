@@ -6,6 +6,62 @@
 
 ---
 
+## BUG-017 — Coupure visible entre deux niveaux (signalé par Ylonna)
+
+- **Problème observé** : la première version de la progression
+  multi-niveaux (BUG antérieur, voir section "niveaux") redémarrait
+  l'horloge du jeu et reconstruisait les tuiles à chaque changement de
+  niveau. Même si la musique repartait "tout de suite" et qu'aucun
+  écran séparé n'était montré, Ylonna a signalé une coupure nette : le
+  chemin semblait "redémarrer" plutôt que continuer. Cause réelle :
+  chaque niveau reconstruisait ses propres tuiles avec des horaires
+  proches de zéro, donc la toute première tuile d'un niveau apparaissait
+  déjà proche/grande dès l'instant du changement (pas de "trajet"
+  progressif depuis l'horizon comme une tuile normale) — un vrai
+  "pop-in" visuel, pas juste une impression.
+- **Demande explicite** : aucune coupure, ni sonore ni visuelle, entre
+  les niveaux — la partie doit se ressentir comme UNE seule montée en
+  intensité continue sur le même chemin, pas comme plusieurs niveaux
+  enchaînés. Vitesses demandées : niveau 1 = ×1, niveau 2 = ×1,5,
+  niveau 3 = ×2 (`config.levels.speedMultipliers`).
+- **Solution appliquée** : toute la partie est maintenant construite
+  comme UNE SEULE séquence continue, jamais plusieurs niveaux
+  redémarrés :
+  - `core/clock.js` n'est démarré qu'UNE fois pour toute la partie
+    (`engine.start()`) — plus jamais entre deux niveaux.
+  - `level/levelSequencer.js` : `buildSequence` accepte un `timeOffset`
+    (chaque niveau démarre exactement où le précédent finit, sur la
+    durée réelle du fichier entier rejoué à sa vitesse — pas juste
+    l'horaire de sa dernière tuile) ; nouvelle fonction
+    `combineLevelSequences` qui assemble tous les niveaux en une seule
+    liste de tuiles continue, avec les plateformes de liaison
+    recalculées sur l'ENSEMBLE (pas niveau par niveau).
+  - `audio/audioManager.js` : `playTrack` remplacé par `scheduleLevels`,
+    qui programme TOUTE la partie à l'avance, bout à bout, sur une
+    seule piste — chaque niveau démarre pile quand le précédent
+    s'arrête (Web Audio permet de programmer plusieurs lectures futures
+    précises à l'avance). `stopMusic()` annule aussi les niveaux pas
+    encore commencés (sinon un niveau jamais atteint après un échec
+    démarrerait tout seul plus tard).
+  - `core/engine.js` : `startNextLevel`/état `levelComplete` supprimés.
+    `_complete()` redevient simple (toutes les tuiles de tous les
+    niveaux = victoire). Le niveau courant est déduit à tout moment de
+    `sequence.levelTileStartIndex` ; un changement de niveau émet
+    `level:reached` (voir docs/ARCHITECTURE.md) purement pour le HUD,
+    sans jamais toucher à l'horloge, la balle, ou les tuiles.
+  - `render/renderer.js` : le bandeau "NIVEAU X" a maintenant une
+    position FIXE dans le monde (`sequence.levelBanners`, posée une
+    fois pour toutes par `combineLevelSequences`), dessiné chaque image
+    comme une tuile — plus d'événement ni d'état à gérer côté rendu.
+- **Vérifié** : testé en navigateur réel (Playwright) — horaires des
+  tuiles strictement croissants sur toute la partie (aucun retour en
+  arrière à un changement de niveau), transition de niveau au bon
+  indice de tuile, partie complète (3 niveaux, 15/15 tuiles dans un
+  test raccourci) sans erreur ; régression complète (niveau
+  d'entraînement réel à 159 tuiles, pause/reprise) sans erreur console.
+
+---
+
 ## BUG-016 — Retrait de l'écran de calibration temporaire, une fois la bonne valeur trouvée (demandé par Ylonna)
 
 - **Contexte** : l'écran de calibration tap-along (BUG-014, corrigé en

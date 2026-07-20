@@ -37,7 +37,7 @@
         this._renderLevel(levelIndex, totalLevels);
         this._render(0, 0);
       });
-      eventBus.on('level:start', ({ totalTiles, levelIndex, totalLevels, score, runStars }) => {
+      eventBus.on('level:reached', ({ totalTiles, levelIndex, totalLevels, score, runStars }) => {
         this._totalTiles = totalTiles;
         this._scoreAtLevelStart = score;
         this._renderLevel(levelIndex, totalLevels);

@@ -121,11 +121,13 @@ eventBus.on('tile:hit', ({ isPerfect }) => {
 
 Événements existants aujourd'hui : `game:start`, `game:pause`,
 `game:resume`, `game:over`, `game:complete`, `tile:hit`, `tile:miss`,
-`level:start`, `level:complete` (voir docs/GAMEPLAY.md, section
-"Une partie, plusieurs niveaux" — `level:complete` signale la fin d'un
-niveau qui N'EST PAS le dernier, `main.js` reconstruit alors le niveau
-suivant, plus rapide, et appelle `engine.startNextLevel()`, qui émet à
-son tour `level:start`).
+`level:reached` (voir docs/GAMEPLAY.md, section "Une partie, plusieurs
+niveaux" — signale juste qu'on vient d'entrer dans un nouveau niveau,
+pour le HUD ; contrairement aux autres événements, il ne correspond à
+AUCUN changement d'état du jeu : l'horloge, la balle et les tuiles
+continuent sans interruption, toute la partie étant une seule séquence
+continue construite d'un coup, voir `level/levelSequencer.js`,
+`combineLevelSequences`).
 
 ## Le flux principal (une image de jeu)
 
@@ -235,7 +237,7 @@ en déduit où placer les tuiles.
    simple : elle n'a jamais besoin de connaître le détail du rythme,
    juste la position (`worldY`) de chaque tuile.
 5. **`audio/audioManager.js`** décode et joue le fichier audio du jeu
-   (`decodeArrayBuffer` / `playTrack`). Le fichier lui-même est
+   (`decodeArrayBuffer` / `scheduleLevels`). Le fichier lui-même est
    embarqué en base64 directement dans un script JS
    (`assets/levelTrackData.js`, généré à partir du fichier `.ogg`
    actuellement choisi comme musique du niveau — voir
