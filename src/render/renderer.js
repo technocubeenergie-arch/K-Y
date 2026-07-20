@@ -58,7 +58,11 @@
 
       // Trop loin pour être utile, ou déjà bien passée la ligne
       // d'impact : rien à dessiner (même idée que `_drawSingleTile`).
-      if (scale < config.perspective.minVisibleScale || scale > 3) return;
+      // `bannerMaxScale` coupe BIEN avant que le bandeau ne grossisse
+      // jusqu'à recouvrir la balle (contrairement aux tuiles) : il
+      // reste ainsi toujours visible plus haut à l'écran (retour de
+      // Ylonna).
+      if (scale < config.perspective.minVisibleScale || scale > config.levels.bannerMaxScale) return;
 
       const width = config.canvas.width * 0.88 * scale;
       const height = 50 * scale;
