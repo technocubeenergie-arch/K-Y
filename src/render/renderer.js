@@ -50,6 +50,12 @@
     // actuelle sur le chemin, et l'efface tout seul une fois qu'il a
     // bien dépassé la ligne d'impact (comme une tuile qui continuerait
     // de grossir indéfiniment sinon, immobile à l'écran).
+    //
+    // Une vraie PLATEFORME barre tout le chemin (même logique qu'une
+    // tuile géante, voir `_drawSingleTile`/`_drawBridges`), avec le
+    // texte dessus : ça se lit comme un élément DU PARCOURS qui défile
+    // à la suite des tuiles, pas comme du texte flottant par-dessus le
+    // jeu (retour de Ylonna après avoir vu le premier essai).
     _drawLevelBanner(t) {
       const { ctx, config, camera } = this;
       const banner = this._banner;
@@ -60,14 +66,30 @@
         return;
       }
 
+      const width = config.canvas.width * 0.88 * scale;
+      const height = 50 * scale;
+
       ctx.save();
       ctx.globalAlpha = TH.MathUtils.clamp(scale * 1.5, 0, 1);
-      ctx.font = `bold ${28 * scale}px 'Segoe UI', Arial, sans-serif`;
+
+      ctx.fillStyle = config.tile.perfectColor;
+      ctx.beginPath();
+      ctx.roundRect(
+        screenX - width / 2,
+        screenY - height / 2,
+        width,
+        height,
+        this._safeCornerRadius(10 * scale, width, height)
+      );
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.lineWidth = Math.max(1, 2 * scale);
+      ctx.stroke();
+
+      ctx.fillStyle = '#1c1305';
+      ctx.font = `bold ${22 * scale}px 'Segoe UI', Arial, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = config.tile.perfectColor;
-      ctx.shadowColor = config.tile.perfectColor;
-      ctx.shadowBlur = 18 * scale;
       ctx.fillText(banner.text, screenX, screenY);
       ctx.restore();
     }
