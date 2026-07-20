@@ -70,9 +70,11 @@
   });
 
   // --- 3. Réactions audio (le son ne dirige jamais le jeu, il réagit) -----
+  // Un atterrissage normal ne joue plus aucun son (demande de Ylonna) :
+  // seul l'atterrissage PARFAIT (voir docs/GAMEPLAY.md) reste marqué par
+  // un son, puisque c'est ce qui rapporte une étoile.
   eventBus.on('tile:hit', ({ isPerfect }) => {
     if (isPerfect) audioManager.playStarSound();
-    else audioManager.playLandSound();
   });
   eventBus.on('game:over', () => audioManager.stopMusic());
   eventBus.on('game:over', () => audioManager.playFailSound());

@@ -34,12 +34,6 @@
     },
 
     sfx: {
-      land: {
-        status: 'procedural',
-        source: 'audioManager.js#playLandSound',
-        futurePath: 'assets/audio/sfx/land.wav',
-        note: 'Petit "bip" joué quand la balle atterrit correctement sur une tuile.',
-      },
       fail: {
         status: 'procedural',
         source: 'audioManager.js#playFailSound',

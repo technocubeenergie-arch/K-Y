@@ -115,7 +115,6 @@ Et les autres modules **s'abonnent** à ce qui les intéresse :
 ```js
 eventBus.on('tile:hit', ({ isPerfect }) => {
   if (isPerfect) audioManager.playStarSound();
-  else audioManager.playLandSound();
 });
 ```
 

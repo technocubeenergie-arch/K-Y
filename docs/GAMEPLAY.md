@@ -355,7 +355,8 @@ pour être dépensée plus tard dans une boutique (voir
   (voir BUG-006) — c'est maintenant elle seule qui porte la difficulté
   du bonus, la survie ne dépend plus de la précision.
 - Une tuile parfaite est dessinée en **doré** au lieu de vert, et joue un
-  petit carillon distinct du son d'atterrissage normal.
+  petit carillon — le SEUL son joué à l'atterrissage (un atterrissage
+  normal, lui, est silencieux, à la demande de Ylonna).
 - Les étoiles gagnées existent à deux niveaux :
   - **pendant la partie en cours** (`runStars`, remis à zéro à chaque
     nouvelle tentative, affiché dans le HUD) ;
