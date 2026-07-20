@@ -17,10 +17,6 @@
       this.ctx = ctx;
       this.config = config;
       this.camera = camera;
-      // Bandeau "Niveau X" (voir showLevelBanner ci-dessous) : { text,
-      // worldY } ou null. PAS un écran séparé : il arrive et défile sur
-      // le chemin, exactement comme une tuile (voir docs/GAMEPLAY.md).
-      this._banner = null;
     }
 
     render(engine) {
@@ -28,43 +24,41 @@
 
       this._drawBackground();
       this._drawBridges(engine.sequence.bridges, t);
+      this._drawLevelBanners(engine.sequence.levelBanners, t);
       this._drawTiles(engine.sequence.tiles, t);
       this._drawHitLine();
-      if (this._banner) this._drawLevelBanner(t);
       this._drawBall(engine);
       if (this.config.debug.showTiming) this._drawDebugTiming(engine);
     }
 
-    // Programme l'apparition du bandeau annonçant un nouveau niveau
-    // (voir main.js, événement `level:start`) : il apparaît minuscule à
-    // l'horizon, sur le chemin, puis grandit et défile vers la balle
-    // exactement comme une tuile (même `camera.project`, voir
-    // `_drawLevelBanner`) — jamais un écran séparé qui interromprait le
-    // jeu. `worldY` détermine à quelle distance il apparaît (voir
-    // config.levels.bannerLeadSeconds, main.js).
-    showLevelBanner(text, worldY) {
-      this._banner = { text, worldY };
+    // Les bandeaux "NIVEAU X" (un par niveau sauf le premier) ont une
+    // position FIXE dans le monde, posée une fois pour toutes par
+    // `level/levelSequencer.js` (`combineLevelSequences`) — exactement
+    // comme une tuile. Pas d'état à gérer ici : on les projette et on
+    // les dessine chaque image, seulement s'ils sont dans une échelle
+    // utile (comme `_drawSingleTile`). C'est ce qui garantit qu'ils
+    // arrivent et défilent SUR LE CHEMIN, à la suite des tuiles, sans
+    // jamais interrompre le jeu ni "sauter" au changement de niveau
+    // (voir docs/GAMEPLAY.md, "aucune coupure entre deux niveaux").
+    _drawLevelBanners(banners, t) {
+      if (!banners) return;
+      for (const banner of banners) {
+        this._drawSingleLevelBanner(banner, t);
+      }
     }
 
-    // Voir showLevelBanner : dessine le bandeau à sa position/échelle
-    // actuelle sur le chemin, et l'efface tout seul une fois qu'il a
-    // bien dépassé la ligne d'impact (comme une tuile qui continuerait
-    // de grossir indéfiniment sinon, immobile à l'écran).
-    //
     // Une vraie PLATEFORME barre tout le chemin (même logique qu'une
     // tuile géante, voir `_drawSingleTile`/`_drawBridges`), avec le
     // texte dessus : ça se lit comme un élément DU PARCOURS qui défile
     // à la suite des tuiles, pas comme du texte flottant par-dessus le
     // jeu (retour de Ylonna après avoir vu le premier essai).
-    _drawLevelBanner(t) {
+    _drawSingleLevelBanner(banner, t) {
       const { ctx, config, camera } = this;
-      const banner = this._banner;
       const { screenX, screenY, scale } = camera.project(banner.worldY, config.canvas.width / 2, t);
 
-      if (scale > 3) {
-        this._banner = null;
-        return;
-      }
+      // Trop loin pour être utile, ou déjà bien passée la ligne
+      // d'impact : rien à dessiner (même idée que `_drawSingleTile`).
+      if (scale < config.perspective.minVisibleScale || scale > 3) return;
 
       const width = config.canvas.width * 0.88 * scale;
       const height = 50 * scale;

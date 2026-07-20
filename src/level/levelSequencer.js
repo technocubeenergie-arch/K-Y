@@ -87,14 +87,22 @@
   //
   // `speedMultiplier` (voir config.levels.speedMultipliers) : pour un
   // niveau plus rapide, la musique est rejouée plus vite (voir
-  // audio/audioManager.js, `playTrack`) — un coup entendu à l'origine à
-  // l'instant T est alors entendu à l'instant T / speedMultiplier. On
-  // applique EXACTEMENT le même calcul ici, pour que les tuiles restent
-  // en rythme avec la musique accélérée (sinon elles resteraient aux
-  // horaires d'origine, alors que la musique, elle, serait déjà passée).
-  function buildSequence(beatTimes, levelDef, config, speedMultiplier = 1) {
+  // audio/audioManager.js, `scheduleLevels`) — un coup entendu à
+  // l'origine à l'instant T est alors entendu à l'instant T /
+  // speedMultiplier. On applique EXACTEMENT le même calcul ici, pour
+  // que les tuiles restent en rythme avec la musique accélérée (sinon
+  // elles resteraient aux horaires d'origine, alors que la musique,
+  // elle, serait déjà passée).
+  //
+  // `timeOffset` : à combien de secondes, DANS LA PARTIE ENTIÈRE (pas
+  // juste ce niveau), ce niveau commence. Une partie enchaîne plusieurs
+  // niveaux sur UNE SEULE horloge qui ne repart jamais à zéro (voir
+  // docs/GAMEPLAY.md, "aucune coupure entre deux niveaux") : le niveau 2
+  // ne recommence pas son propre temps à 0, il continue exactement là
+  // où le niveau 1 s'est arrêté.
+  function buildSequence(beatTimes, levelDef, config, speedMultiplier = 1, timeOffset = 0) {
     const scrollSpeed = config.scroll.speed;
-    const compressedBeatTimes = beatTimes.map((time) => time / speedMultiplier);
+    const compressedBeatTimes = beatTimes.map((time) => timeOffset + time / speedMultiplier);
     const xFractions = levelDef.resolvePositions(beatTimes.length);
 
     const sortedFractions = [...levelDef.laneFractions].sort((a, b) => a - b);
@@ -161,5 +169,59 @@
     };
   }
 
-  TH.LevelSequencer = { buildSequence };
+  // Assemble plusieurs niveaux (chacun construit par `buildSequence`
+  // avec son propre `timeOffset`, voir plus haut) en UNE SEULE séquence
+  // continue : c'est ce qui permet à `core/engine.js` de traiter toute
+  // la partie comme un unique chemin de tuiles, sans jamais redémarrer
+  // l'horloge ni reconstruire quoi que ce soit à un changement de
+  // niveau (voir docs/GAMEPLAY.md).
+  //
+  // Les plateformes de liaison sont recalculées ICI, sur l'ensemble des
+  // tuiles (pas niveau par niveau) : ça attrape aussi un éventuel écart
+  // entre la dernière tuile d'un niveau et la première du suivant.
+  //
+  // `levelTileStartIndex[i]` : l'indice, dans le tableau `tiles` final,
+  // de la première tuile du niveau i — sert à `core/engine.js` pour
+  // savoir dans quel niveau on se trouve à un instant donné (HUD), et à
+  // placer le bandeau "NIVEAU X" juste avant (voir `levelBanners`
+  // ci-dessous).
+  function combineLevelSequences(sequences, config) {
+    const tiles = [];
+    const levelTileStartIndex = [];
+
+    for (const sequence of sequences) {
+      levelTileStartIndex.push(tiles.length);
+      for (const tile of sequence.tiles) {
+        tile.index = tiles.length;
+        tiles.push(tile);
+      }
+    }
+
+    // Un bandeau par niveau, sauf le premier (pas besoin d'annoncer le
+    // tout début de la partie) : positionné juste avant la première
+    // tuile de ce niveau, pour arriver sur le chemin avant elle — voir
+    // render/renderer.js, config.levels.bannerLeadSeconds.
+    const levelBanners = [];
+    for (let i = 1; i < levelTileStartIndex.length; i++) {
+      const firstTileOfLevel = tiles[levelTileStartIndex[i]];
+      if (!firstTileOfLevel) continue;
+      levelBanners.push({
+        text: 'NIVEAU ' + (i + 1),
+        worldY: firstTileOfLevel.worldY - config.scroll.speed * config.levels.bannerLeadSeconds,
+      });
+    }
+
+    const lastTile = tiles[tiles.length - 1];
+
+    return {
+      tiles,
+      bridges: buildBridges(tiles, config),
+      levelTileStartIndex,
+      levelBanners,
+      totalDurationSeconds: lastTile ? lastTile.expectedTime : 0,
+      scrollSpeed: config.scroll.speed,
+    };
+  }
+
+  TH.LevelSequencer = { buildSequence, combineLevelSequences };
 })(window.TH = window.TH || {});
