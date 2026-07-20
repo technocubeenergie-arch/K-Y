@@ -113,10 +113,7 @@ eventBus.emit('game:over', { score, highscore, isNewHighscore, runStars, starBal
 Et les autres modules **s'abonnent** à ce qui les intéresse :
 
 ```js
-eventBus.on('tile:hit', ({ isPerfect }) => {
-  if (isPerfect) audioManager.playStarSound();
-  else audioManager.playLandSound();
-});
+eventBus.on('game:over', () => audioManager.playFailSound());
 ```
 
 Événements existants aujourd'hui : `game:start`, `game:pause`,

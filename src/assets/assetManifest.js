@@ -34,12 +34,6 @@
     },
 
     sfx: {
-      land: {
-        status: 'procedural',
-        source: 'audioManager.js#playLandSound',
-        futurePath: 'assets/audio/sfx/land.wav',
-        note: 'Petit "bip" joué quand la balle atterrit correctement sur une tuile.',
-      },
       fail: {
         status: 'procedural',
         source: 'audioManager.js#playFailSound',
@@ -51,12 +45,6 @@
         source: 'audioManager.js#playCompleteSound',
         futurePath: 'assets/audio/sfx/complete.wav',
         note: 'Petite fanfare jouée à la fin du niveau.',
-      },
-      star: {
-        status: 'procedural',
-        source: 'audioManager.js#playStarSound',
-        futurePath: 'assets/audio/sfx/star.wav',
-        note: 'Petit carillon joué pour un atterrissage "parfait" (voir docs/GAMEPLAY.md).',
       },
     },
 

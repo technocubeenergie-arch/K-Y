@@ -70,10 +70,9 @@
   });
 
   // --- 3. Réactions audio (le son ne dirige jamais le jeu, il réagit) -----
-  eventBus.on('tile:hit', ({ isPerfect }) => {
-    if (isPerfect) audioManager.playStarSound();
-    else audioManager.playLandSound();
-  });
+  // Aucun atterrissage sur une tuile ne joue de son, ni normal ni
+  // parfait (demande de Ylonna) : seuls l'échec et la victoire (fin de
+  // partie) restent sonorisés.
   eventBus.on('game:over', () => audioManager.stopMusic());
   eventBus.on('game:over', () => audioManager.playFailSound());
   eventBus.on('game:complete', () => audioManager.stopMusic());

@@ -168,6 +168,15 @@
       // début de chaque nouveau niveau (sauf le tout premier) — voir
       // level/levelSequencer.js, `combineLevelSequences`.
       bannerLeadSeconds: 1.4,
+      // Échelle (1 = taille normale, comme une tuile pile sur la ligne
+      // d'impact) au-delà de laquelle le bandeau s'efface — voir
+      // render/renderer.js, `_drawSingleLevelBanner`. Volontairement
+      // BAS (contrairement aux tuiles, qui vont bien plus loin) : le
+      // bandeau reste ainsi toujours plus HAUT à l'écran, bien au-dessus
+      // de la balle, au lieu de grossir jusqu'à la recouvrir. Réduit
+      // plusieurs fois à la demande de Ylonna pour le remonter encore
+      // plus haut (1,2 → 0,6 → 0,2).
+      bannerMaxScale: 0.2,
     },
 
     // "Plateformes de liaison" (voir docs/GAMEPLAY.md) : quand deux
