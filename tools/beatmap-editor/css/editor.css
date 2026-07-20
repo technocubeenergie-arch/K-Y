@@ -1,0 +1,187 @@
+/*
+ * editor.css
+ * ------------------------------------------------------------
+ * Role: habillage simple de l'outil. Volontairement différent du jeu
+ * (pas de canvas, pas de perspective) : ici, tout est en HTML normal,
+ * pensé pour être lisible et facile à utiliser au clic/au tap.
+ * ------------------------------------------------------------
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 24px;
+  max-width: 640px;
+  margin-inline: auto;
+  background: #0b1120;
+  color: #f1f5f9;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  line-height: 1.5;
+}
+
+h1 {
+  font-size: 24px;
+  margin: 0 0 8px;
+}
+
+h2 {
+  font-size: 18px;
+  margin: 0 0 12px;
+}
+
+h3 {
+  font-size: 15px;
+  margin: 16px 0 6px;
+  opacity: 0.85;
+}
+
+.intro {
+  opacity: 0.8;
+  font-size: 14px;
+}
+
+section {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+button {
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 999px;
+  background: #22d3ee;
+  color: #05202a;
+  cursor: pointer;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+#time-display {
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 12px;
+}
+
+.tap-button {
+  display: block;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  background: #facc15;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.tap-button.is-active {
+  background: #f97316;
+  transform: scale(0.96);
+}
+
+.tap-button small {
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.hint {
+  text-align: center;
+  font-size: 13px;
+  opacity: 0.7;
+  margin: 4px 0 16px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 14px;
+}
+
+li.tile {
+  border-left: 3px solid #22d3ee;
+}
+
+li.longplate {
+  border-left: 3px solid #22c55e;
+}
+
+li.empty {
+  opacity: 0.5;
+  justify-content: center;
+}
+
+li button {
+  padding: 4px 10px;
+  font-size: 12px;
+  background: rgba(248, 113, 113, 0.9);
+  color: #1c0505;
+}
+
+#btn-new-take {
+  display: block;
+  margin: 16px auto 0;
+}
+
+.tolerance-controls {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  font-size: 14px;
+}
+
+.tolerance-controls input {
+  width: 70px;
+  margin-left: 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #0b1120;
+  color: #f1f5f9;
+}
+
+#merged-result {
+  margin-top: 12px;
+}
+
+footer {
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.5;
+}

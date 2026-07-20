@@ -68,6 +68,9 @@ src/
     audioniveau6.ogg                Fichier audio précédent, gardé pour comparaison/régénération
   main.js                    Chef d'orchestre : crée et relie tous les modules
 docs/                     Documentation (ce dossier)
+tools/
+  beatmap-editor/         Outil SÉPARÉ du jeu (page HTML indépendante) pour fabriquer
+                          des beatmaps à la main — voir docs/BEATMAP_EDITOR.md
 ```
 
 ## Qui a le droit de connaître qui ?
