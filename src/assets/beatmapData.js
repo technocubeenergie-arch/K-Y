@@ -213,10 +213,6 @@
   "merged": {
     "tiles": [
       {
-        "time": 0,
-        "confidence": 1
-      },
-      {
         "time": 1.291,
         "confidence": 1
       },
