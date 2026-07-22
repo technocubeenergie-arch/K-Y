@@ -239,10 +239,48 @@
       const tiles = this.sequence.tiles;
       const nextIndex = this._nextHopIndex;
 
-      const previousTime = nextIndex > 0 ? tiles[nextIndex - 1].expectedTime : 0;
-      const nextTime = nextIndex < tiles.length ? tiles[nextIndex].expectedTime : previousTime + 1;
-      const interval = Math.max(0.05, nextTime - previousTime);
+      let previousTime = nextIndex > 0 ? tiles[nextIndex - 1].expectedTime : 0;
+      let nextTime = nextIndex < tiles.length ? tiles[nextIndex].expectedTime : previousTime + 1;
 
+      // Un tapis glissant TAPÉ À LA MAIN (voir `explicitLongPlates`,
+      // level/levelSequencer.js) ne commence/finit pas forcément pile
+      // sur une tuile, contrairement à un tapis automatique (déduit de
+      // l'écart ENTRE deux tuiles, donc toujours bordé par elles). Sans
+      // ce correctif, le rebond ignorait complètement le tapis : à
+      // l'ENTRÉE, la phase continuait de grimper comme si de rien
+      // n'était, alors que `isOnBridge()` (voir plus bas) fige déjà
+      // l'affichage à 0 — un saut brutal, à une hauteur incohérente,
+      // pile à l'entrée du tapis. Et à la SORTIE, le rebond serait
+      // reparti de la tuile d'AVANT le tapis, comme si le temps passé
+      // dessus n'existait pas — même genre de saut brutal, repéré par
+      // Ylonna à chaque fin de tapis. On borne donc l'intervalle du
+      // rebond par le tapis qui le précède (reprendre à 0 pile à la
+      // sortie) et par celui qui le suit (s'arrêter à 0 pile à l'entrée).
+      const bridges = this.sequence.bridges || [];
+      for (const bridge of bridges) {
+        if (bridge.endTime > previousTime && bridge.endTime <= nextTime) {
+          previousTime = Math.max(previousTime, bridge.endTime);
+        }
+        if (bridge.startTime > previousTime && bridge.startTime < nextTime) {
+          nextTime = Math.min(nextTime, bridge.startTime);
+        }
+      }
+
+      // Un plancher minuscule, juste pour éviter une division par (quasi)
+      // zéro si deux horaires tombaient pile au même instant — jamais
+      // pensé pour ralentir volontairement l'animation : avec un rythme
+      // posé à la main, un écart réel de quelques dizaines de
+      // millisecondes entre deux horaires arrive (contrairement à la
+      // détection automatique, qui n'en produit jamais d'aussi courts,
+      // voir `config.beatDetection.minIntervalSeconds`). Un plancher trop
+      // grand (0,05s essayé au départ) ralentissait alors artificiellement
+      // la phase par rapport à l'écart réel : au moment précis où
+      // `nextTime` était censé être atteint (typiquement l'entrée d'un
+      // tapis glissant, voir plus haut), la phase n'était pas encore à 1
+      // — donc pas encore à une hauteur de 0 — d'où un saut résiduel
+      // pile à l'entrée du tapis, repéré sur le tout dernier tapis du
+      // morceau (accolé à 32ms de la dernière tuile).
+      const interval = Math.max(0.001, nextTime - previousTime);
       return TH.MathUtils.clamp((t - previousTime) / interval, 0, 1);
     }
 
