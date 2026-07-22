@@ -103,17 +103,28 @@ naturelle d'un geste répété.
   tard avec une tolérance différente, sans tout retaper).
 - `merged` est le résultat prêt à l'emploi.
 
-## Suite possible (pas faite maintenant)
+## Intégration dans le jeu (faite)
 
-Pour qu'un fichier exporté ici remplace un jour la détection
-automatique dans le jeu, il faudrait (volontairement hors du périmètre
-de cet outil, qui ne doit rien changer au jeu) :
-- charger ce `.json` dans `main.js` à la place de
-  `BeatDetector.detectOnsets(...)` — `merged.tiles.map(t => t.time)`
-  donne directement le tableau `beatTimes` attendu par
-  `level/levelSequencer.js`, `buildSequence` ;
-- transmettre `merged.longPlates` comme plateformes de liaison
-  EXPLICITES, plutôt que de les laisser déduites automatiquement des
-  écarts (voir `level/levelSequencer.js`, `buildBridges`, qui devrait
-  alors accepter une liste de plateformes déjà connues en plus/à la
-  place de sa détection par écart.
+Un fichier exporté ici peut désormais remplacer la détection
+automatique dans le jeu :
+
+- le `.json` exporté est embarqué tel quel dans `src/assets/beatmapData.js`
+  (`TH.BeatmapData = {...}`, même principe que
+  `src/assets/levelTrackData.js` pour la musique) ;
+- `config.beatmap.useManualData` (voir `src/config/gameConfig.js`) active
+  ce rythme à la place de `BeatDetector.detectOnsets(...)` — `main.js`
+  utilise alors `TH.BeatmapData.merged.tiles.map(t => t.time)` comme
+  tableau `beatTimes` pour `level/levelSequencer.js`, `buildSequence` ;
+- `TH.BeatmapData.merged.longPlates` est transmis comme plateformes de
+  liaison EXPLICITES (paramètre `explicitLongPlates` de `buildSequence`),
+  au lieu d'être déduites automatiquement des écarts (voir
+  `level/levelSequencer.js`, `buildExplicitBridges`) ;
+- si `config.beatmap.useManualData` vaut `false`, ou qu'aucun
+  `TH.BeatmapData` n'est chargé (futur morceau sans beatmap manuel),
+  `main.js` retombe automatiquement sur la détection automatique.
+
+Pour préparer le rythme d'un NOUVEAU morceau avec cet outil : exporter
+le `.json`, l'embarquer dans un nouveau fichier `assets/xxxBeatmapData.js`
+sur le même modèle, et adapter `main.js` pour choisir le bon
+`TH.BeatmapData` selon le morceau chargé (aujourd'hui, un seul morceau
+actif dans le jeu, donc pas encore de sélection à faire).
