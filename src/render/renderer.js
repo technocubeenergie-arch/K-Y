@@ -244,7 +244,7 @@
         // souligner en plus. Les fausses tuiles n'ont jamais cette zone :
         // elles ne rapportent jamais rien.
         if (projected && tile.state === 'pending') {
-          this._drawPerfectZone(projected.screenX, projected.screenY, projected.scale);
+          this._drawPerfectZone(projected.screenX, projected.screenY, projected.scale, tile.tiltDirection);
         }
       }
     }
@@ -267,35 +267,41 @@
       const width = config.tile.width * scale;
       const height = config.tile.height * scale;
 
+      // Tuile inclinée (voir entities/tile.js, tiltDirection) : purement
+      // visuel, on tourne juste le dessin autour de son propre centre —
+      // la zone de contact réelle (`getCenterX`, utilisée par
+      // core/engine.js) ne bouge jamais.
+      ctx.save();
+      ctx.translate(screenX, screenY);
+      if (tile.tiltDirection) {
+        ctx.rotate(tile.tiltDirection * config.tile.inclineAngle);
+      }
       ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.roundRect(
-        screenX - width / 2,
-        screenY - height / 2,
-        width,
-        height,
-        this._safeCornerRadius(6 * scale, width, height)
-      );
+      ctx.roundRect(-width / 2, -height / 2, width, height, this._safeCornerRadius(6 * scale, width, height));
       ctx.fill();
+      ctx.restore();
 
       return { screenX, screenY, scale };
     }
 
-    _drawPerfectZone(screenX, screenY, scale) {
+    _drawPerfectZone(screenX, screenY, scale, tiltDirection) {
       const { ctx, config } = this;
       const width = config.tile.width * config.tile.perfectZoneRatio * scale;
       const height = config.tile.height * scale;
 
+      // Même rotation que la tuile (voir `_drawSingleTile`), pour que la
+      // zone bonus reste posée dessus au lieu de flotter à côté.
+      ctx.save();
+      ctx.translate(screenX, screenY);
+      if (tiltDirection) {
+        ctx.rotate(tiltDirection * config.tile.inclineAngle);
+      }
       ctx.fillStyle = config.tile.perfectZonePreviewColor;
       ctx.beginPath();
-      ctx.roundRect(
-        screenX - width / 2,
-        screenY - height / 2,
-        width,
-        height,
-        this._safeCornerRadius(5 * scale, width, height)
-      );
+      ctx.roundRect(-width / 2, -height / 2, width, height, this._safeCornerRadius(5 * scale, width, height));
       ctx.fill();
+      ctx.restore();
     }
 
     // La balle reste toujours au premier plan (échelle 1, sur la ligne

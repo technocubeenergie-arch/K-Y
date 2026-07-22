@@ -158,6 +158,16 @@
     const tiles = compressedBeatTimes.map((expectedTime, index) => {
       const worldY = scrollSpeed * expectedTime;
       const tile = new TH.Tile(index, worldY, xFractions[index], expectedTime);
+
+      // Tuile inclinée (voir docs/GAMEPLAY.md) : tirage indépendant des
+      // fausses tuiles (salt différent), jamais appliqué à une tuile
+      // pile au centre — il n'y a alors pas de "vers l'intérieur" clair
+      // à pencher.
+      const showIncline = config.tile.inclinedFrequency > 0 && pseudoRandom01(index, 741852) < config.tile.inclinedFrequency;
+      if (showIncline && xFractions[index] !== 0.5) {
+        tile.tiltDirection = xFractions[index] < 0.5 ? 1 : -1;
+      }
+
       const showDecoys = config.tile.decoyCount > 0 && pseudoRandom01(index, 0) < config.tile.decoyFrequency;
 
       if (showDecoys) {
