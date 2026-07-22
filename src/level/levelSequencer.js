@@ -196,13 +196,24 @@
       return tile;
     });
 
-    const lastTile = tiles[tiles.length - 1];
     const bridges = explicitLongPlates
       ? buildExplicitBridges(explicitLongPlates, tiles, config, speedMultiplier, timeOffset)
       : buildBridges(tiles, config);
 
+    // Une tuile tapée pile au même moment qu'un tapis glissant tapé à
+    // la main ferait atterrir/rebondir la balle dessus, alors qu'elle
+    // est censée rouler en continu sur le tapis (voir `isOnBridge`,
+    // core/engine.js) — on la retire. Seulement pour les tapis
+    // EXPLICITES : les tapis automatiques (`buildBridges`) sont déduits
+    // des écarts ENTRE deux tuiles, donc ne recouvrent jamais une tuile
+    // par construction.
+    const finalTiles = explicitLongPlates
+      ? tiles.filter((tile) => !bridges.some((bridge) => tile.expectedTime >= bridge.startTime && tile.expectedTime <= bridge.endTime))
+      : tiles;
+    const lastTile = finalTiles[finalTiles.length - 1];
+
     return {
-      tiles,
+      tiles: finalTiles,
       bridges,
       totalDurationSeconds: lastTile ? lastTile.expectedTime : 0,
       scrollSpeed,
