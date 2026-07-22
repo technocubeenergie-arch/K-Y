@@ -148,8 +148,9 @@
       // (bord ou centre) : le tirage est indépendant des fausses tuiles.
       // Fraction des tuiles concernées (0 = jamais, 1 = à chaque tuile).
       inclinedFrequency: 0.2,
-      // Force de l'inclinaison, en radians (~17°).
-      inclineAngle: 0.3,
+      // Force de l'inclinaison, en radians (~23°). Augmentée légèrement
+      // (0,3 -> 0,4) à la demande de Ylonna.
+      inclineAngle: 0.4,
     },
 
     // Défilement : vitesse constante (px/seconde) à laquelle le monde
