@@ -399,11 +399,13 @@ jamais si on touche ou rate une tuile.
 
 Une partie n'est pas un seul niveau, mais une **suite de niveaux** sur
 la même musique (`config.levels.speedMultipliers`, actuellement
-`[1, 1.5, 2]` — 3 niveaux : vitesse normale, puis 50% plus rapide, puis
-2 fois plus rapide que le niveau 1 ; ajouter un nombre à cette liste
-ajoute un niveau). C'est le SEUL endroit à modifier pour rééquilibrer
-la difficulté — tout le reste (musique, tuiles, plateformes de liaison,
-bandeaux) est recalculé automatiquement à partir de ces nombres.
+`[1, 1.25, 2]` — 3 niveaux : vitesse normale, puis 25% plus rapide
+(réduit de 50% à la demande de Ylonna, "le niveau 2 est trop rapide"),
+puis 2 fois plus rapide que le niveau 1 ; ajouter un nombre à cette
+liste ajoute un niveau). C'est le SEUL endroit à modifier pour
+rééquilibrer la difficulté — tout le reste (musique, tuiles,
+plateformes de liaison, bandeaux) est recalculé automatiquement à
+partir de ces nombres.
 
 **Comment un niveau devient "plus rapide" sans casser le rythme.** Ce
 n'est PAS le défilement visuel (`config.scroll.speed`) qui change — ça

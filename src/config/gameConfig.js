@@ -162,7 +162,9 @@
       // (musique, tuiles, plateformes de liaison, bandeaux) est
       // recalculé à partir de ces nombres (voir
       // level/levelSequencer.js, audio/audioManager.js).
-      speedMultipliers: [1, 1.5, 2],
+      // Niveau 2 réduit de ×1,5 à ×1,25 à la demande de Ylonna
+      // ("le niveau 2 est trop rapide").
+      speedMultipliers: [1, 1.25, 2],
       // Combien de temps (secondes) le bandeau "Niveau X" met à arriver
       // depuis l'horizon jusqu'à la ligne d'impact, sur le chemin, au
       // début de chaque nouveau niveau (sauf le tout premier) — voir
