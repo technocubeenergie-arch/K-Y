@@ -64,6 +64,7 @@ src/
   assets/
     assetManifest.js             Registre central de tous les assets (voir plus bas)
     levelTrackData.js              La musique du niveau, encodée en base64 (généré, voir plus bas)
+    beatmapData.js                 Rythme de phuthona.ogg posé à la main (généré depuis tools/beatmap-editor/, voir docs/BEATMAP_EDITOR.md)
     phuthona.ogg                     Fichier audio actuellement utilisé pour le niveau (test de comparaison, voir docs/GAMEPLAY.md)
     audioniveau6.ogg                Fichier audio précédent, gardé pour comparaison/régénération
   main.js                    Chef d'orchestre : crée et relie tous les modules
@@ -217,15 +218,22 @@ en déduit où placer les tuiles.
    renvoie une liste d'horaires (secondes) où un "coup" a été détecté
    (une technique simple de flux d'énergie : voir les commentaires du
    fichier). Ce module ne connaît ni les tuiles, ni le jeu : il ne fait
-   que de l'analyse de signal.
-2. **`level/levelSequencer.buildSequence(beatTimes, levelDef, config)`**
-   transforme cette liste d'horaires en objets `Tile`. La position
-   latérale (quelle lettre FL/L/C/R/FR) vient de `levelDef`
-   (`level/levelData.js`) : l'analyse audio ne peut donner QUE le
-   rythme, pas où placer la balle. La même fonction repère aussi les
-   longs vides entre deux tuiles (`buildBridges`) pour y placer une
-   plateforme de liaison (voir `docs/GAMEPLAY.md`) — une liste séparée
-   (`sequence.bridges`), jamais mêlée à `sequence.tiles`.
+   que de l'analyse de signal. Alternative, activée par
+   `config.beatmap.useManualData` : un rythme posé À LA MAIN avec
+   `tools/beatmap-editor/` et embarqué dans `assets/beatmapData.js` (voir
+   `docs/BEATMAP_EDITOR.md`) — `main.js` choisit l'une ou l'autre source
+   avant d'appeler `buildSequence`.
+2. **`level/levelSequencer.buildSequence(beatTimes, levelDef, config,
+   speedMultiplier, timeOffset, explicitLongPlates)`** transforme cette
+   liste d'horaires en objets `Tile`. La position latérale (quelle
+   lettre FL/L/C/R/FR) vient de `levelDef` (`level/levelData.js`) :
+   l'analyse audio ne peut donner QUE le rythme, pas où placer la balle.
+   La même fonction calcule aussi les plateformes de liaison
+   (`sequence.bridges`, jamais mêlées à `sequence.tiles`) : soit
+   automatiquement à partir des longs vides entre deux tuiles
+   (`buildBridges`), soit à partir de tapis glissants posés à la main
+   (`buildExplicitBridges`, si `explicitLongPlates` est fourni — voir
+   `docs/BEATMAP_EDITOR.md`).
 3. **`core/engine.js`** ne suppose jamais un intervalle fixe entre deux
    tuiles : chaque `Tile` porte son propre `expectedTime`, et c'est
    cette valeur que la boucle de jeu compare au temps écoulé — jamais

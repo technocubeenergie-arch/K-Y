@@ -234,6 +234,16 @@
       maxTiles: 160,
     },
 
+    // Rythme posé À LA MAIN (voir tools/beatmap-editor/,
+    // docs/BEATMAP_EDITOR.md, assets/beatmapData.js). Quand `true` ET
+    // que `TH.BeatmapData` existe, main.js utilise ce rythme à la
+    // place de la détection automatique ci-dessus
+    // (`beatDetection`/`BeatDetector.detectOnsets`) : plus fiable,
+    // posé à l'oreille par Ylonna plutôt que deviné par un algorithme.
+    beatmap: {
+      useManualData: true,
+    },
+
     // Étoiles : la monnaie du jeu, gagnée en atterrissant pile au centre
     // d'une tuile. Prévue pour être dépensée plus tard dans une boutique
     // (voir docs/FUTURE_INTEGRATIONS.md) — pas encore implémentée.

@@ -55,7 +55,18 @@ pour comparer le rendu de la génération de tuiles à une référence
 connue — voir `src/assets/assetManifest.js` pour savoir quel fichier
 est actif) :
 
-1. Au clic sur "Jouer", le fichier est décodé, puis analysé par
+**Deux sources possibles pour ce rythme, une seule active à la fois par
+morceau** (voir `config.beatmap.useManualData`,
+`src/config/gameConfig.js`) : la détection automatique décrite ici, ou
+un rythme posé À LA MAIN avec `tools/beatmap-editor/` (voir
+`docs/BEATMAP_EDITOR.md`). Pour `phuthona.ogg`, c'est aujourd'hui le
+rythme posé à la main (`src/assets/beatmapData.js`, 210 tuiles et 17
+tapis glissants tapés à l'oreille par Ylonna) qui est actif — plus
+fiable que la détection automatique décrite ci-dessous, qui reste le
+comportement par défaut pour un futur morceau sans beatmap manuel.
+
+1. Au clic sur "Jouer", le fichier est décodé, puis (si aucun rythme
+   manuel n'est disponible/activé) analysé par
    `audio/beatDetector.js`. Technique utilisée, en deux temps :
    - découpage en petites tranches de temps, mesure du volume de
      chaque tranche, puis de combien ce volume AUGMENTE d'une tranche

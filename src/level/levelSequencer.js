@@ -79,6 +79,38 @@
     return bridges;
   }
 
+  // Comme `buildBridges` (juste au-dessus), mais à partir de tapis
+  // glissants posés À LA MAIN (voir `explicitLongPlates` ci-dessous),
+  // au lieu de les déduire des écarts entre tuiles. `longPlates` :
+  // horaires bruts (secondes, à vitesse normale, AVANT compression par
+  // `speedMultiplier`) — on leur applique ici EXACTEMENT le même calcul
+  // qu'aux tuiles (`timeOffset + temps / speedMultiplier`), pour rester
+  // au même rythme que la musique accélérée.
+  function buildExplicitBridges(longPlates, tiles, config, speedMultiplier, timeOffset) {
+    const scrollSpeed = config.scroll.speed;
+    return longPlates.map((plate) => {
+      const startTime = timeOffset + plate.start / speedMultiplier;
+      const endTime = timeOffset + plate.end / speedMultiplier;
+
+      // La plateforme suit la position latérale de la tuile qui la
+      // précède (là où se trouve la balle quand le tapis commence) —
+      // même logique que `buildBridges`.
+      let precedingTile = tiles[0];
+      for (const tile of tiles) {
+        if (tile.expectedTime > startTime) break;
+        precedingTile = tile;
+      }
+
+      return {
+        startTime,
+        endTime,
+        startWorldY: scrollSpeed * startTime,
+        endWorldY: scrollSpeed * endTime,
+        xFraction: precedingTile ? precedingTile.xFraction : 0.5,
+      };
+    });
+  }
+
   // `beatTimes` : les horaires (secondes, triés du plus tôt au plus
   // tard) des "coups" détectés dans la musique, à vitesse normale. La
   // position latérale (quelle lettre FL/L/C/R/FR) est décidée par
@@ -100,7 +132,12 @@
   // docs/GAMEPLAY.md, "aucune coupure entre deux niveaux") : le niveau 2
   // ne recommence pas son propre temps à 0, il continue exactement là
   // où le niveau 1 s'est arrêté.
-  function buildSequence(beatTimes, levelDef, config, speedMultiplier = 1, timeOffset = 0) {
+  //
+  // `explicitLongPlates` (optionnel) : des tapis glissants posés À LA
+  // MAIN (voir tools/beatmap-editor/, docs/BEATMAP_EDITOR.md), au lieu
+  // de laisser `buildBridges` les déduire automatiquement des écarts.
+  // Fourni tel quel par `main.js` (issu de `TH.BeatmapData.merged.longPlates`).
+  function buildSequence(beatTimes, levelDef, config, speedMultiplier = 1, timeOffset = 0, explicitLongPlates = null) {
     const scrollSpeed = config.scroll.speed;
     const compressedBeatTimes = beatTimes.map((time) => timeOffset + time / speedMultiplier);
     const xFractions = levelDef.resolvePositions(beatTimes.length);
@@ -160,10 +197,13 @@
     });
 
     const lastTile = tiles[tiles.length - 1];
+    const bridges = explicitLongPlates
+      ? buildExplicitBridges(explicitLongPlates, tiles, config, speedMultiplier, timeOffset)
+      : buildBridges(tiles, config);
 
     return {
       tiles,
-      bridges: buildBridges(tiles, config),
+      bridges,
       totalDurationSeconds: lastTile ? lastTile.expectedTime : 0,
       scrollSpeed,
     };
@@ -176,9 +216,14 @@
   // l'horloge ni reconstruire quoi que ce soit à un changement de
   // niveau (voir docs/GAMEPLAY.md).
   //
-  // Les plateformes de liaison sont recalculées ICI, sur l'ensemble des
-  // tuiles (pas niveau par niveau) : ça attrape aussi un éventuel écart
-  // entre la dernière tuile d'un niveau et la première du suivant.
+  // Les plateformes de liaison de chaque niveau (déjà calculées par
+  // `buildSequence`, automatiquement via `buildBridges` OU à la main
+  // via `buildExplicitBridges`, voir `explicitLongPlates` plus haut)
+  // sont simplement mises bout à bout ici, pas recalculées : chaque
+  // niveau garde ainsi la source de plateformes qu'on lui a donnée. Un
+  // éventuel écart entre la dernière tuile d'un niveau et la première
+  // du suivant n'est donc plus comblé automatiquement — compromis
+  // accepté pour respecter fidèlement un rythme posé à la main.
   //
   // `levelTileStartIndex[i]` : l'indice, dans le tableau `tiles` final,
   // de la première tuile du niveau i — sert à `core/engine.js` pour
@@ -187,6 +232,7 @@
   // ci-dessous).
   function combineLevelSequences(sequences, config) {
     const tiles = [];
+    const bridges = [];
     const levelTileStartIndex = [];
 
     for (const sequence of sequences) {
@@ -195,6 +241,7 @@
         tile.index = tiles.length;
         tiles.push(tile);
       }
+      bridges.push(...sequence.bridges);
     }
 
     // Un bandeau par niveau, sauf le premier (pas besoin d'annoncer le
@@ -215,7 +262,7 @@
 
     return {
       tiles,
-      bridges: buildBridges(tiles, config),
+      bridges,
       levelTileStartIndex,
       levelBanners,
       totalDurationSeconds: lastTile ? lastTile.expectedTime : 0,

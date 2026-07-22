@@ -33,6 +33,18 @@
       },
     },
 
+    beatmap: {
+      // Rythme de phuthona.ogg posé à la main avec tools/beatmap-editor/
+      // (voir docs/BEATMAP_EDITOR.md), utilisé à la place de
+      // audio/beatDetector.js quand config.beatmap.useManualData vaut
+      // true (voir main.js).
+      manualData: {
+        status: 'file',
+        source: 'export de tools/beatmap-editor/ (embarqué tel quel dans assets/beatmapData.js)',
+        note: '210 tuiles et 17 tapis glissants tapés à l\'oreille par Ylonna, fusionnés depuis une prise. Remplace la détection automatique pour ce morceau ; un futur morceau sans beatmap manuel retombe automatiquement sur audio/beatDetector.js (voir main.js).',
+      },
+    },
+
     sfx: {
       fail: {
         status: 'procedural',

@@ -108,8 +108,14 @@
         const arrayBuffer = TH.Base64.toArrayBuffer(TH.LevelTrackData);
         const audioBuffer = await audioManager.decodeArrayBuffer(arrayBuffer);
 
-        const onsets = TH.BeatDetector.detectOnsets(audioBuffer, config.beatDetection)
-          .slice(0, config.beatDetection.maxTiles);
+        // Rythme posé à la main (voir config.beatmap.useManualData,
+        // tools/beatmap-editor/, docs/BEATMAP_EDITOR.md) si disponible,
+        // sinon détection automatique (voir audio/beatDetector.js).
+        const useManualBeatmap = config.beatmap.useManualData && !!TH.BeatmapData;
+        const onsets = useManualBeatmap
+          ? TH.BeatmapData.merged.tiles.map((tile) => tile.time)
+          : TH.BeatDetector.detectOnsets(audioBuffer, config.beatDetection).slice(0, config.beatDetection.maxTiles);
+        const explicitLongPlates = useManualBeatmap ? TH.BeatmapData.merged.longPlates : null;
 
         if (onsets.length < 2) {
           startStatus.textContent = 'Pas assez de rythme détecté dans ce fichier.';
@@ -133,7 +139,8 @@
             TH.Levels.training,
             config,
             speedMultiplier,
-            cumulativeStartTime
+            cumulativeStartTime,
+            explicitLongPlates
           );
           cumulativeStartTime += audioBuffer.duration / speedMultiplier;
           return sequence;
