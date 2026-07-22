@@ -6,6 +6,53 @@
 
 ---
 
+## BUG-018 — Saut brutal de la balle à chaque fin (et parfois entrée) de tapis glissant manuel (signalé par Ylonna : "ça rame")
+
+- **Problème observé** : sur le beatmap manuel de `phuthona.ogg` (voir
+  BEATMAP_EDITOR.md, tapis glissants tapés à la main), la balle faisait
+  un saut brutal — jusqu'à ~127px d'un coup, quasiment la hauteur
+  maximum du rebond (`config.ball.bounceHeight` = 128) — à la fin (et
+  parfois à l'entrée) de certains tapis. Ylonna a décrit ça comme "ça
+  rame".
+- **Cause réelle** : `core/engine.js`, `getBouncePhase()` calcule la
+  hauteur du rebond à partir de l'écart entre la DERNIÈRE tuile passée
+  et la PROCHAINE. Pour un tapis AUTOMATIQUE (`buildBridges`, déduit
+  d'un écart entre deux tuiles), ces deux tuiles bordent exactement le
+  tapis, donc la phase atteint naturellement 0 ou 1 pile à ses limites
+  — aucun souci. Un tapis EXPLICITE (tapé à la main, voir
+  `explicitLongPlates`, BUG précédent sur l'intégration du beatmap
+  manuel) n'a, lui, AUCUNE raison de commencer/finir pile sur une tuile
+  : le calcul de phase ignorait donc complètement le tapis, et
+  continuait comme si de rien n'était sur tout l'écart entre les deux
+  vraies tuiles qui l'encadrent (souvent bien plus long que le tapis
+  lui-même) — alors que `isOnBridge()` fige déjà l'affichage à 0 pendant
+  la traversée. Résultat : à la sortie (ou l'entrée) du tapis, la balle
+  "téléportait" instantanément à la hauteur correspondant à ce point
+  d'avancement dans un intervalle bien plus long que le vrai saut.
+- **Solution appliquée** (`core/engine.js`, `getBouncePhase()`) :
+  - l'intervalle utilisé pour calculer la phase est maintenant borné par
+    tout tapis qui le chevauche : bloqué à la fin du tapis précédent
+    (le rebond reprend à 0 pile à la sortie) et/ou au début du tapis
+    suivant (le rebond s'arrête à 0 pile à l'entrée, juste avant que
+    `isOnBridge()` fige l'affichage).
+  - le plancher de sécurité contre une division par (quasi) zéro est
+    descendu de 0,05s à 0,001s : avec un rythme posé à la main, un
+    écart réel de quelques dizaines de millisecondes entre deux
+    horaires arrive (contrairement à la détection automatique, qui n'en
+    produit jamais d'aussi courts) — un plancher trop grand ralentissait
+    artificiellement la phase par rapport à l'écart réel, laissant un
+    saut résiduel pile à la limite du tapis (repéré sur le tout dernier
+    tapis du morceau, collé à 32ms de la dernière tuile).
+- **Vérifié** : testé par script (Playwright), sur les 51 tapis de la
+  partie entière (17 par niveau × 3) : saut instantané exactement à
+  chaque frontière (1ms avant/après) mesuré avant/après correctif —
+  jusqu'à ~127px avant, ramené à moins de 27px après (le résidu restant
+  est l'effet naturel de la fin de parabole sur un écart réel très
+  court, pas une téléportation) ; régression complète (pause/reprise/
+  échec) toujours sans erreur console.
+
+---
+
 ## BUG-017 — Coupure visible entre deux niveaux (signalé par Ylonna)
 
 - **Problème observé** : la première version de la progression
