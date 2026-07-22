@@ -258,7 +258,18 @@
       // sortie) et par celui qui le suit (s'arrêter à 0 pile à l'entrée).
       const bridges = this.sequence.bridges || [];
       for (const bridge of bridges) {
-        if (bridge.endTime > previousTime && bridge.endTime <= nextTime) {
+        // `t >= bridge.endTime` : ce tapis doit être VRAIMENT déjà
+        // franchi (pas juste "quelque part avant la prochaine tuile")
+        // pour avancer `previousTime` jusqu'à sa fin. Sans cette garde,
+        // un tapis pas encore atteint (voire plusieurs d'affilée, tous
+        // situés entre la même paire de tuiles) faisait quand même
+        // avancer `previousTime` jusqu'à son `endTime` — un horaire
+        // FUTUR par rapport à `t`. La phase, calculée comme `(t -
+        // previousTime) / interval`, devenait alors négative, donc
+        // ramenée à 0 par le clamp final : la balle apparaissait à
+        // plat, roulant, bien AVANT même d'arriver sur ce tapis (repéré
+        // par Ylonna : "la balle roule même avant d'être sur la tapie").
+        if (t >= bridge.endTime && bridge.endTime > previousTime && bridge.endTime <= nextTime) {
           previousTime = Math.max(previousTime, bridge.endTime);
         }
         if (bridge.startTime > previousTime && bridge.startTime < nextTime) {

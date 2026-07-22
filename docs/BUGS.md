@@ -6,6 +6,39 @@
 
 ---
 
+## BUG-019 — La balle roulait à plat bien avant d'atteindre un tapis glissant (signalé par Ylonna : "la balle roule même avant d'être sur la tapie")
+
+- **Problème observé** : correctif du BUG-018 à peine en place, Ylonna a
+  signalé un nouveau symptôme : la balle roulait à plat (aucun rebond)
+  parfois près d'une seconde AVANT même d'arriver visuellement sur un
+  tapis glissant — comme si le rebond s'arrêtait trop tôt.
+- **Cause réelle** : le correctif du BUG-018 avançait `previousTime`
+  jusqu'à la fin (`endTime`) de tout tapis situé entre la dernière tuile
+  touchée et la prochaine — mais SANS vérifier que ce tapis avait
+  vraiment déjà été franchi. Dès qu'un tapis existait quelque part entre
+  les deux tuiles (même si la balle n'était pas encore arrivée dessus),
+  `previousTime` sautait déjà à son `endTime`, un horaire FUTUR par
+  rapport à l'instant réel `t`. Le calcul de phase `(t - previousTime) /
+  intervalle` devenait alors négatif, et le `clamp(..., 0, 1)` final le
+  ramenait à 0 — exactement la valeur d'un rebond "juste posé, à plat".
+  Résultat : la balle paraissait déjà "sur le tapis" bien avant d'y être
+  réellement.
+- **Solution appliquée** (`core/engine.js`, `getBouncePhase()`) : ajout
+  d'une garde `t >= bridge.endTime` avant d'avancer `previousTime` —
+  seul un tapis VRAIMENT déjà franchi (pas juste situé quelque part plus
+  loin dans l'intervalle tuile-à-tuile) peut désormais faire avancer ce
+  repère.
+- **Vérifié** : testé par script (Playwright) — balayage de la partie
+  entière (3 niveaux) à 10ms de résolution, à la recherche de toute
+  période "à plat" (rebond figé à 0) alors que la balle n'est PAS
+  réellement sur un tapis : 120 périodes suspectes trouvées avant le
+  correctif (certaines de près d'une seconde), 0 après ; les vérifications
+  précédentes du BUG-018 (saut aux frontières exactes des tapis, aucune
+  téléportation) restent toutes valides ; régression complète
+  (pause/reprise/échec) toujours sans erreur console.
+
+---
+
 ## BUG-018 — Saut brutal de la balle à chaque fin (et parfois entrée) de tapis glissant manuel (signalé par Ylonna : "ça rame")
 
 - **Problème observé** : sur le beatmap manuel de `phuthona.ogg` (voir
