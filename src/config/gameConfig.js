@@ -138,6 +138,18 @@
       // qu'elles disparaissent bien avant de devenir des points
       // minuscules empilés près de l'horizon.
       decoyMinVisibleScale: 0.32,
+
+      // Tuiles inclinées (demandé par Ylonna) : DE TEMPS EN TEMPS, une
+      // tuile RÉELLE (jamais une fausse tuile) est dessinée tournée en
+      // biais, penchée vers le CENTRE du chemin — purement visuel,
+      // aucun effet sur la zone de contact (voir core/engine.js,
+      // inchangé) ni sur les autres tuiles (voir level/levelSequencer.js,
+      // render/renderer.js). Peu importe la position de la tuile
+      // (bord ou centre) : le tirage est indépendant des fausses tuiles.
+      // Fraction des tuiles concernées (0 = jamais, 1 = à chaque tuile).
+      inclinedFrequency: 0.2,
+      // Force de l'inclinaison, en radians (~17°).
+      inclineAngle: 0.3,
     },
 
     // Défilement : vitesse constante (px/seconde) à laquelle le monde

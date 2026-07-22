@@ -33,6 +33,13 @@
       // latérales. Purement visuel : core/engine.js ne lit jamais cette
       // propriété, seul render/renderer.js s'en sert.
       this.decoys = null;
+      // DE TEMPS EN TEMPS (voir level/levelSequencer.js,
+      // config.tile.inclinedFrequency), une tuile est dessinée tournée
+      // en biais, penchée vers le CENTRE du chemin : 0 = pas
+      // d'inclinaison (par défaut), +1/-1 = sens de la rotation.
+      // Purement visuel (render/renderer.js) : la zone de contact reste
+      // la même, `core/engine.js` ne lit jamais cette propriété.
+      this.tiltDirection = 0;
     }
 
     getCenterX(canvasWidth, tileWidth) {

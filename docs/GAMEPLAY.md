@@ -310,6 +310,27 @@ donc un seul point de décision pour l'échec (`core/engine.js`,
 `_processHop`), pour qu'un futur état "vole" sur la balle puisse
 facilement désactiver cet échec sans toucher au reste des règles.
 
+## Les tuiles inclinées : un peu de variété visuelle
+
+DE TEMPS EN TEMPS (demandé par Ylonna), une VRAIE tuile est dessinée
+tournée en biais, penchée vers le CENTRE du chemin — purement visuel :
+`core/engine.js` continue de juger le contact exactement comme avant
+(même position `x`, même largeur), l'inclinaison ne change rien à la
+zone où atterrir.
+
+Décidé par le même genre de "hash" que les fausses tuiles (voir
+plus haut), mais avec un salt différent : le tirage est complètement
+indépendant — une tuile peut être à la fois inclinée ET recevoir des
+fausses tuiles, ou ni l'une ni l'autre. Une tuile pile au CENTRE du
+chemin n'est jamais inclinée : il n'y a alors pas de "vers l'intérieur"
+qui ait un sens (le centre EST déjà le milieu).
+
+Réglages dans `gameConfig.js` (`tile.inclinedFrequency`,
+`tile.inclineAngle`) : `inclinedFrequency` contrôle à quelle fréquence
+ça arrive (0 = jamais, 1 = à chaque tuile hors centre ; actuellement
+0,2, soit environ 1 tuile sur 5), `inclineAngle` contrôle la force de
+l'inclinaison, en radians.
+
 ## Que se passe-t-il à chaque "saut" (hop) ?
 
 À l'instant précis où une tuile atteint la ligne d'impact, le jeu
