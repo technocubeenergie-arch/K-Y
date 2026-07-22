@@ -41,7 +41,7 @@
       manualData: {
         status: 'file',
         source: 'export de tools/beatmap-editor/ (embarqué tel quel dans assets/beatmapData.js)',
-        note: '148 tuiles et 7 tapis glissants tapés à l\'oreille par Ylonna (2e tapis du tout début du morceau retiré à la demande de Ylonna). Remplace la détection automatique pour ce morceau ; un futur morceau sans beatmap manuel retombe automatiquement sur audio/beatDetector.js (voir main.js).',
+        note: '147 tuiles et 7 tapis glissants tapés à l\'oreille par Ylonna (2e tapis et toute première tuile du tout début du morceau retirés à sa demande). Remplace la détection automatique pour ce morceau ; un futur morceau sans beatmap manuel retombe automatiquement sur audio/beatDetector.js (voir main.js).',
       },
     },
 
