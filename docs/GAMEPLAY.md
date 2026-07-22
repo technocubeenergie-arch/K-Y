@@ -60,8 +60,8 @@ morceau** (voir `config.beatmap.useManualData`,
 `src/config/gameConfig.js`) : la détection automatique décrite ici, ou
 un rythme posé À LA MAIN avec `tools/beatmap-editor/` (voir
 `docs/BEATMAP_EDITOR.md`). Pour `phuthona.ogg`, c'est aujourd'hui le
-rythme posé à la main (`src/assets/beatmapData.js`, 214 tuiles et 11
-tapis glissants tapés à l'oreille par Ylonna) qui est actif — plus
+rythme posé à la main (`src/assets/beatmapData.js`, 214 tuiles et 1
+tapis glissant tapés à l'oreille par Ylonna) qui est actif — plus
 fiable que la détection automatique décrite ci-dessous, qui reste le
 comportement par défaut pour un futur morceau sans beatmap manuel.
 

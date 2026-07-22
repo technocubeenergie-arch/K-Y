@@ -21,402 +21,225 @@
   "takes": [
     {
       "tiles": [
-        0.974,
-        1.496,
-        2.019,
-        2.676,
-        3.152,
+        1.272,
+        1.883,
+        2.325,
+        2.766,
+        3.242,
         3.71,
-        4.619,
+        4.655,
         5.165,
-        5.618,
-        6.086,
-        6.508,
-        7.093,
-        7.506,
-        7.94,
-        8.389,
-        8.838,
-        9.287,
-        9.747,
-        10.161,
-        11.763,
-        12.185,
-        12.591,
-        13.04,
-        13.454,
-        13.904,
-        15.939,
-        16.407,
-        16.875,
-        17.344,
-        17.808,
-        18.18,
-        18.656,
-        19.654,
-        20.122,
-        20.572,
-        21.048,
-        21.508,
-        21.903,
-        22.382,
-        22.894,
-        23.416,
-        26.744,
-        27.15,
-        30.784,
-        31.253,
-        31.775,
-        32.297,
-        32.774,
-        33.25,
-        34.205,
-        34.708,
-        35.177,
+        5.645,
+        6.094,
+        6.554,
+        6.976,
+        7.445,
+        7.948,
+        8.416,
+        8.873,
+        9.352,
+        9.793,
+        10.277,
+        10.719,
+        11.655,
+        12.077,
+        12.51,
+        12.967,
+        13.42,
+        13.888,
+        14.337,
+        15.436,
+        15.614,
+        15.839,
+        16.172,
+        16.605,
+        17.061,
+        17.495,
+        17.928,
+        18.35,
+        19.279,
+        19.546,
+        19.797,
+        20.158,
+        20.591,
+        21.067,
+        21.481,
+        21.923,
+        22.371,
+        22.777,
+        23.226,
+        23.66,
+        24.082,
+        24.504,
+        24.956,
+        25.487,
+        25.854,
+        26.295,
+        26.736,
+        27.143,
+        27.565,
+        27.967,
+        28.408,
+        28.807,
+        29.248,
+        29.678,
+        30.111,
+        30.544,
+        30.982,
+        31.408,
+        31.829,
+        32.224,
+        32.685,
+        33.099,
+        33.501,
+        33.927,
+        34.341,
+        34.763,
+        35.166,
         35.618,
-        36.086,
-        36.489,
-        36.942,
-        37.913,
-        38.424,
-        38.884,
-        39.325,
-        39.829,
-        40.278,
-        40.727,
-        41.717,
-        42.185,
-        42.584,
-        43.021,
-        43.606,
-        44.023,
-        44.437,
-        44.879,
-        45.389,
-        45.866,
-        46.326,
-        46.829,
-        47.317,
-        47.782,
-        48.277,
-        48.935,
-        49.395,
-        49.879,
-        50.301,
-        50.769,
-        51.211,
-        51.671,
-        52.058,
-        52.534,
-        52.983,
-        53.463,
-        53.865,
-        54.333,
-        54.774,
-        55.231,
-        55.719,
-        56.187,
-        56.639,
-        57.166,
-        57.673,
-        58.13,
-        58.617,
-        59.094,
-        59.542,
-        59.976,
-        60.39,
-        60.858,
-        61.334,
-        61.845,
-        62.344,
-        62.774,
-        63.215,
-        63.683,
-        64.086,
-        64.573,
-        64.98,
-        65.463,
-        65.878,
-        66.311,
-        66.779,
-        67.247,
-        67.599,
-        68.064,
-        68.525,
-        68.946,
-        69.38,
-        69.848,
-        70.297,
-        70.757,
-        71.179,
-        71.682,
-        72.151,
-        72.6,
-        73.06,
-        73.51,
-        73.985,
-        74.437,
-        74.895,
-        75.534,
-        75.901,
-        79.143,
-        79.592,
-        83.056,
-        83.444,
-        86.528,
-        86.961
+        36.048,
+        36.462,
+        36.895,
+        37.31,
+        37.75,
+        38.184,
+        38.606,
+        39.02,
+        39.388,
+        39.596,
+        39.782,
+        40.316,
+        40.495,
+        40.665,
+        40.838,
+        40.998,
+        41.152,
+        41.558,
+        42.007,
+        42.421,
+        42.863,
+        43.304,
+        43.699,
+        44.129,
+        44.481,
+        44.902,
+        45.263,
+        45.661,
+        46.055,
+        46.416,
+        46.783,
+        47.17,
+        47.514,
+        47.882,
+        48.261,
+        48.675,
+        49.132,
+        49.511,
+        49.898,
+        50.293,
+        50.688,
+        51.059,
+        51.427,
+        51.86,
+        52.274,
+        52.661,
+        53.045,
+        53.416,
+        53.811,
+        54.19,
+        54.577,
+        54.972,
+        55.413,
+        55.838,
+        56.214,
+        56.567,
+        57.008,
+        57.402,
+        57.743,
+        58.095,
+        58.699,
+        59.047,
+        59.392,
+        59.751,
+        60.057,
+        60.406,
+        60.757,
+        61.145,
+        61.551,
+        61.911,
+        62.279,
+        62.658,
+        63.037,
+        63.397,
+        63.784,
+        64.178,
+        64.592,
+        64.961,
+        65.348,
+        65.719,
+        66.129,
+        66.52,
+        66.895,
+        67.201,
+        67.607,
+        67.994,
+        68.389,
+        68.757,
+        69.129,
+        69.542,
+        69.891,
+        70.27,
+        70.665,
+        71.036,
+        71.349,
+        71.737,
+        72.104,
+        72.492,
+        72.789,
+        73.509,
+        73.904,
+        74.275,
+        74.651,
+        75.046,
+        75.39,
+        75.758,
+        76.11,
+        76.497,
+        76.857,
+        77.236,
+        77.631,
+        77.99,
+        78.358,
+        78.718,
+        79.051,
+        79.403,
+        80.383,
+        80.762,
+        81.122,
+        81.509,
+        81.958,
+        82.437,
+        83.021,
+        83.416,
+        83.83,
+        84.287,
+        84.767,
+        85.2,
+        85.622,
+        86.501,
+        86.907,
+        87.294,
+        87.654,
+        88.06,
+        88.463,
+        88.951,
+        89.373,
+        89.759
       ],
       "longPlates": [
         {
-          "start": 10.629,
-          "end": 11.446
-        },
-        {
-          "start": 14.372,
-          "end": 15.478
-        },
-        {
-          "start": 23.911,
-          "end": 26.357
-        },
-        {
-          "start": 27.638,
-          "end": 30.424
-        },
-        {
-          "start": 76.334,
-          "end": 78.845
-        },
-        {
-          "start": 80.08,
-          "end": 82.813
-        },
-        {
-          "start": 83.904,
-          "end": 86.214
-        },
-        {
-          "start": 87.429,
-          "end": 90.587
-        }
-      ]
-    },
-    {
-      "tiles": [
-        0.982,
-        1.543,
-        2.054,
-        2.611,
-        3.087,
-        3.559,
-        1.245,
-        1.721,
-        1.114,
-        1.555,
-        1.995,
-        2.425,
-        2.851,
-        3.265,
-        3.706,
-        4.569,
-        4.991,
-        5.416,
-        5.873,
-        6.315,
-        6.721,
-        7.17,
-        7.692,
-        8.149,
-        8.555,
-        8.95,
-        9.384,
-        9.77,
-        10.165,
-        10.599,
-        11.714,
-        12.155,
-        12.561,
-        13.091,
-        13.532,
-        13.954,
-        15.87,
-        16.33,
-        16.787,
-        17.239,
-        17.716,
-        18.157,
-        18.668,
-        19.678,
-        20.092,
-        20.54,
-        21.001,
-        21.524,
-        21.945,
-        22.402,
-        23.266,
-        23.637,
-        24.005,
-        24.356,
-        24.763,
-        25.185,
-        25.572,
-        25.994,
-        26.652,
-        27.076,
-        27.55,
-        27.974,
-        28.405,
-        28.792,
-        29.17,
-        29.546,
-        30.402,
-        30.843,
-        31.268,
-        31.752,
-        32.228,
-        32.661,
-        33.122,
-        34.139,
-        34.794,
-        35.181,
-        35.603,
-        36.055,
-        36.466,
-        36.938,
-        37.882,
-        38.323,
-        38.745,
-        39.194,
-        39.705,
-        40.138,
-        40.618,
-        41.748,
-        42.139,
-        42.55,
-        43.026,
-        43.532,
-        43.954,
-        44.43,
-        44.891,
-        45.359,
-        45.835,
-        46.322,
-        46.771,
-        47.267,
-        47.824,
-        48.257,
-        48.698,
-        49.156,
-        49.597,
-        50.065,
-        50.514,
-        50.955,
-        51.389,
-        51.818,
-        52.251,
-        52.754,
-        53.231,
-        53.95,
-        54.33,
-        54.786,
-        55.274,
-        55.769,
-        56.202,
-        56.652,
-        57.139,
-        58.107,
-        58.567,
-        58.989,
-        59.504,
-        59.953,
-        60.413,
-        60.905,
-        61.377,
-        61.88,
-        62.34,
-        62.77,
-        63.211,
-        63.698,
-        64.19,
-        64.732,
-        65.154,
-        65.614,
-        66.071,
-        66.477,
-        66.961,
-        67.476,
-        67.925,
-        68.412,
-        68.834,
-        69.24,
-        69.798,
-        70.212,
-        70.634,
-        71.156,
-        72.074,
-        72.507,
-        72.94,
-        73.343,
-        73.792,
-        74.26,
-        74.658,
-        74.988,
-        75.413,
-        75.854,
-        76.377,
-        76.807,
-        77.267,
-        77.724,
-        78.176,
-        78.668,
-        79.14,
-        79.604,
-        80.065,
-        80.506,
-        80.955,
-        81.369,
-        81.81,
-        83.026,
-        83.401,
-        83.881,
-        84.322,
-        84.736,
-        85.166,
-        85.572,
-        85.994,
-        86.597,
-        87.093,
-        87.55,
-        88.01,
-        88.424,
-        88.873,
-        89.287,
-        89.682
-      ],
-      "longPlates": [
-        {
-          "start": 0.335,
-          "end": 0.974
-        },
-        {
-          "start": 0.15,
-          "end": 0.916
-        },
-        {
-          "start": 14.449,
-          "end": 15.475
-        },
-        {
-          "start": 57.65,
-          "end": 57.867
-        },
-        {
-          "start": 71.586,
-          "end": 71.787
-        },
-        {
-          "start": 90.25,
-          "end": 92.433
+          "start": 39.956,
+          "end": 40.223
         }
       ]
     }
@@ -424,655 +247,647 @@
   "merged": {
     "tiles": [
       {
-        "time": 1.079,
-        "confidence": 2
-      },
-      {
-        "time": 1.531,
-        "confidence": 1.5
-      },
-      {
-        "time": 1.721,
-        "confidence": 0.5
-      },
-      {
-        "time": 2.023,
-        "confidence": 1.5
-      },
-      {
-        "time": 2.425,
-        "confidence": 0.5
-      },
-      {
-        "time": 2.644,
+        "time": 1.272,
         "confidence": 1
       },
       {
-        "time": 2.851,
-        "confidence": 0.5
-      },
-      {
-        "time": 3.168,
-        "confidence": 1.5
-      },
-      {
-        "time": 3.658,
-        "confidence": 1.5
-      },
-      {
-        "time": 4.594,
+        "time": 1.883,
         "confidence": 1
       },
       {
-        "time": 4.991,
-        "confidence": 0.5
+        "time": 2.325,
+        "confidence": 1
+      },
+      {
+        "time": 2.766,
+        "confidence": 1
+      },
+      {
+        "time": 3.242,
+        "confidence": 1
+      },
+      {
+        "time": 3.71,
+        "confidence": 1
+      },
+      {
+        "time": 4.655,
+        "confidence": 1
       },
       {
         "time": 5.165,
-        "confidence": 0.5
+        "confidence": 1
+      },
+      {
+        "time": 5.645,
+        "confidence": 1
       },
       {
-        "time": 5.416,
-        "confidence": 0.5
+        "time": 6.094,
+        "confidence": 1
+      },
+      {
+        "time": 6.554,
+        "confidence": 1
       },
       {
-        "time": 5.618,
-        "confidence": 0.5
+        "time": 6.976,
+        "confidence": 1
       },
       {
-        "time": 5.873,
-        "confidence": 0.5
+        "time": 7.445,
+        "confidence": 1
       },
       {
-        "time": 6.086,
-        "confidence": 0.5
+        "time": 7.948,
+        "confidence": 1
       },
       {
-        "time": 6.315,
-        "confidence": 0.5
+        "time": 8.416,
+        "confidence": 1
       },
       {
-        "time": 6.508,
-        "confidence": 0.5
+        "time": 8.873,
+        "confidence": 1
       },
       {
-        "time": 6.721,
-        "confidence": 0.5
+        "time": 9.352,
+        "confidence": 1
       },
       {
-        "time": 7.132,
+        "time": 9.793,
         "confidence": 1
       },
       {
-        "time": 7.506,
-        "confidence": 0.5
+        "time": 10.277,
+        "confidence": 1
       },
       {
-        "time": 7.692,
-        "confidence": 0.5
+        "time": 10.719,
+        "confidence": 1
       },
       {
-        "time": 7.94,
-        "confidence": 0.5
+        "time": 11.655,
+        "confidence": 1
       },
       {
-        "time": 8.149,
-        "confidence": 0.5
+        "time": 12.077,
+        "confidence": 1
       },
       {
-        "time": 8.389,
-        "confidence": 0.5
+        "time": 12.51,
+        "confidence": 1
       },
       {
-        "time": 8.555,
-        "confidence": 0.5
+        "time": 12.967,
+        "confidence": 1
       },
       {
-        "time": 8.894,
+        "time": 13.42,
         "confidence": 1
       },
       {
-        "time": 9.336,
+        "time": 13.888,
         "confidence": 1
       },
       {
-        "time": 9.759,
+        "time": 14.337,
         "confidence": 1
       },
       {
-        "time": 10.163,
+        "time": 15.436,
         "confidence": 1
       },
       {
-        "time": 10.599,
-        "confidence": 0.5
+        "time": 15.614,
+        "confidence": 1
       },
       {
-        "time": 11.739,
+        "time": 15.839,
         "confidence": 1
       },
       {
-        "time": 12.17,
+        "time": 16.172,
         "confidence": 1
       },
       {
-        "time": 12.576,
+        "time": 16.605,
         "confidence": 1
       },
       {
-        "time": 13.066,
+        "time": 17.061,
         "confidence": 1
       },
       {
-        "time": 13.493,
+        "time": 17.495,
         "confidence": 1
       },
       {
-        "time": 13.929,
+        "time": 17.928,
         "confidence": 1
       },
       {
-        "time": 15.904,
+        "time": 18.35,
         "confidence": 1
       },
       {
-        "time": 16.368,
+        "time": 19.279,
         "confidence": 1
       },
       {
-        "time": 16.831,
+        "time": 19.546,
         "confidence": 1
       },
       {
-        "time": 17.292,
+        "time": 19.797,
         "confidence": 1
       },
       {
-        "time": 17.762,
+        "time": 20.158,
         "confidence": 1
       },
       {
-        "time": 18.169,
+        "time": 20.591,
         "confidence": 1
       },
       {
-        "time": 18.662,
+        "time": 21.067,
         "confidence": 1
       },
       {
-        "time": 19.666,
+        "time": 21.481,
         "confidence": 1
       },
       {
-        "time": 20.107,
+        "time": 21.923,
         "confidence": 1
       },
       {
-        "time": 20.556,
+        "time": 22.371,
         "confidence": 1
       },
       {
-        "time": 21.025,
+        "time": 22.777,
         "confidence": 1
       },
       {
-        "time": 21.516,
+        "time": 23.226,
         "confidence": 1
       },
       {
-        "time": 21.924,
+        "time": 23.66,
         "confidence": 1
       },
       {
-        "time": 22.392,
+        "time": 24.082,
         "confidence": 1
       },
       {
-        "time": 22.894,
-        "confidence": 0.5
+        "time": 24.504,
+        "confidence": 1
       },
       {
-        "time": 23.266,
-        "confidence": 0.5
+        "time": 24.956,
+        "confidence": 1
       },
       {
-        "time": 23.416,
-        "confidence": 0.5
+        "time": 25.487,
+        "confidence": 1
       },
       {
-        "time": 23.637,
-        "confidence": 0.5
+        "time": 25.854,
+        "confidence": 1
       },
       {
-        "time": 24.005,
-        "confidence": 0.5
+        "time": 26.295,
+        "confidence": 1
       },
       {
-        "time": 24.356,
-        "confidence": 0.5
+        "time": 26.736,
+        "confidence": 1
       },
       {
-        "time": 24.763,
-        "confidence": 0.5
+        "time": 27.143,
+        "confidence": 1
       },
       {
-        "time": 25.185,
-        "confidence": 0.5
+        "time": 27.565,
+        "confidence": 1
       },
       {
-        "time": 25.572,
-        "confidence": 0.5
+        "time": 27.967,
+        "confidence": 1
       },
       {
-        "time": 25.994,
-        "confidence": 0.5
+        "time": 28.408,
+        "confidence": 1
       },
       {
-        "time": 26.698,
+        "time": 28.807,
         "confidence": 1
       },
       {
-        "time": 27.113,
+        "time": 29.248,
         "confidence": 1
       },
       {
-        "time": 27.55,
-        "confidence": 0.5
+        "time": 29.678,
+        "confidence": 1
       },
       {
-        "time": 27.974,
-        "confidence": 0.5
+        "time": 30.111,
+        "confidence": 1
       },
       {
-        "time": 28.405,
-        "confidence": 0.5
+        "time": 30.544,
+        "confidence": 1
       },
       {
-        "time": 28.792,
-        "confidence": 0.5
+        "time": 30.982,
+        "confidence": 1
       },
       {
-        "time": 29.17,
-        "confidence": 0.5
+        "time": 31.408,
+        "confidence": 1
       },
       {
-        "time": 29.546,
-        "confidence": 0.5
+        "time": 31.829,
+        "confidence": 1
       },
       {
-        "time": 30.402,
-        "confidence": 0.5
+        "time": 32.224,
+        "confidence": 1
       },
       {
-        "time": 30.813,
+        "time": 32.685,
         "confidence": 1
       },
       {
-        "time": 31.261,
+        "time": 33.099,
         "confidence": 1
       },
       {
-        "time": 31.764,
+        "time": 33.501,
         "confidence": 1
       },
       {
-        "time": 32.263,
+        "time": 33.927,
         "confidence": 1
       },
       {
-        "time": 32.718,
+        "time": 34.341,
         "confidence": 1
       },
       {
-        "time": 33.186,
+        "time": 34.763,
         "confidence": 1
       },
       {
-        "time": 34.172,
+        "time": 35.166,
         "confidence": 1
       },
       {
-        "time": 34.751,
+        "time": 35.618,
         "confidence": 1
       },
       {
-        "time": 35.179,
+        "time": 36.048,
         "confidence": 1
       },
       {
-        "time": 35.611,
+        "time": 36.462,
         "confidence": 1
       },
       {
-        "time": 36.07,
+        "time": 36.895,
         "confidence": 1
       },
       {
-        "time": 36.478,
+        "time": 37.31,
         "confidence": 1
       },
       {
-        "time": 36.94,
+        "time": 37.75,
         "confidence": 1
       },
       {
-        "time": 37.897,
+        "time": 38.184,
         "confidence": 1
       },
       {
-        "time": 38.374,
+        "time": 38.606,
         "confidence": 1
       },
       {
-        "time": 38.814,
+        "time": 39.02,
         "confidence": 1
       },
       {
-        "time": 39.26,
+        "time": 39.388,
         "confidence": 1
       },
       {
-        "time": 39.767,
+        "time": 39.596,
         "confidence": 1
       },
       {
-        "time": 40.208,
+        "time": 39.782,
         "confidence": 1
       },
       {
-        "time": 40.673,
+        "time": 40.316,
         "confidence": 1
       },
       {
-        "time": 41.733,
+        "time": 40.495,
         "confidence": 1
       },
       {
-        "time": 42.162,
+        "time": 40.665,
         "confidence": 1
       },
       {
-        "time": 42.567,
+        "time": 40.838,
         "confidence": 1
       },
       {
-        "time": 43.024,
+        "time": 40.998,
         "confidence": 1
       },
       {
-        "time": 43.569,
+        "time": 41.152,
         "confidence": 1
       },
       {
-        "time": 43.989,
+        "time": 41.558,
         "confidence": 1
       },
       {
-        "time": 44.433,
+        "time": 42.007,
         "confidence": 1
       },
       {
-        "time": 44.885,
+        "time": 42.421,
         "confidence": 1
       },
       {
-        "time": 45.374,
+        "time": 42.863,
         "confidence": 1
       },
       {
-        "time": 45.851,
+        "time": 43.304,
         "confidence": 1
       },
       {
-        "time": 46.324,
+        "time": 43.699,
         "confidence": 1
       },
       {
-        "time": 46.8,
+        "time": 44.129,
         "confidence": 1
       },
       {
-        "time": 47.292,
+        "time": 44.481,
         "confidence": 1
       },
       {
-        "time": 47.803,
+        "time": 44.902,
         "confidence": 1
       },
       {
-        "time": 48.267,
+        "time": 45.263,
         "confidence": 1
       },
       {
-        "time": 48.698,
-        "confidence": 0.5
+        "time": 45.661,
+        "confidence": 1
       },
       {
-        "time": 48.935,
-        "confidence": 0.5
+        "time": 46.055,
+        "confidence": 1
       },
       {
-        "time": 49.156,
-        "confidence": 0.5
+        "time": 46.416,
+        "confidence": 1
       },
       {
-        "time": 49.395,
-        "confidence": 0.5
+        "time": 46.783,
+        "confidence": 1
       },
       {
-        "time": 49.597,
-        "confidence": 0.5
+        "time": 47.17,
+        "confidence": 1
       },
       {
-        "time": 49.879,
-        "confidence": 0.5
+        "time": 47.514,
+        "confidence": 1
       },
       {
-        "time": 50.065,
-        "confidence": 0.5
+        "time": 47.882,
+        "confidence": 1
       },
       {
-        "time": 50.301,
-        "confidence": 0.5
+        "time": 48.261,
+        "confidence": 1
       },
       {
-        "time": 50.514,
-        "confidence": 0.5
+        "time": 48.675,
+        "confidence": 1
       },
       {
-        "time": 50.769,
-        "confidence": 0.5
+        "time": 49.132,
+        "confidence": 1
       },
       {
-        "time": 50.955,
-        "confidence": 0.5
+        "time": 49.511,
+        "confidence": 1
       },
       {
-        "time": 51.211,
-        "confidence": 0.5
+        "time": 49.898,
+        "confidence": 1
       },
       {
-        "time": 51.389,
-        "confidence": 0.5
+        "time": 50.293,
+        "confidence": 1
       },
       {
-        "time": 51.745,
+        "time": 50.688,
         "confidence": 1
       },
       {
-        "time": 52.058,
-        "confidence": 0.5
+        "time": 51.059,
+        "confidence": 1
       },
       {
-        "time": 52.251,
-        "confidence": 0.5
+        "time": 51.427,
+        "confidence": 1
       },
       {
-        "time": 52.534,
-        "confidence": 0.5
+        "time": 51.86,
+        "confidence": 1
       },
       {
-        "time": 52.754,
-        "confidence": 0.5
+        "time": 52.274,
+        "confidence": 1
       },
       {
-        "time": 52.983,
-        "confidence": 0.5
+        "time": 52.661,
+        "confidence": 1
       },
       {
-        "time": 53.231,
-        "confidence": 0.5
+        "time": 53.045,
+        "confidence": 1
       },
       {
-        "time": 53.463,
-        "confidence": 0.5
+        "time": 53.416,
+        "confidence": 1
       },
       {
-        "time": 53.908,
+        "time": 53.811,
         "confidence": 1
       },
       {
-        "time": 54.332,
+        "time": 54.19,
         "confidence": 1
       },
       {
-        "time": 54.78,
+        "time": 54.577,
         "confidence": 1
       },
       {
-        "time": 55.253,
+        "time": 54.972,
         "confidence": 1
       },
       {
-        "time": 55.744,
+        "time": 55.413,
         "confidence": 1
       },
       {
-        "time": 56.195,
+        "time": 55.838,
         "confidence": 1
       },
       {
-        "time": 56.646,
+        "time": 56.214,
         "confidence": 1
       },
       {
-        "time": 57.153,
+        "time": 56.567,
         "confidence": 1
       },
       {
-        "time": 57.673,
-        "confidence": 0.5
+        "time": 57.008,
+        "confidence": 1
       },
       {
-        "time": 58.119,
+        "time": 57.402,
         "confidence": 1
       },
       {
-        "time": 58.592,
+        "time": 57.743,
         "confidence": 1
       },
       {
-        "time": 59.042,
+        "time": 58.095,
         "confidence": 1
       },
       {
-        "time": 59.523,
+        "time": 58.699,
         "confidence": 1
       },
       {
-        "time": 59.965,
+        "time": 59.047,
         "confidence": 1
       },
       {
-        "time": 60.402,
+        "time": 59.392,
         "confidence": 1
       },
       {
-        "time": 60.882,
+        "time": 59.751,
         "confidence": 1
       },
       {
-        "time": 61.356,
+        "time": 60.057,
         "confidence": 1
       },
       {
-        "time": 61.863,
+        "time": 60.406,
         "confidence": 1
       },
       {
-        "time": 62.342,
+        "time": 60.757,
         "confidence": 1
       },
       {
-        "time": 62.772,
+        "time": 61.145,
         "confidence": 1
       },
       {
-        "time": 63.213,
+        "time": 61.551,
         "confidence": 1
       },
       {
-        "time": 63.691,
+        "time": 61.911,
         "confidence": 1
       },
       {
-        "time": 64.138,
+        "time": 62.279,
         "confidence": 1
       },
       {
-        "time": 64.573,
-        "confidence": 0.5
+        "time": 62.658,
+        "confidence": 1
       },
       {
-        "time": 64.732,
-        "confidence": 0.5
+        "time": 63.037,
+        "confidence": 1
       },
       {
-        "time": 64.98,
-        "confidence": 0.5
+        "time": 63.397,
+        "confidence": 1
       },
       {
-        "time": 65.154,
-        "confidence": 0.5
+        "time": 63.784,
+        "confidence": 1
       },
       {
-        "time": 65.463,
-        "confidence": 0.5
+        "time": 64.178,
+        "confidence": 1
       },
       {
-        "time": 65.614,
-        "confidence": 0.5
+        "time": 64.592,
+        "confidence": 1
       },
       {
-        "time": 65.878,
-        "confidence": 0.5
+        "time": 64.961,
+        "confidence": 1
       },
       {
-        "time": 66.071,
-        "confidence": 0.5
+        "time": 65.348,
+        "confidence": 1
       },
       {
-        "time": 66.311,
-        "confidence": 0.5
+        "time": 65.719,
+        "confidence": 1
       },
       {
-        "time": 66.477,
-        "confidence": 0.5
+        "time": 66.129,
+        "confidence": 1
       },
       {
-        "time": 66.779,
-        "confidence": 0.5
+        "time": 66.52,
+        "confidence": 1
       },
       {
-        "time": 66.961,
-        "confidence": 0.5
+        "time": 66.895,
+        "confidence": 1
       },
       {
-        "time": 67.247,
-        "confidence": 0.5
+        "time": 67.201,
+        "confidence": 1
       },
       {
-        "time": 67.538,
+        "time": 67.607,
         "confidence": 1
       },
       {
@@ -1080,260 +895,218 @@
         "confidence": 1
       },
       {
-        "time": 68.469,
+        "time": 68.389,
         "confidence": 1
       },
       {
-        "time": 68.89,
+        "time": 68.757,
         "confidence": 1
       },
       {
-        "time": 69.31,
+        "time": 69.129,
         "confidence": 1
       },
       {
-        "time": 69.823,
+        "time": 69.542,
         "confidence": 1
       },
       {
-        "time": 70.255,
+        "time": 69.891,
         "confidence": 1
       },
       {
-        "time": 70.696,
+        "time": 70.27,
         "confidence": 1
       },
       {
-        "time": 71.168,
+        "time": 70.665,
         "confidence": 1
       },
       {
-        "time": 71.682,
-        "confidence": 0.5
-      },
-      {
-        "time": 72.113,
+        "time": 71.036,
         "confidence": 1
       },
       {
-        "time": 72.554,
+        "time": 71.349,
         "confidence": 1
       },
       {
-        "time": 73,
+        "time": 71.737,
         "confidence": 1
       },
       {
-        "time": 73.343,
-        "confidence": 0.5
-      },
-      {
-        "time": 73.51,
-        "confidence": 0.5
-      },
-      {
-        "time": 73.792,
-        "confidence": 0.5
-      },
-      {
-        "time": 73.985,
-        "confidence": 0.5
-      },
-      {
-        "time": 74.26,
-        "confidence": 0.5
-      },
-      {
-        "time": 74.437,
-        "confidence": 0.5
-      },
-      {
-        "time": 74.658,
-        "confidence": 0.5
-      },
-      {
-        "time": 74.941,
+        "time": 72.104,
         "confidence": 1
       },
       {
-        "time": 75.474,
+        "time": 72.492,
         "confidence": 1
       },
       {
-        "time": 75.878,
+        "time": 72.789,
         "confidence": 1
       },
       {
-        "time": 76.377,
-        "confidence": 0.5
-      },
-      {
-        "time": 76.807,
-        "confidence": 0.5
-      },
-      {
-        "time": 77.267,
-        "confidence": 0.5
-      },
-      {
-        "time": 77.724,
-        "confidence": 0.5
-      },
-      {
-        "time": 78.176,
-        "confidence": 0.5
-      },
-      {
-        "time": 78.668,
-        "confidence": 0.5
-      },
-      {
-        "time": 79.142,
+        "time": 73.509,
         "confidence": 1
       },
       {
-        "time": 79.598,
+        "time": 73.904,
         "confidence": 1
       },
       {
-        "time": 80.065,
-        "confidence": 0.5
-      },
-      {
-        "time": 80.506,
-        "confidence": 0.5
-      },
-      {
-        "time": 80.955,
-        "confidence": 0.5
-      },
-      {
-        "time": 81.369,
-        "confidence": 0.5
-      },
-      {
-        "time": 81.81,
-        "confidence": 0.5
-      },
-      {
-        "time": 83.041,
+        "time": 74.275,
         "confidence": 1
       },
       {
-        "time": 83.423,
+        "time": 74.651,
         "confidence": 1
       },
       {
-        "time": 83.881,
-        "confidence": 0.5
-      },
-      {
-        "time": 84.322,
-        "confidence": 0.5
-      },
-      {
-        "time": 84.736,
-        "confidence": 0.5
-      },
-      {
-        "time": 85.166,
-        "confidence": 0.5
-      },
-      {
-        "time": 85.572,
-        "confidence": 0.5
-      },
-      {
-        "time": 85.994,
-        "confidence": 0.5
-      },
-      {
-        "time": 86.563,
+        "time": 75.046,
         "confidence": 1
       },
       {
-        "time": 87.027,
+        "time": 75.39,
         "confidence": 1
       },
       {
-        "time": 87.55,
-        "confidence": 0.5
+        "time": 75.758,
+        "confidence": 1
       },
       {
-        "time": 88.01,
-        "confidence": 0.5
+        "time": 76.11,
+        "confidence": 1
       },
       {
-        "time": 88.424,
-        "confidence": 0.5
+        "time": 76.497,
+        "confidence": 1
       },
       {
-        "time": 88.873,
-        "confidence": 0.5
+        "time": 76.857,
+        "confidence": 1
       },
       {
-        "time": 89.287,
-        "confidence": 0.5
+        "time": 77.236,
+        "confidence": 1
       },
       {
-        "time": 89.682,
-        "confidence": 0.5
+        "time": 77.631,
+        "confidence": 1
+      },
+      {
+        "time": 77.99,
+        "confidence": 1
+      },
+      {
+        "time": 78.358,
+        "confidence": 1
+      },
+      {
+        "time": 78.718,
+        "confidence": 1
+      },
+      {
+        "time": 79.051,
+        "confidence": 1
+      },
+      {
+        "time": 79.403,
+        "confidence": 1
+      },
+      {
+        "time": 80.383,
+        "confidence": 1
+      },
+      {
+        "time": 80.762,
+        "confidence": 1
+      },
+      {
+        "time": 81.122,
+        "confidence": 1
+      },
+      {
+        "time": 81.509,
+        "confidence": 1
+      },
+      {
+        "time": 81.958,
+        "confidence": 1
+      },
+      {
+        "time": 82.437,
+        "confidence": 1
+      },
+      {
+        "time": 83.021,
+        "confidence": 1
+      },
+      {
+        "time": 83.416,
+        "confidence": 1
+      },
+      {
+        "time": 83.83,
+        "confidence": 1
+      },
+      {
+        "time": 84.287,
+        "confidence": 1
+      },
+      {
+        "time": 84.767,
+        "confidence": 1
+      },
+      {
+        "time": 85.2,
+        "confidence": 1
+      },
+      {
+        "time": 85.622,
+        "confidence": 1
+      },
+      {
+        "time": 86.501,
+        "confidence": 1
+      },
+      {
+        "time": 86.907,
+        "confidence": 1
+      },
+      {
+        "time": 87.294,
+        "confidence": 1
+      },
+      {
+        "time": 87.654,
+        "confidence": 1
+      },
+      {
+        "time": 88.06,
+        "confidence": 1
+      },
+      {
+        "time": 88.463,
+        "confidence": 1
+      },
+      {
+        "time": 88.951,
+        "confidence": 1
+      },
+      {
+        "time": 89.373,
+        "confidence": 1
+      },
+      {
+        "time": 89.759,
+        "confidence": 1
       }
     ],
     "longPlates": [
       {
-        "start": 0.243,
-        "end": 0.945,
-        "confidence": 1
-      },
-      {
-        "start": 10.629,
-        "end": 11.446,
-        "confidence": 0.5
-      },
-      {
-        "start": 14.41,
-        "end": 15.477,
-        "confidence": 1
-      },
-      {
-        "start": 23.911,
-        "end": 26.357,
-        "confidence": 0.5
-      },
-      {
-        "start": 27.638,
-        "end": 30.424,
-        "confidence": 0.5
-      },
-      {
-        "start": 57.65,
-        "end": 57.867,
-        "confidence": 0.5
-      },
-      {
-        "start": 71.586,
-        "end": 71.787,
-        "confidence": 0.5
-      },
-      {
-        "start": 76.334,
-        "end": 78.845,
-        "confidence": 0.5
-      },
-      {
-        "start": 80.08,
-        "end": 82.813,
-        "confidence": 0.5
-      },
-      {
-        "start": 83.904,
-        "end": 86.214,
-        "confidence": 0.5
-      },
-      {
-        "start": 88.84,
-        "end": 91.51,
+        "start": 39.956,
+        "end": 40.223,
         "confidence": 1
       }
     ]
