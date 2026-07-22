@@ -812,11 +812,6 @@
         "confidence": 2
       },
       {
-        "start": 2.363,
-        "end": 2.851,
-        "confidence": 1
-      },
-      {
         "start": 23.806,
         "end": 26.299,
         "confidence": 1
