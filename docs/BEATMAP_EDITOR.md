@@ -122,6 +122,11 @@ automatique dans le jeu :
 - si `config.beatmap.useManualData` vaut `false`, ou qu'aucun
   `TH.BeatmapData` n'est chargé (futur morceau sans beatmap manuel),
   `main.js` retombe automatiquement sur la détection automatique.
+- une tuile tapée au même moment qu'un tapis glissant (les deux étant
+  tapés indépendamment dans l'éditeur, rien n'empêche qu'ils tombent au
+  même horaire) est retirée automatiquement par
+  `level/levelSequencer.js` (`buildSequence`) : la balle doit rouler en
+  continu sur le tapis, pas atterrir sur une tuile posée dessus.
 
 Pour préparer le rythme d'un NOUVEAU morceau avec cet outil : exporter
 le `.json`, l'embarquer dans un nouveau fichier `assets/xxxBeatmapData.js`
