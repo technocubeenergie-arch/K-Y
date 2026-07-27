@@ -256,23 +256,31 @@
     // serait sur la position la plus à droite, `xFraction = 1`) et
     // glisse SUR TOUTE LA LONGUEUR du chemin, dès `tile.slideStartTime`
     // (l'horaire de la tuile précédente, voir level/levelSequencer.js),
-    // jusqu'à sa position réelle, pile au moment où elle atteint la
-    // ligne d'impact (`tile.expectedTime`) — ce qui garantit que
-    // `core/engine.js` (qui compare toujours à `tile.getCenterX`,
-    // jamais à cette fonction) juge le contact exactement là où la
-    // tuile se trouve VRAIMENT au moment du saut, sans avoir besoin
-    // d'en savoir quoi que ce soit.
+    // jusqu'à sa position réelle — arrivée `config.tile.slideLeadSeconds`
+    // AVANT la ligne d'impact (`tile.expectedTime`), pas pile dessus :
+    // Ylonna a demandé que la tuile soit déjà bien en place avant même
+    // d'atterrir dessus, pas encore en train de glisser au moment du
+    // saut. `core/engine.js`, qui compare toujours à `tile.getCenterX`,
+    // jamais à cette fonction, juge de toute façon le contact au même
+    // endroit immobile, avec ou sans cette avance.
     _effectiveFlatX(tile, t) {
       const { config } = this;
       const baseFlatX = tile.getCenterX(config.canvas.width, config.tile.width);
       if (!tile.slidesRightToLeft) return baseFlatX;
 
       const rightEdgeFlatX = config.canvas.width - config.tile.width / 2;
-      if (t <= tile.slideStartTime) return rightEdgeFlatX;
-      if (t >= tile.expectedTime) return baseFlatX;
+      const arrivalTime = tile.expectedTime - config.tile.slideLeadSeconds;
+      const duration = arrivalTime - tile.slideStartTime;
 
-      const duration = tile.expectedTime - tile.slideStartTime;
-      const phase = duration > 0 ? (t - tile.slideStartTime) / duration : 1;
+      // Si l'écart avec la tuile précédente est plus court que
+      // `slideLeadSeconds`, il n'y a tout simplement pas la place pour
+      // glisser à temps : la tuile reste directement à sa position
+      // réelle, plutôt que de rester coincée au bord droit.
+      if (duration <= 0) return baseFlatX;
+      if (t <= tile.slideStartTime) return rightEdgeFlatX;
+      if (t >= arrivalTime) return baseFlatX;
+
+      const phase = (t - tile.slideStartTime) / duration;
       return TH.MathUtils.lerp(rightEdgeFlatX, baseFlatX, phase);
     }
 

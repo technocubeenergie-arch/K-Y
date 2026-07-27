@@ -171,6 +171,11 @@
       // variantes. Fraction des tuiles concernées (0 = jamais, 1 = à
       // chaque tuile plate, sans fausses tuiles).
       slidingFrequency: 0.15,
+      // Combien de temps (secondes) AVANT la ligne d'impact le
+      // glissement doit être terminé — la tuile doit déjà être bien en
+      // place avant même d'atterrir dessus, pas encore en train de
+      // glisser pile au moment du saut (demande explicite de Ylonna).
+      slideLeadSeconds: 0.3,
     },
 
     // Défilement : vitesse constante (px/seconde) à laquelle le monde
