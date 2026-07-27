@@ -336,7 +336,7 @@ l'inclinaison, en radians.
 DE TEMPS EN TEMPS (demandé par Ylonna), une VRAIE tuile part du bord
 DROIT du chemin (jamais au-delà : voir plus bas), puis glisse jusqu'à
 sa vraie position, pendant une durée FIXE
-(`config.tile.slideDurationSeconds`, 1,3 seconde par défaut), SANS
+(`config.tile.slideDurationSeconds`, 10 secondes par défaut), SANS
 s'arrêter avant d'atteindre la ligne d'impact elle-même. Contrairement
 aux tuiles inclinées (purement visuelles), c'est un VRAI effet de jeu :
 il faut viser la tuile "peu importe où elle est dans son déplacement"
@@ -344,20 +344,12 @@ il faut viser la tuile "peu importe où elle est dans son déplacement"
 sa position finale à l'avance, ni la voir se figer, déjà posée,
 quelques instants avant.
 
-Trois exigences de Ylonna, mutuellement en tension dès lors que le
-trajet doit rester DANS le chemin (jamais au-delà du bord droit —
-Ylonna a signalé qu'un essai précédent en sortait) et que le point
-d'ARRIVÉE (la position réelle, pile à l'instant `tile.expectedTime`)
-est fixe :
-- "il faut qu'elle reste dans le chemin" → distance de trajet
-  plafonnée au bord droit, jamais au-delà.
-- "il faut qu'elle aille au moins 3 fois plus vite" → sur une distance
-  plafonnée, aller plus vite veut dire une durée plus courte.
-- "il faut qu'elle commence à bouger AVANT que j'arrive" → une durée
-  qui reste malgré tout largement positive (1,3 seconde), même réduite
-  par rapport à un essai précédent (4 secondes, qui avait alors besoin
-  d'un départ hors du chemin pour concilier vitesse ET longue avance —
-  ce qui n'est plus permis).
+Le trajet reste borné au bord droit du chemin (jamais au-delà — Ylonna
+a signalé qu'un essai précédent en sortait) et le point d'ARRIVÉE (la
+position réelle, pile à l'instant `tile.expectedTime`) est fixe : sur
+cette distance et cet horaire déjà fixés, allonger la durée du
+glissement (remontée de 1,3s à 10s à la demande de Ylonna) ralentit le
+mouvement en échange de davantage de temps d'anticipation.
 
 Et pourtant, `core/engine.js` n'a reçu AUCUN changement : la balle
 continue d'atterrir exactement au moment du coup de musique, comme
