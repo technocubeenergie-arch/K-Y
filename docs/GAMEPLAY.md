@@ -337,7 +337,7 @@ DE TEMPS EN TEMPS (demandé par Ylonna), une VRAIE tuile part du bord
 DROIT du chemin ENTIER (comme si elle était sur la position la plus à
 droite), puis glisse SUR TOUTE LA LONGUEUR du chemin jusqu'à sa vraie
 position, pendant une durée FIXE (`config.tile.slideDurationSeconds`,
-2 secondes par défaut) bien AVANT la ligne d'impact — jamais pile dans
+4 secondes par défaut) bien AVANT la ligne d'impact — jamais pile dans
 les derniers instants avant d'arriver. Contrairement aux tuiles
 inclinées (purement visuelles), c'est un VRAI effet de jeu : il faut
 suivre le mouvement de la tuile pour bien viser, pas juste lire sa
