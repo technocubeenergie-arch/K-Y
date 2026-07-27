@@ -177,7 +177,9 @@
       // durée à cet écart compressait le glissement dans les tout
       // derniers instants). Une durée fixe et généreuse garantit que le
       // mouvement est toujours clairement visible bien avant l'arrivée.
-      slideDurationSeconds: 2,
+      // Augmentée de 2 à 4 secondes à la demande de Ylonna ("il faut
+      // que ça bouge encore bien avant").
+      slideDurationSeconds: 4,
       // Combien de temps (secondes) AVANT la ligne d'impact le
       // glissement doit être terminé — la tuile doit déjà être bien en
       // place avant même d'atterrir dessus, pas encore en train de
