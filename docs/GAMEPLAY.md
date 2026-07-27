@@ -349,11 +349,14 @@ position RÉELLE et immobile de la tuile — celle-là même vers laquelle
 la tuile glisse. Le glissement est entièrement géré côté affichage
 (`render/renderer.js`, `_effectiveFlatX`, à partir de
 `tile.slideStartTime`, voir `entities/tile.js`) : construit pour que la
-tuile ait TOUJOURS fini de glisser jusqu'à sa position réelle pile à
-l'instant `tile.expectedTime` (l'instant du saut). Au moment précis où
-le moteur juge le contact, la tuile est donc toujours exactement là où
-elle est censée être — le jeu se complique juste parce qu'il faut
-suivre son trajet à l'œil, pas parce que la cible bouge "après coup".
+tuile ait TOUJOURS fini de glisser jusqu'à sa position réelle un peu
+AVANT d'atteindre la ligne d'impact (`config.tile.slideLeadSeconds`,
+0,3s par défaut) — Ylonna a précisé que la tuile doit déjà être bien en
+place avant même d'atterrir dessus, pas encore en train de glisser pile
+au moment du saut. Au moment précis où le moteur juge le contact, la
+tuile est de toute façon toujours exactement là où elle est censée
+être — le jeu se complique juste parce qu'il faut suivre son trajet à
+l'œil, pas parce que la cible bouge "après coup".
 
 Décidé par le même genre de "hash" que les autres variantes, avec un
 salt différent, mais JAMAIS sur une tuile déjà inclinée (demande
@@ -366,11 +369,14 @@ de façon confuse. Contrairement à l'inclinaison, la position de la
 tuile (bord ou centre) n'a pas d'importance : glisser vers la gauche a
 toujours un sens.
 
-Réglage dans `gameConfig.js` (`tile.slidingFrequency`) : contrôle à
-quelle fréquence ça arrive parmi les tuiles plates (actuellement 0,15,
-soit environ 1 tuile sur 7). Le point de départ (bord droit du chemin)
-n'a pas besoin de réglage séparé : c'est toujours la position la plus à
-droite possible, quelle que soit la largeur du canvas.
+Réglages dans `gameConfig.js` (`tile.slidingFrequency`,
+`tile.slideLeadSeconds`) : `slidingFrequency` contrôle à quelle
+fréquence ça arrive parmi les tuiles plates (actuellement 0,15, soit
+environ 1 tuile sur 7), `slideLeadSeconds` contrôle de combien de
+temps à l'avance le glissement doit être terminé. Le point de départ
+(bord droit du chemin) n'a pas besoin de réglage séparé : c'est
+toujours la position la plus à droite possible, quelle que soit la
+largeur du canvas.
 
 ## Que se passe-t-il à chaque "saut" (hop) ?
 
