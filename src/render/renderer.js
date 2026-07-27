@@ -251,28 +251,29 @@
 
     // Position latérale "à plat" (avant perspective) d'une tuile, à
     // l'instant `t` : normalement fixe (`tile.getCenterX`), sauf pour
-    // une tuile glissante (voir entities/tile.js, `slidesRightToLeft`),
-    // qui part du bord DROIT du chemin entier (comme une tuile qui
-    // serait sur la position la plus à droite, `xFraction = 1`) et
-    // glisse SUR TOUTE LA LONGUEUR du chemin jusqu'à sa position réelle.
+    // une tuile glissante (voir entities/tile.js, `slidesRightToLeft`).
     //
-    // La durée du glissement (`config.tile.slideDurationSeconds`) est
-    // FIXE, PAS liée à l'écart avec la tuile précédente : Ylonna a
-    // précisé qu'il ne faut pas que la tuile "attende" (reste immobile
-    // au bord droit) jusqu'à ce qu'on arrive dessus — elle doit déjà
-    // être clairement en mouvement bien AVANT. Avec des tuiles souvent
-    // rapprochées de moins d'une seconde, lier la durée à cet écart
-    // (essayé précédemment) compressait le glissement dans les tout
-    // derniers instants, ce qui donnait exactement l'effet inverse de
-    // celui demandé.
+    // Deux exigences de Ylonna, en tension l'une avec l'autre parce que
+    // le point d'ARRIVÉE est fixe (la position réelle, pile à l'instant
+    // `tile.expectedTime` — voir plus bas) :
+    //   - "il faut qu'elle commence à bouger AVANT que j'arrive" → il
+    //     faut une durée de glissement généreuse (`slideDurationSeconds`).
+    //   - "il faut qu'elle aille au moins 3 fois plus vite" → à durée
+    //     égale, la seule façon d'aller plus vite est de parcourir une
+    //     plus grande distance.
+    // Réduire la durée (essayé, puis rejeté) aurait résolu la vitesse
+    // en sacrifiant l'anticipation. La solution qui satisfait les DEUX
+    // à la fois : garder une durée généreuse, mais partir bien plus
+    // loin que le simple bord droit du chemin — `slideSpeedMultiplier`
+    // fois plus loin que la distance jusqu'à la position réelle, ce qui
+    // multiplie la vitesse d'autant, à durée inchangée.
     //
     // La tuile continue de glisser JUSQU'À la ligne d'impact
-    // (`tile.expectedTime`) elle-même, sans s'arrêter avant : Ylonna a
-    // confirmé que la balle doit toujours atterrir pile au moment du
-    // coup de musique (comme toute tuile), mais qu'il faut viser la
-    // tuile "peu importe où elle est dans son déplacement" — donc la
-    // suivre des yeux jusqu'au bout, plutôt que la voir se figer
-    // quelques instants avant, déjà posée et facile à lire à l'avance.
+    // (`tile.expectedTime`) elle-même, sans s'arrêter avant : la balle
+    // doit toujours atterrir pile au moment du coup de musique (comme
+    // toute tuile), mais il faut viser la tuile "peu importe où elle
+    // est dans son déplacement" — donc la suivre des yeux jusqu'au
+    // bout, plutôt que la voir se figer, déjà posée, avant d'arriver.
     // `core/engine.js`, qui compare toujours à `tile.getCenterX`,
     // jamais à cette fonction, juge de toute façon le contact au même
     // endroit — celui-là même où le glissement arrive exactement à
@@ -283,13 +284,14 @@
       if (!tile.slidesRightToLeft) return baseFlatX;
 
       const rightEdgeFlatX = config.canvas.width - config.tile.width / 2;
+      const startFlatX = baseFlatX + (rightEdgeFlatX - baseFlatX) * config.tile.slideSpeedMultiplier;
       const slideStart = tile.expectedTime - config.tile.slideDurationSeconds;
 
-      if (t <= slideStart) return rightEdgeFlatX;
+      if (t <= slideStart) return startFlatX;
       if (t >= tile.expectedTime) return baseFlatX;
 
       const phase = (t - slideStart) / config.tile.slideDurationSeconds;
-      return TH.MathUtils.lerp(rightEdgeFlatX, baseFlatX, phase);
+      return TH.MathUtils.lerp(startFlatX, baseFlatX, phase);
     }
 
     // Dessine UNE tuile (vraie ou fausse) et renvoie sa position/échelle
