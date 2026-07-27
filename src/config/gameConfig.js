@@ -153,24 +153,21 @@
       inclineAngle: 0.4,
 
       // Tuiles glissantes (demandé par Ylonna) : DE TEMPS EN TEMPS, une
-      // tuile RÉELLE apparaît décalée vers la DROITE et glisse vers sa
-      // vraie position sur TOUTE LA LONGUEUR de son trajet (depuis
-      // l'horaire de la tuile précédente jusqu'à la ligne d'impact,
-      // voir entities/tile.js, `slideStartTime`) — un vrai effet de jeu
-      // (suivre son mouvement pour bien viser), sans aucun changement
-      // dans core/engine.js : au moment précis du saut, la tuile a
-      // toujours fini de glisser jusqu'à sa position réelle (voir
-      // render/renderer.js, `_effectiveFlatX`). Jamais sur une tuile
-      // déjà inclinée (voir `tiltDirection`) : "il y a que les tuiles
-      // plates" qui glissent. Peu importe sinon la position de la tuile
-      // (bord ou centre) : le tirage est indépendant des autres
-      // variantes. Fraction des tuiles concernées (0 = jamais, 1 = à
-      // chaque tuile plate).
+      // tuile RÉELLE part du bord DROIT du chemin ENTIER (comme si elle
+      // était sur la position la plus à droite) et glisse SUR TOUTE LA
+      // LONGUEUR du chemin jusqu'à sa vraie position, sur toute la
+      // durée de son trajet (depuis l'horaire de la tuile précédente
+      // jusqu'à la ligne d'impact, voir entities/tile.js,
+      // `slideStartTime`) — un vrai effet de jeu (suivre son mouvement
+      // pour bien viser), sans aucun changement dans core/engine.js :
+      // au moment précis du saut, la tuile a toujours fini de glisser
+      // jusqu'à sa position réelle (voir render/renderer.js,
+      // `_effectiveFlatX`). Jamais sur une tuile déjà inclinée (voir
+      // `tiltDirection`) : "il y a que les tuiles plates" qui glissent.
+      // Peu importe sinon la position de la tuile (bord ou centre) : le
+      // tirage est indépendant des autres variantes. Fraction des
+      // tuiles concernées (0 = jamais, 1 = à chaque tuile plate).
       slidingFrequency: 0.15,
-      // Décalage de départ, en pixels (à l'échelle 1, comme
-      // `tile.width`) : à combien la tuile apparaît décalée vers la
-      // droite avant de commencer à glisser.
-      slideDistancePx: 90,
     },
 
     // Défilement : vitesse constante (px/seconde) à laquelle le monde

@@ -333,14 +333,15 @@ l'inclinaison, en radians.
 
 ## Les tuiles glissantes : un VRAI effet de jeu, sans toucher au moteur
 
-DE TEMPS EN TEMPS (demandé par Ylonna), une VRAIE tuile apparaît
-décalée vers la DROITE, puis glisse vers sa vraie position SUR TOUTE LA
-LONGUEUR de son trajet — depuis l'horaire de la tuile PRÉCÉDENTE (ou 0
-pour la toute première tuile de la partie) jusqu'à la ligne d'impact,
-pas juste ses derniers instants. Contrairement aux tuiles inclinées
-(purement visuelles), c'est un VRAI effet de jeu : il faut suivre le
-mouvement de la tuile pour bien viser, pas juste lire sa position
-finale à l'avance.
+DE TEMPS EN TEMPS (demandé par Ylonna), une VRAIE tuile part du bord
+DROIT du chemin ENTIER (comme si elle était sur la position la plus à
+droite), puis glisse SUR TOUTE LA LONGUEUR du chemin jusqu'à sa vraie
+position — sur toute la durée de son trajet aussi : depuis l'horaire
+de la tuile PRÉCÉDENTE (ou 0 pour la toute première tuile de la
+partie) jusqu'à la ligne d'impact, pas juste ses derniers instants.
+Contrairement aux tuiles inclinées (purement visuelles), c'est un VRAI
+effet de jeu : il faut suivre le mouvement de la tuile pour bien viser,
+pas juste lire sa position finale à l'avance.
 
 Et pourtant, `core/engine.js` n'a reçu AUCUN changement : le moteur
 compare toujours la position de la balle à `tile.getCenterX(...)`, la
@@ -362,11 +363,11 @@ peut cumuler les deux). Contrairement à l'inclinaison, la position de
 la tuile (bord ou centre) n'a pas d'importance : glisser vers la gauche
 a toujours un sens.
 
-Réglages dans `gameConfig.js` (`tile.slidingFrequency`,
-`tile.slideDistancePx`) : `slidingFrequency` contrôle à quelle
-fréquence ça arrive parmi les tuiles plates (actuellement 0,15, soit
-environ 1 tuile sur 7), `slideDistancePx` contrôle de combien de
-pixels la tuile démarre décalée.
+Réglage dans `gameConfig.js` (`tile.slidingFrequency`) : contrôle à
+quelle fréquence ça arrive parmi les tuiles plates (actuellement 0,15,
+soit environ 1 tuile sur 7). Le point de départ (bord droit du chemin)
+n'a pas besoin de réglage séparé : c'est toujours la position la plus à
+droite possible, quelle que soit la largeur du canvas.
 
 ## Que se passe-t-il à chaque "saut" (hop) ?
 
