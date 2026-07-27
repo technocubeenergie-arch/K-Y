@@ -155,10 +155,15 @@
       // Tuiles glissantes (demandé par Ylonna) : DE TEMPS EN TEMPS, une
       // tuile RÉELLE part du bord DROIT du chemin ENTIER (comme si elle
       // était sur la position la plus à droite) et glisse SUR TOUTE LA
-      // LONGUEUR du chemin jusqu'à sa vraie position — un vrai effet de
-      // jeu (suivre son mouvement pour bien viser), sans aucun
-      // changement dans core/engine.js : au moment précis du saut, la
-      // tuile a toujours fini de glisser jusqu'à sa position réelle
+      // LONGUEUR du chemin jusqu'à sa vraie position, sans s'arrêter
+      // avant d'atteindre la ligne d'impact — un vrai effet de jeu
+      // (viser la tuile "peu importe où elle est dans son
+      // déplacement", en la suivant des yeux jusqu'au bout, plutôt que
+      // de la voir se figer, déjà posée, quelques instants avant),
+      // sans aucun changement dans core/engine.js : la balle continue
+      // d'atterrir exactement au moment du coup de musique, comme
+      // toute tuile — et au moment précis du saut, la tuile a de toute
+      // façon toujours fini de glisser jusqu'à sa position réelle
       // (voir render/renderer.js, `_effectiveFlatX`). Jamais sur une
       // tuile déjà inclinée (voir `tiltDirection`) : "il y a que les
       // tuiles plates" qui glissent. Jamais non plus sur une tuile qui
@@ -180,11 +185,6 @@
       // Augmentée de 2 à 4 secondes à la demande de Ylonna ("il faut
       // que ça bouge encore bien avant").
       slideDurationSeconds: 4,
-      // Combien de temps (secondes) AVANT la ligne d'impact le
-      // glissement doit être terminé — la tuile doit déjà être bien en
-      // place avant même d'atterrir dessus, pas encore en train de
-      // glisser pile au moment du saut (demande explicite de Ylonna).
-      slideLeadSeconds: 0.3,
     },
 
     // Défilement : vitesse constante (px/seconde) à laquelle le monde

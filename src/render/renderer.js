@@ -266,23 +266,27 @@
     // derniers instants, ce qui donnait exactement l'effet inverse de
     // celui demandé.
     //
-    // La tuile finit de glisser `config.tile.slideLeadSeconds` AVANT la
-    // ligne d'impact (`tile.expectedTime`), pas pile dessus : elle doit
-    // être déjà bien en place avant même d'atterrir dessus. `core/
-    // engine.js`, qui compare toujours à `tile.getCenterX`, jamais à
-    // cette fonction, juge de toute façon le contact au même endroit
-    // immobile, avec ou sans cette avance.
+    // La tuile continue de glisser JUSQU'À la ligne d'impact
+    // (`tile.expectedTime`) elle-même, sans s'arrêter avant : Ylonna a
+    // confirmé que la balle doit toujours atterrir pile au moment du
+    // coup de musique (comme toute tuile), mais qu'il faut viser la
+    // tuile "peu importe où elle est dans son déplacement" — donc la
+    // suivre des yeux jusqu'au bout, plutôt que la voir se figer
+    // quelques instants avant, déjà posée et facile à lire à l'avance.
+    // `core/engine.js`, qui compare toujours à `tile.getCenterX`,
+    // jamais à cette fonction, juge de toute façon le contact au même
+    // endroit — celui-là même où le glissement arrive exactement à
+    // `tile.expectedTime`.
     _effectiveFlatX(tile, t) {
       const { config } = this;
       const baseFlatX = tile.getCenterX(config.canvas.width, config.tile.width);
       if (!tile.slidesRightToLeft) return baseFlatX;
 
       const rightEdgeFlatX = config.canvas.width - config.tile.width / 2;
-      const arrivalTime = tile.expectedTime - config.tile.slideLeadSeconds;
-      const slideStart = arrivalTime - config.tile.slideDurationSeconds;
+      const slideStart = tile.expectedTime - config.tile.slideDurationSeconds;
 
       if (t <= slideStart) return rightEdgeFlatX;
-      if (t >= arrivalTime) return baseFlatX;
+      if (t >= tile.expectedTime) return baseFlatX;
 
       const phase = (t - slideStart) / config.tile.slideDurationSeconds;
       return TH.MathUtils.lerp(rightEdgeFlatX, baseFlatX, phase);
