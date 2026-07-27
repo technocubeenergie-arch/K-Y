@@ -168,6 +168,12 @@
         tile.tiltDirection = xFractions[index] < 0.5 ? 1 : -1;
       }
 
+      // Tuile glissante (voir docs/GAMEPLAY.md) : tirage indépendant des
+      // autres variantes (salt différent) — peu importe la position de
+      // la tuile, glisser vers la gauche a toujours un sens.
+      tile.slidesRightToLeft =
+        config.tile.slidingFrequency > 0 && pseudoRandom01(index, 852741) < config.tile.slidingFrequency;
+
       const showDecoys = config.tile.decoyCount > 0 && pseudoRandom01(index, 0) < config.tile.decoyFrequency;
 
       if (showDecoys) {
