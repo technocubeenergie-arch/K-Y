@@ -183,8 +183,14 @@
       // derniers instants). Une durée fixe et généreuse garantit que le
       // mouvement est toujours clairement visible bien avant l'arrivée.
       // Augmentée de 2 à 4 secondes à la demande de Ylonna ("il faut
-      // que ça bouge encore bien avant").
-      slideDurationSeconds: 4,
+      // que ça bouge encore bien avant"), puis redescendue à 1,3s (au
+      // moins 3 fois plus vite, même demande de vitesse) : le point de
+      // départ (bord droit du chemin) et d'arrivée (position réelle,
+      // pile à `tile.expectedTime`) restent fixes, donc une vitesse
+      // plus grande sur la même distance ne peut se faire qu'en
+      // réduisant cette durée — la tuile se met donc à bouger un peu
+      // moins tôt qu'avant, mais nettement plus vite.
+      slideDurationSeconds: 1.3,
     },
 
     // Défilement : vitesse constante (px/seconde) à laquelle le monde

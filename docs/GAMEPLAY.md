@@ -337,12 +337,20 @@ DE TEMPS EN TEMPS (demandé par Ylonna), une VRAIE tuile part du bord
 DROIT du chemin ENTIER (comme si elle était sur la position la plus à
 droite), puis glisse SUR TOUTE LA LONGUEUR du chemin jusqu'à sa vraie
 position, pendant une durée FIXE (`config.tile.slideDurationSeconds`,
-4 secondes par défaut), SANS s'arrêter avant d'atteindre la ligne
+1,3 seconde par défaut), SANS s'arrêter avant d'atteindre la ligne
 d'impact elle-même. Contrairement aux tuiles inclinées (purement
 visuelles), c'est un VRAI effet de jeu : il faut viser la tuile "peu
 importe où elle est dans son déplacement" (dixit Ylonna), en la
 suivant des yeux jusqu'au bout — pas juste lire sa position finale à
 l'avance, ni la voir se figer, déjà posée, quelques instants avant.
+
+Le point de départ (bord droit du chemin) et le point d'arrivée
+(position réelle, pile à l'instant du saut) sont tous les deux fixes —
+demande explicite de Ylonna sur chacun des deux. Une vitesse plus
+grande sur une distance et un horaire d'arrivée déjà fixés ne peut donc
+se faire qu'en réduisant la durée du trajet (demande explicite : "il
+faut qu'elle aille au moins 3 fois plus vite") : la tuile se met donc à
+bouger un peu moins tôt qu'avant, mais nettement plus vite.
 
 Cette durée est délibérément FIXE, pas liée à l'écart avec la tuile
 précédente (essayé au départ, puis retiré) : Ylonna a précisé "il ne
