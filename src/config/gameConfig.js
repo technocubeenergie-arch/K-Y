@@ -155,22 +155,29 @@
       // Tuiles glissantes (demandé par Ylonna) : DE TEMPS EN TEMPS, une
       // tuile RÉELLE part du bord DROIT du chemin ENTIER (comme si elle
       // était sur la position la plus à droite) et glisse SUR TOUTE LA
-      // LONGUEUR du chemin jusqu'à sa vraie position, sur toute la
-      // durée de son trajet (depuis l'horaire de la tuile précédente
-      // jusqu'à la ligne d'impact, voir entities/tile.js,
-      // `slideStartTime`) — un vrai effet de jeu (suivre son mouvement
-      // pour bien viser), sans aucun changement dans core/engine.js :
-      // au moment précis du saut, la tuile a toujours fini de glisser
-      // jusqu'à sa position réelle (voir render/renderer.js,
-      // `_effectiveFlatX`). Jamais sur une tuile déjà inclinée (voir
-      // `tiltDirection`) : "il y a que les tuiles plates" qui glissent.
-      // Jamais non plus sur une tuile qui reçoit des fausses tuiles
-      // (voir `tile.decoys`, level/levelSequencer.js) : ces tuiles-là ne
-      // doivent pas bouger. Peu importe sinon la position de la tuile
-      // (bord ou centre) : le tirage est indépendant des autres
-      // variantes. Fraction des tuiles concernées (0 = jamais, 1 = à
-      // chaque tuile plate, sans fausses tuiles).
+      // LONGUEUR du chemin jusqu'à sa vraie position — un vrai effet de
+      // jeu (suivre son mouvement pour bien viser), sans aucun
+      // changement dans core/engine.js : au moment précis du saut, la
+      // tuile a toujours fini de glisser jusqu'à sa position réelle
+      // (voir render/renderer.js, `_effectiveFlatX`). Jamais sur une
+      // tuile déjà inclinée (voir `tiltDirection`) : "il y a que les
+      // tuiles plates" qui glissent. Jamais non plus sur une tuile qui
+      // reçoit des fausses tuiles (voir `tile.decoys`,
+      // level/levelSequencer.js) : ces tuiles-là ne doivent pas bouger.
+      // Peu importe sinon la position de la tuile (bord ou centre) : le
+      // tirage est indépendant des autres variantes. Fraction des
+      // tuiles concernées (0 = jamais, 1 = à chaque tuile plate, sans
+      // fausses tuiles).
       slidingFrequency: 0.15,
+      // Durée du glissement, en secondes — FIXE, volontairement PAS
+      // liée à l'écart avec la tuile précédente (essayé, puis retiré à
+      // la demande de Ylonna : "il ne faut pas que ça attende que
+      // j'arrive, il faut que ça bouge AVANT que j'arrive" — avec des
+      // tuiles souvent rapprochées de moins d'une seconde, lier la
+      // durée à cet écart compressait le glissement dans les tout
+      // derniers instants). Une durée fixe et généreuse garantit que le
+      // mouvement est toujours clairement visible bien avant l'arrivée.
+      slideDurationSeconds: 2,
       // Combien de temps (secondes) AVANT la ligne d'impact le
       // glissement doit être terminé — la tuile doit déjà être bien en
       // place avant même d'atterrir dessus, pas encore en train de

@@ -43,22 +43,17 @@
       // DE TEMPS EN TEMPS (voir level/levelSequencer.js,
       // config.tile.slidingFrequency), une tuile apparaît décalée vers
       // la droite et glisse vers sa vraie position sur TOUTE la
-      // longueur de son trajet, jusqu'à la ligne d'impact (voir
-      // render/renderer.js, `_effectiveFlatX`, et `slideStartTime`
-      // ci-dessous). Un VRAI effet de jeu (il faut suivre son
-      // mouvement pour bien viser), mais qui ne change RIEN dans
+      // longueur du chemin, pendant une durée FIXE bien avant la ligne
+      // d'impact (voir render/renderer.js, `_effectiveFlatX`,
+      // `config.tile.slideDurationSeconds`) — pas juste les derniers
+      // instants avant d'arriver. Un VRAI effet de jeu (il faut suivre
+      // son mouvement pour bien viser), mais qui ne change RIEN dans
       // `core/engine.js` : au moment précis du saut, la tuile a
       // toujours fini de glisser jusqu'à `xFraction`, sa position
       // réelle et inchangée — la seule utilisée pour juger le contact.
       // Jamais combiné avec `tiltDirection` (jamais une tuile à la
       // fois inclinée et glissante).
       this.slidesRightToLeft = false;
-      // Horaire (secondes) auquel le glissement commence — posé par
-      // level/levelSequencer.js UNIQUEMENT si `slidesRightToLeft` est
-      // vrai : c'est l'horaire de la tuile PRÉCÉDENTE (ou 0 pour la
-      // toute première), pour que le glissement dure sur tout le
-      // trajet de cette tuile, pas juste ses derniers instants.
-      this.slideStartTime = 0;
     }
 
     getCenterX(canvasWidth, tileWidth) {
