@@ -333,23 +333,32 @@ l'inclinaison, en radians.
 
 ## Les tuiles glissantes : un VRAI effet de jeu, sans toucher au moteur
 
-DE TEMPS EN TEMPS (demandé par Ylonna), une VRAIE tuile part du bord
-DROIT du chemin (jamais au-delà : voir plus bas), puis glisse jusqu'à
-sa vraie position, pendant une durée FIXE
+DE TEMPS EN TEMPS (demandé par Ylonna), une VRAIE tuile fait plusieurs
+ALLERS-RETOURS entre le bord DROIT du chemin (jamais au-delà : voir
+plus bas) et sa vraie position, pendant une durée TOTALE FIXE
 (`config.tile.slideDurationSeconds`, 10 secondes par défaut), SANS
-s'arrêter avant d'atteindre la ligne d'impact elle-même. Contrairement
-aux tuiles inclinées (purement visuelles), c'est un VRAI effet de jeu :
-il faut viser la tuile "peu importe où elle est dans son déplacement"
+s'arrêter avant d'atteindre la ligne d'impact elle-même — le dernier
+aller-retour se termine pile sur la position réelle. Contrairement aux
+tuiles inclinées (purement visuelles), c'est un VRAI effet de jeu : il
+faut viser la tuile "peu importe où elle est dans son déplacement"
 (dixit Ylonna), en la suivant des yeux jusqu'au bout — pas juste lire
 sa position finale à l'avance, ni la voir se figer, déjà posée,
 quelques instants avant.
 
-Le trajet reste borné au bord droit du chemin (jamais au-delà — Ylonna
-a signalé qu'un essai précédent en sortait) et le point d'ARRIVÉE (la
-position réelle, pile à l'instant `tile.expectedTime`) est fixe : sur
-cette distance et cet horaire déjà fixés, allonger la durée du
-glissement (remontée de 1,3s à 10s à la demande de Ylonna) ralentit le
-mouvement en échange de davantage de temps d'anticipation.
+Ylonna a demandé DEUX choses en même temps : "5 fois plus vite" ET "10
+secondes en avance". Le trajet reste borné au bord droit du chemin
+(jamais au-delà — signalé par Ylonna après un essai qui en sortait) et
+le point d'ARRIVÉE (la position réelle, pile à `tile.expectedTime`) est
+fixe : sur cette distance et cet horaire déjà fixés, un seul aller
+simple ne peut satisfaire qu'une seule des deux demandes à la fois
+(vitesse et durée deviennent alors la même variable, inversement
+liées). La solution : plusieurs allers-retours bout à bout sur la même
+durée totale (`config.tile.slideBounceCount`, 5 par défaut — TOUJOURS
+impair, pour que le dernier trajet finisse sur la position réelle et
+pas sur le bord droit). 5 allers-retours en 10 secondes, c'est 5 fois
+plus de chemin parcouru qu'un seul aller en 10 secondes, donc 5 fois
+plus vite en moyenne, tout en restant visible en mouvement pendant ces
+10 secondes entières, sans jamais sortir du chemin.
 
 Et pourtant, `core/engine.js` n'a reçu AUCUN changement : la balle
 continue d'atterrir exactement au moment du coup de musique, comme
@@ -376,14 +385,14 @@ tuile (bord ou centre) n'a pas d'importance : glisser vers la gauche a
 toujours un sens.
 
 Réglages dans `gameConfig.js` (`tile.slidingFrequency`,
-`tile.slideDurationSeconds`) : `slidingFrequency` contrôle à quelle
-fréquence ça arrive parmi les tuiles plates (actuellement 0,15, soit
-environ 1 tuile sur 7), `slideDurationSeconds` contrôle combien de
-temps dure le glissement (donc la vitesse, puisque la distance —
-toujours limitée au bord droit du chemin — ne change pas). Le point de
-départ n'a pas besoin de réglage séparé : c'est toujours la position la
-plus à droite possible DANS le chemin, quelle que soit la largeur du
-canvas.
+`tile.slideDurationSeconds`, `tile.slideBounceCount`) :
+`slidingFrequency` contrôle à quelle fréquence ça arrive parmi les
+tuiles plates (actuellement 0,15, soit environ 1 tuile sur 7),
+`slideDurationSeconds` contrôle la durée TOTALE de l'agitation (10s),
+`slideBounceCount` contrôle le nombre d'allers-retours dans cette durée
+(5, doit rester impair). Le point de départ n'a pas besoin de réglage
+séparé : c'est toujours la position la plus à droite possible DANS le
+chemin, quelle que soit la largeur du canvas.
 
 ## Que se passe-t-il à chaque "saut" (hop) ?
 

@@ -174,19 +174,28 @@
       // tuiles concernées (0 = jamais, 1 = à chaque tuile plate, sans
       // fausses tuiles).
       slidingFrequency: 0.15,
-      // Durée du glissement, en secondes — FIXE, volontairement PAS
-      // liée à l'écart avec la tuile précédente (essayé, puis retiré à
-      // la demande de Ylonna : "il ne faut pas que ça attende que
-      // j'arrive, il faut que ça bouge AVANT que j'arrive" — avec des
-      // tuiles souvent rapprochées de moins d'une seconde, lier la
+      // Durée TOTALE du glissement, en secondes — FIXE, volontairement
+      // PAS liée à l'écart avec la tuile précédente (essayé, puis
+      // retiré à la demande de Ylonna : "il ne faut pas que ça attende
+      // que j'arrive, il faut que ça bouge AVANT que j'arrive" — avec
+      // des tuiles souvent rapprochées de moins d'une seconde, lier la
       // durée à cet écart compressait le glissement dans les tout
-      // derniers instants). Remontée à 10 secondes à la demande de
-      // Ylonna (contre 4s dans un essai précédent) : le trajet reste
-      // borné au bord droit du chemin (jamais au-delà, voir
-      // render/renderer.js, `_effectiveFlatX`), donc allonger la durée
-      // sur cette même distance fixe ralentit le glissement en échange
-      // de plus de temps d'anticipation.
+      // derniers instants). Ylonna a précisé vouloir 10 secondes
+      // d'anticipation.
       slideDurationSeconds: 10,
+      // Nombre d'allers-retours (bord droit <-> position réelle)
+      // pendant `slideDurationSeconds` — DOIT être IMPAIR, pour que le
+      // dernier trajet se termine sur la position réelle (pas sur le
+      // bord droit). Ylonna a demandé "5 fois plus vite" EN PLUS des 10
+      // secondes d'anticipation : comme le trajet reste borné au chemin
+      // (jamais au-delà du bord droit, voir render/renderer.js,
+      // `_effectiveFlatX`) et que le point d'arrivée est fixe, un seul
+      // aller simple ne peut satisfaire QUE l'une des deux demandes
+      // (vitesse et durée sont alors la même variable). Plusieurs
+      // allers-retours bout à bout, sur la même durée totale,
+      // multiplient la distance parcourue (donc la vitesse moyenne)
+      // sans toucher à la durée ni sortir du chemin.
+      slideBounceCount: 5,
     },
 
     // Défilement : vitesse constante (px/seconde) à laquelle le monde
