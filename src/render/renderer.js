@@ -252,29 +252,32 @@
     // Position latérale "à plat" (avant perspective) d'une tuile, à
     // l'instant `t` : normalement fixe (`tile.getCenterX`), sauf pour
     // une tuile glissante (voir entities/tile.js, `slidesRightToLeft`),
-    // qui part du bord DROIT du chemin (jamais au-delà : Ylonna a
-    // signalé qu'elle sortait du chemin quand le point de départ était
-    // poussé plus loin pour aller plus vite — corrigé ici) et glisse
-    // jusqu'à sa position réelle.
+    // qui reste TOUJOURS dans le chemin, entre le bord droit et sa
+    // position réelle (jamais au-delà : Ylonna a signalé qu'elle
+    // sortait du chemin quand un essai précédent poussait le point de
+    // départ plus loin pour aller plus vite).
     //
-    // Trois exigences de Ylonna, mutuellement en tension dès lors que
-    // le trajet doit rester DANS le chemin (distance limitée au bord
-    // droit) ET que le point d'ARRIVÉE est fixe (la position réelle,
-    // pile à `tile.expectedTime`) :
-    //   - "il faut qu'elle reste dans le chemin" → distance de trajet
-    //     plafonnée au bord droit du chemin, pas au-delà.
-    //   - "il faut qu'elle aille au moins 3 fois plus vite" → sur une
-    //     distance plafonnée, aller plus vite veut dire une durée plus
-    //     courte.
-    //   - "il faut qu'elle commence à bouger avant que j'arrive" →
-    //     satisfait par une durée qui reste malgré tout largement
-    //     positive (voir `slideDurationSeconds`), même réduite par
-    //     rapport à l'essai précédent (qui, lui, avait besoin d'une
-    //     distance hors chemin pour concilier vitesse ET longue avance).
+    // Ylonna a ensuite demandé DEUX choses en même temps : "5 fois plus
+    // vite" ET "10 secondes en avance". Avec un trajet borné au chemin
+    // et un point d'arrivée fixe (pile à `tile.expectedTime`), un seul
+    // aller simple ne peut satisfaire que l'une des deux (vitesse et
+    // durée sont alors la même variable, inversement liées). La tuile
+    // fait donc plusieurs ALLERS-RETOURS entre le bord droit et sa
+    // position réelle pendant les `slideDurationSeconds` (10s) qui
+    // précèdent l'arrivée — `slideBounceCount` (5, IMPAIR pour finir
+    // sur la position réelle et pas sur le bord droit) trajets bout à
+    // bout, chacun sur toute la distance du chemin. Ça multiplie la
+    // distance totale parcourue (donc la vitesse moyenne) par
+    // `slideBounceCount`, SANS toucher à la durée totale ni sortir du
+    // chemin : 5 allers-retours en 10 secondes, c'est 5 fois plus de
+    // chemin parcouru qu'un seul aller en 10 secondes, donc 5 fois plus
+    // vite, tout en restant visible en mouvement pendant ces 10
+    // secondes entières.
+    //
     // `core/engine.js`, qui compare toujours à `tile.getCenterX`,
     // jamais à cette fonction, juge de toute façon le contact au même
-    // endroit — celui-là même où le glissement arrive exactement à
-    // `tile.expectedTime`.
+    // endroit — celui-là même où le dernier aller-retour se termine
+    // exactement à `tile.expectedTime`.
     _effectiveFlatX(tile, t) {
       const { config } = this;
       const baseFlatX = tile.getCenterX(config.canvas.width, config.tile.width);
@@ -286,8 +289,17 @@
       if (t <= slideStart) return rightEdgeFlatX;
       if (t >= tile.expectedTime) return baseFlatX;
 
-      const phase = (t - slideStart) / config.tile.slideDurationSeconds;
-      return TH.MathUtils.lerp(rightEdgeFlatX, baseFlatX, phase);
+      const legCount = config.tile.slideBounceCount;
+      const legDuration = config.tile.slideDurationSeconds / legCount;
+      const elapsed = t - slideStart;
+      const legIndex = Math.min(legCount - 1, Math.floor(elapsed / legDuration));
+      const legPhase = (elapsed - legIndex * legDuration) / legDuration;
+
+      // Trajets pairs (0, 2, 4...) : bord droit -> position réelle.
+      // Trajets impairs (1, 3, 5...) : position réelle -> bord droit.
+      const legStart = legIndex % 2 === 0 ? rightEdgeFlatX : baseFlatX;
+      const legEnd = legIndex % 2 === 0 ? baseFlatX : rightEdgeFlatX;
+      return TH.MathUtils.lerp(legStart, legEnd, legPhase);
     }
 
     // Dessine UNE tuile (vraie ou fausse) et renvoie sa position/échelle
