@@ -168,11 +168,24 @@
         tile.tiltDirection = xFractions[index] < 0.5 ? 1 : -1;
       }
 
-      // Tuile glissante (voir docs/GAMEPLAY.md) : tirage indépendant des
-      // autres variantes (salt différent) — peu importe la position de
-      // la tuile, glisser vers la gauche a toujours un sens.
+      // Tuile glissante (voir docs/GAMEPLAY.md) : jamais sur une tuile
+      // déjà inclinée (demande explicite de Ylonna : "il y a que les
+      // tuiles plates" qui doivent glisser) — sinon même tirage
+      // indépendant des fausses tuiles (salt différent). Peu importe la
+      // position de la tuile, glisser vers la gauche a toujours un sens.
       tile.slidesRightToLeft =
-        config.tile.slidingFrequency > 0 && pseudoRandom01(index, 852741) < config.tile.slidingFrequency;
+        !tile.tiltDirection &&
+        config.tile.slidingFrequency > 0 &&
+        pseudoRandom01(index, 852741) < config.tile.slidingFrequency;
+
+      // Le glissement dure sur TOUTE la longueur du trajet de la tuile
+      // (demande explicite de Ylonna), pas juste les derniers instants
+      // avant la ligne d'impact : il part de l'horaire de la tuile
+      // PRÉCÉDENTE (ou de 0 pour la toute première tuile de la partie),
+      // là où le trajet de cette tuile-ci commence vraiment.
+      if (tile.slidesRightToLeft) {
+        tile.slideStartTime = index > 0 ? compressedBeatTimes[index - 1] : 0;
+      }
 
       const showDecoys = config.tile.decoyCount > 0 && pseudoRandom01(index, 0) < config.tile.decoyFrequency;
 

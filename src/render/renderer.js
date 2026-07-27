@@ -252,8 +252,10 @@
     // Position latérale "à plat" (avant perspective) d'une tuile, à
     // l'instant `t` : normalement fixe (`tile.getCenterX`), sauf pour
     // une tuile glissante (voir entities/tile.js, `slidesRightToLeft`),
-    // où elle part décalée vers la droite puis glisse jusqu'à sa
-    // position réelle pile au moment où elle atteint la ligne d'impact
+    // où elle part décalée vers la droite dès `tile.slideStartTime`
+    // (l'horaire de la tuile précédente, voir level/levelSequencer.js)
+    // et glisse SUR TOUTE LA LONGUEUR de son trajet jusqu'à sa position
+    // réelle, pile au moment où elle atteint la ligne d'impact
     // (`tile.expectedTime`) — ce qui garantit que `core/engine.js`
     // (qui compare toujours à `tile.getCenterX`, jamais à cette
     // fonction) juge le contact exactement là où la tuile se trouve
@@ -264,11 +266,11 @@
       const baseFlatX = tile.getCenterX(config.canvas.width, config.tile.width);
       if (!tile.slidesRightToLeft) return baseFlatX;
 
-      const slideStart = tile.expectedTime - config.tile.slideDurationSeconds;
-      if (t <= slideStart) return baseFlatX + config.tile.slideDistancePx;
+      if (t <= tile.slideStartTime) return baseFlatX + config.tile.slideDistancePx;
       if (t >= tile.expectedTime) return baseFlatX;
 
-      const phase = (t - slideStart) / config.tile.slideDurationSeconds;
+      const duration = tile.expectedTime - tile.slideStartTime;
+      const phase = duration > 0 ? (t - tile.slideStartTime) / duration : 1;
       return TH.MathUtils.lerp(baseFlatX + config.tile.slideDistancePx, baseFlatX, phase);
     }
 
