@@ -251,29 +251,26 @@
 
     // Position latérale "à plat" (avant perspective) d'une tuile, à
     // l'instant `t` : normalement fixe (`tile.getCenterX`), sauf pour
-    // une tuile glissante (voir entities/tile.js, `slidesRightToLeft`).
+    // une tuile glissante (voir entities/tile.js, `slidesRightToLeft`),
+    // qui part du bord DROIT du chemin (jamais au-delà : Ylonna a
+    // signalé qu'elle sortait du chemin quand le point de départ était
+    // poussé plus loin pour aller plus vite — corrigé ici) et glisse
+    // jusqu'à sa position réelle.
     //
-    // Deux exigences de Ylonna, en tension l'une avec l'autre parce que
-    // le point d'ARRIVÉE est fixe (la position réelle, pile à l'instant
-    // `tile.expectedTime` — voir plus bas) :
-    //   - "il faut qu'elle commence à bouger AVANT que j'arrive" → il
-    //     faut une durée de glissement généreuse (`slideDurationSeconds`).
-    //   - "il faut qu'elle aille au moins 3 fois plus vite" → à durée
-    //     égale, la seule façon d'aller plus vite est de parcourir une
-    //     plus grande distance.
-    // Réduire la durée (essayé, puis rejeté) aurait résolu la vitesse
-    // en sacrifiant l'anticipation. La solution qui satisfait les DEUX
-    // à la fois : garder une durée généreuse, mais partir bien plus
-    // loin que le simple bord droit du chemin — `slideSpeedMultiplier`
-    // fois plus loin que la distance jusqu'à la position réelle, ce qui
-    // multiplie la vitesse d'autant, à durée inchangée.
-    //
-    // La tuile continue de glisser JUSQU'À la ligne d'impact
-    // (`tile.expectedTime`) elle-même, sans s'arrêter avant : la balle
-    // doit toujours atterrir pile au moment du coup de musique (comme
-    // toute tuile), mais il faut viser la tuile "peu importe où elle
-    // est dans son déplacement" — donc la suivre des yeux jusqu'au
-    // bout, plutôt que la voir se figer, déjà posée, avant d'arriver.
+    // Trois exigences de Ylonna, mutuellement en tension dès lors que
+    // le trajet doit rester DANS le chemin (distance limitée au bord
+    // droit) ET que le point d'ARRIVÉE est fixe (la position réelle,
+    // pile à `tile.expectedTime`) :
+    //   - "il faut qu'elle reste dans le chemin" → distance de trajet
+    //     plafonnée au bord droit du chemin, pas au-delà.
+    //   - "il faut qu'elle aille au moins 3 fois plus vite" → sur une
+    //     distance plafonnée, aller plus vite veut dire une durée plus
+    //     courte.
+    //   - "il faut qu'elle commence à bouger avant que j'arrive" →
+    //     satisfait par une durée qui reste malgré tout largement
+    //     positive (voir `slideDurationSeconds`), même réduite par
+    //     rapport à l'essai précédent (qui, lui, avait besoin d'une
+    //     distance hors chemin pour concilier vitesse ET longue avance).
     // `core/engine.js`, qui compare toujours à `tile.getCenterX`,
     // jamais à cette fonction, juge de toute façon le contact au même
     // endroit — celui-là même où le glissement arrive exactement à
@@ -284,14 +281,13 @@
       if (!tile.slidesRightToLeft) return baseFlatX;
 
       const rightEdgeFlatX = config.canvas.width - config.tile.width / 2;
-      const startFlatX = baseFlatX + (rightEdgeFlatX - baseFlatX) * config.tile.slideSpeedMultiplier;
       const slideStart = tile.expectedTime - config.tile.slideDurationSeconds;
 
-      if (t <= slideStart) return startFlatX;
+      if (t <= slideStart) return rightEdgeFlatX;
       if (t >= tile.expectedTime) return baseFlatX;
 
       const phase = (t - slideStart) / config.tile.slideDurationSeconds;
-      return TH.MathUtils.lerp(startFlatX, baseFlatX, phase);
+      return TH.MathUtils.lerp(rightEdgeFlatX, baseFlatX, phase);
     }
 
     // Dessine UNE tuile (vraie ou fausse) et renvoie sa position/échelle

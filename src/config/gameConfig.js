@@ -180,21 +180,15 @@
       // j'arrive, il faut que ça bouge AVANT que j'arrive" — avec des
       // tuiles souvent rapprochées de moins d'une seconde, lier la
       // durée à cet écart compressait le glissement dans les tout
-      // derniers instants). Une durée fixe et généreuse garantit que le
-      // mouvement est toujours clairement visible bien avant l'arrivée.
-      // Remontée à 4 secondes (après un essai à 1,3s pour aller plus
-      // vite, qui démarrait le glissement trop tard au goût de
-      // Ylonna) : la vitesse se règle maintenant SÉPARÉMENT, avec
-      // `slideSpeedMultiplier` ci-dessous, sans sacrifier cette durée.
-      slideDurationSeconds: 4,
-      // Multiplicateur de vitesse (demande de Ylonna : "au moins 3 fois
-      // plus vite") : comme le point d'arrivée (position réelle, pile à
-      // `tile.expectedTime`) est fixe, la tuile part maintenant
-      // `slideSpeedMultiplier` fois plus loin que le simple bord droit
-      // du chemin — parcourir une plus grande distance dans la même
-      // durée, c'est aller plus vite, sans réduire le temps
-      // d'anticipation (voir render/renderer.js, `_effectiveFlatX`).
-      slideSpeedMultiplier: 3,
+      // derniers instants). Ylonna a aussi demandé "au moins 3 fois plus
+      // vite" ET que la tuile "reste dans le chemin" (jamais au-delà du
+      // bord droit) : comme le trajet (bord droit → position réelle) et
+      // l'instant d'arrivée sont fixes, aller 3x plus vite sur cette
+      // même distance ne peut se faire qu'en réduisant cette durée —
+      // essayé un temps avec une distance de départ plus grande à la
+      // place (hors du chemin), mais Ylonna a signalé que ça faisait
+      // sortir la tuile du chemin, ce qui n'était pas voulu.
+      slideDurationSeconds: 1.3,
     },
 
     // Défilement : vitesse constante (px/seconde) à laquelle le monde

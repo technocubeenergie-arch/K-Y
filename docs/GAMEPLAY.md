@@ -333,33 +333,31 @@ l'inclinaison, en radians.
 
 ## Les tuiles glissantes : un VRAI effet de jeu, sans toucher au moteur
 
-DE TEMPS EN TEMPS (demandé par Ylonna), une VRAIE tuile part de bien
-plus loin que le bord droit du chemin, puis glisse jusqu'à sa vraie
-position, pendant une durée FIXE (`config.tile.slideDurationSeconds`,
-4 secondes par défaut), SANS s'arrêter avant d'atteindre la ligne
-d'impact elle-même. Contrairement aux tuiles inclinées (purement
-visuelles), c'est un VRAI effet de jeu : il faut viser la tuile "peu
-importe où elle est dans son déplacement" (dixit Ylonna), en la
-suivant des yeux jusqu'au bout — pas juste lire sa position finale à
-l'avance, ni la voir se figer, déjà posée, quelques instants avant.
+DE TEMPS EN TEMPS (demandé par Ylonna), une VRAIE tuile part du bord
+DROIT du chemin (jamais au-delà : voir plus bas), puis glisse jusqu'à
+sa vraie position, pendant une durée FIXE
+(`config.tile.slideDurationSeconds`, 1,3 seconde par défaut), SANS
+s'arrêter avant d'atteindre la ligne d'impact elle-même. Contrairement
+aux tuiles inclinées (purement visuelles), c'est un VRAI effet de jeu :
+il faut viser la tuile "peu importe où elle est dans son déplacement"
+(dixit Ylonna), en la suivant des yeux jusqu'au bout — pas juste lire
+sa position finale à l'avance, ni la voir se figer, déjà posée,
+quelques instants avant.
 
-Deux exigences de Ylonna, en tension l'une avec l'autre parce que le
-point d'ARRIVÉE (la position réelle, pile à l'instant `tile.expectedTime`)
+Trois exigences de Ylonna, mutuellement en tension dès lors que le
+trajet doit rester DANS le chemin (jamais au-delà du bord droit —
+Ylonna a signalé qu'un essai précédent en sortait) et que le point
+d'ARRIVÉE (la position réelle, pile à l'instant `tile.expectedTime`)
 est fixe :
-- "il faut qu'elle commence à bouger AVANT que j'arrive" → il faut une
-  durée de glissement généreuse.
-- "il faut qu'elle aille au moins 3 fois plus vite" → à durée égale, la
-  seule façon d'aller plus vite est de parcourir une plus grande
-  distance.
-
-Réduire la durée (essayé, puis rejeté : la tuile se mettait à bouger
-trop tard au goût de Ylonna) aurait résolu la vitesse en sacrifiant
-l'anticipation. La solution retenue satisfait les deux à la fois :
-`slideDurationSeconds` reste généreuse (4s), mais le point de DÉPART
-n'est plus le simple bord droit du chemin — il est
-`config.tile.slideSpeedMultiplier` (3 par défaut) fois plus loin que la
-distance entre ce bord et la position réelle de la tuile, ce qui
-multiplie la vitesse d'autant, à durée inchangée.
+- "il faut qu'elle reste dans le chemin" → distance de trajet
+  plafonnée au bord droit, jamais au-delà.
+- "il faut qu'elle aille au moins 3 fois plus vite" → sur une distance
+  plafonnée, aller plus vite veut dire une durée plus courte.
+- "il faut qu'elle commence à bouger AVANT que j'arrive" → une durée
+  qui reste malgré tout largement positive (1,3 seconde), même réduite
+  par rapport à un essai précédent (4 secondes, qui avait alors besoin
+  d'un départ hors du chemin pour concilier vitesse ET longue avance —
+  ce qui n'est plus permis).
 
 Et pourtant, `core/engine.js` n'a reçu AUCUN changement : la balle
 continue d'atterrir exactement au moment du coup de musique, comme
@@ -386,13 +384,14 @@ tuile (bord ou centre) n'a pas d'importance : glisser vers la gauche a
 toujours un sens.
 
 Réglages dans `gameConfig.js` (`tile.slidingFrequency`,
-`tile.slideDurationSeconds`, `tile.slideSpeedMultiplier`) :
-`slidingFrequency` contrôle à quelle fréquence ça arrive parmi les
-tuiles plates (actuellement 0,15, soit environ 1 tuile sur 7),
-`slideDurationSeconds` contrôle combien de temps dure le glissement,
-`slideSpeedMultiplier` contrôle à quel point le point de départ est
-éloigné (donc la vitesse) par rapport à la distance "normale" jusqu'au
-bord droit du chemin.
+`tile.slideDurationSeconds`) : `slidingFrequency` contrôle à quelle
+fréquence ça arrive parmi les tuiles plates (actuellement 0,15, soit
+environ 1 tuile sur 7), `slideDurationSeconds` contrôle combien de
+temps dure le glissement (donc la vitesse, puisque la distance —
+toujours limitée au bord droit du chemin — ne change pas). Le point de
+départ n'a pas besoin de réglage séparé : c'est toujours la position la
+plus à droite possible DANS le chemin, quelle que soit la largeur du
+canvas.
 
 ## Que se passe-t-il à chaque "saut" (hop) ?
 
