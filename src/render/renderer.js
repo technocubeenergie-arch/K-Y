@@ -252,26 +252,28 @@
     // Position latérale "à plat" (avant perspective) d'une tuile, à
     // l'instant `t` : normalement fixe (`tile.getCenterX`), sauf pour
     // une tuile glissante (voir entities/tile.js, `slidesRightToLeft`),
-    // où elle part décalée vers la droite dès `tile.slideStartTime`
-    // (l'horaire de la tuile précédente, voir level/levelSequencer.js)
-    // et glisse SUR TOUTE LA LONGUEUR de son trajet jusqu'à sa position
-    // réelle, pile au moment où elle atteint la ligne d'impact
-    // (`tile.expectedTime`) — ce qui garantit que `core/engine.js`
-    // (qui compare toujours à `tile.getCenterX`, jamais à cette
-    // fonction) juge le contact exactement là où la tuile se trouve
-    // VRAIMENT au moment du saut, sans avoir besoin d'en savoir quoi
-    // que ce soit.
+    // qui part du bord DROIT du chemin entier (comme une tuile qui
+    // serait sur la position la plus à droite, `xFraction = 1`) et
+    // glisse SUR TOUTE LA LONGUEUR du chemin, dès `tile.slideStartTime`
+    // (l'horaire de la tuile précédente, voir level/levelSequencer.js),
+    // jusqu'à sa position réelle, pile au moment où elle atteint la
+    // ligne d'impact (`tile.expectedTime`) — ce qui garantit que
+    // `core/engine.js` (qui compare toujours à `tile.getCenterX`,
+    // jamais à cette fonction) juge le contact exactement là où la
+    // tuile se trouve VRAIMENT au moment du saut, sans avoir besoin
+    // d'en savoir quoi que ce soit.
     _effectiveFlatX(tile, t) {
       const { config } = this;
       const baseFlatX = tile.getCenterX(config.canvas.width, config.tile.width);
       if (!tile.slidesRightToLeft) return baseFlatX;
 
-      if (t <= tile.slideStartTime) return baseFlatX + config.tile.slideDistancePx;
+      const rightEdgeFlatX = config.canvas.width - config.tile.width / 2;
+      if (t <= tile.slideStartTime) return rightEdgeFlatX;
       if (t >= tile.expectedTime) return baseFlatX;
 
       const duration = tile.expectedTime - tile.slideStartTime;
       const phase = duration > 0 ? (t - tile.slideStartTime) / duration : 1;
-      return TH.MathUtils.lerp(baseFlatX + config.tile.slideDistancePx, baseFlatX, phase);
+      return TH.MathUtils.lerp(rightEdgeFlatX, baseFlatX, phase);
     }
 
     // Dessine UNE tuile (vraie ou fausse) et renvoie sa position/échelle
