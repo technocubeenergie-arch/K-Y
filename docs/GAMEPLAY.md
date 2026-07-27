@@ -333,32 +333,33 @@ l'inclinaison, en radians.
 
 ## Les tuiles glissantes : un VRAI effet de jeu, sans toucher au moteur
 
-DE TEMPS EN TEMPS (demandé par Ylonna), une VRAIE tuile part du bord
-DROIT du chemin ENTIER (comme si elle était sur la position la plus à
-droite), puis glisse SUR TOUTE LA LONGUEUR du chemin jusqu'à sa vraie
+DE TEMPS EN TEMPS (demandé par Ylonna), une VRAIE tuile part de bien
+plus loin que le bord droit du chemin, puis glisse jusqu'à sa vraie
 position, pendant une durée FIXE (`config.tile.slideDurationSeconds`,
-1,3 seconde par défaut), SANS s'arrêter avant d'atteindre la ligne
+4 secondes par défaut), SANS s'arrêter avant d'atteindre la ligne
 d'impact elle-même. Contrairement aux tuiles inclinées (purement
 visuelles), c'est un VRAI effet de jeu : il faut viser la tuile "peu
 importe où elle est dans son déplacement" (dixit Ylonna), en la
 suivant des yeux jusqu'au bout — pas juste lire sa position finale à
 l'avance, ni la voir se figer, déjà posée, quelques instants avant.
 
-Le point de départ (bord droit du chemin) et le point d'arrivée
-(position réelle, pile à l'instant du saut) sont tous les deux fixes —
-demande explicite de Ylonna sur chacun des deux. Une vitesse plus
-grande sur une distance et un horaire d'arrivée déjà fixés ne peut donc
-se faire qu'en réduisant la durée du trajet (demande explicite : "il
-faut qu'elle aille au moins 3 fois plus vite") : la tuile se met donc à
-bouger un peu moins tôt qu'avant, mais nettement plus vite.
+Deux exigences de Ylonna, en tension l'une avec l'autre parce que le
+point d'ARRIVÉE (la position réelle, pile à l'instant `tile.expectedTime`)
+est fixe :
+- "il faut qu'elle commence à bouger AVANT que j'arrive" → il faut une
+  durée de glissement généreuse.
+- "il faut qu'elle aille au moins 3 fois plus vite" → à durée égale, la
+  seule façon d'aller plus vite est de parcourir une plus grande
+  distance.
 
-Cette durée est délibérément FIXE, pas liée à l'écart avec la tuile
-précédente (essayé au départ, puis retiré) : Ylonna a précisé "il ne
-faut pas que ça attende que j'arrive, il faut que ça bouge AVANT que
-j'arrive" — avec des tuiles souvent rapprochées de moins d'une
-seconde, lier la durée à cet écart compressait tout le glissement dans
-les tout derniers instants, donnant l'impression que la tuile restait
-immobile puis "sautait" d'un coup juste avant d'être atteinte.
+Réduire la durée (essayé, puis rejeté : la tuile se mettait à bouger
+trop tard au goût de Ylonna) aurait résolu la vitesse en sacrifiant
+l'anticipation. La solution retenue satisfait les deux à la fois :
+`slideDurationSeconds` reste généreuse (4s), mais le point de DÉPART
+n'est plus le simple bord droit du chemin — il est
+`config.tile.slideSpeedMultiplier` (3 par défaut) fois plus loin que la
+distance entre ce bord et la position réelle de la tuile, ce qui
+multiplie la vitesse d'autant, à durée inchangée.
 
 Et pourtant, `core/engine.js` n'a reçu AUCUN changement : la balle
 continue d'atterrir exactement au moment du coup de musique, comme
@@ -385,12 +386,13 @@ tuile (bord ou centre) n'a pas d'importance : glisser vers la gauche a
 toujours un sens.
 
 Réglages dans `gameConfig.js` (`tile.slidingFrequency`,
-`tile.slideDurationSeconds`) : `slidingFrequency` contrôle à quelle
-fréquence ça arrive parmi les tuiles plates (actuellement 0,15, soit
-environ 1 tuile sur 7), `slideDurationSeconds` contrôle combien de
-temps dure le glissement. Le point de départ (bord droit du chemin)
-n'a pas besoin de réglage séparé : c'est toujours la position la plus à
-droite possible, quelle que soit la largeur du canvas.
+`tile.slideDurationSeconds`, `tile.slideSpeedMultiplier`) :
+`slidingFrequency` contrôle à quelle fréquence ça arrive parmi les
+tuiles plates (actuellement 0,15, soit environ 1 tuile sur 7),
+`slideDurationSeconds` contrôle combien de temps dure le glissement,
+`slideSpeedMultiplier` contrôle à quel point le point de départ est
+éloigné (donc la vitesse) par rapport à la distance "normale" jusqu'au
+bord droit du chemin.
 
 ## Que se passe-t-il à chaque "saut" (hop) ?
 
