@@ -357,11 +357,14 @@ suivre son trajet à l'œil, pas parce que la cible bouge "après coup".
 
 Décidé par le même genre de "hash" que les autres variantes, avec un
 salt différent, mais JAMAIS sur une tuile déjà inclinée (demande
-explicite de Ylonna : "il n'y a que les tuiles plates" qui glissent) —
-le tirage reste par contre indépendant des fausses tuiles (une tuile
-peut cumuler les deux). Contrairement à l'inclinaison, la position de
-la tuile (bord ou centre) n'a pas d'importance : glisser vers la gauche
-a toujours un sens.
+explicite de Ylonna : "il n'y a que les tuiles plates" qui glissent) ni
+sur une tuile qui reçoit des fausses tuiles (autre demande explicite :
+"les tuiles qui contiennent des fausses tuiles ne doivent pas
+bouger") — `buildDecoys` copie la position de la vraie tuile pour
+placer les fausses au même horaire, glisser déplacerait tout le groupe
+de façon confuse. Contrairement à l'inclinaison, la position de la
+tuile (bord ou centre) n'a pas d'importance : glisser vers la gauche a
+toujours un sens.
 
 Réglage dans `gameConfig.js` (`tile.slidingFrequency`) : contrôle à
 quelle fréquence ça arrive parmi les tuiles plates (actuellement 0,15,

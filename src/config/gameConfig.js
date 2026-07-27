@@ -164,9 +164,12 @@
       // jusqu'à sa position réelle (voir render/renderer.js,
       // `_effectiveFlatX`). Jamais sur une tuile déjà inclinée (voir
       // `tiltDirection`) : "il y a que les tuiles plates" qui glissent.
-      // Peu importe sinon la position de la tuile (bord ou centre) : le
-      // tirage est indépendant des autres variantes. Fraction des
-      // tuiles concernées (0 = jamais, 1 = à chaque tuile plate).
+      // Jamais non plus sur une tuile qui reçoit des fausses tuiles
+      // (voir `tile.decoys`, level/levelSequencer.js) : ces tuiles-là ne
+      // doivent pas bouger. Peu importe sinon la position de la tuile
+      // (bord ou centre) : le tirage est indépendant des autres
+      // variantes. Fraction des tuiles concernées (0 = jamais, 1 = à
+      // chaque tuile plate, sans fausses tuiles).
       slidingFrequency: 0.15,
     },
 

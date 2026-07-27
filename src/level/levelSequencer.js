@@ -222,6 +222,16 @@
         }
       }
 
+      // Une tuile qui reçoit des fausses tuiles ne doit jamais aussi
+      // glisser (demande explicite de Ylonna) : `buildDecoys` copie la
+      // position de la vraie tuile pour placer les fausses au même
+      // horaire — la faire glisser déplacerait tout le groupe de façon
+      // confuse, un bloc qui bouge au lieu d'un repère fixe à côté
+      // duquel viser.
+      if (tile.decoys) {
+        tile.slidesRightToLeft = false;
+      }
+
       return tile;
     });
 
