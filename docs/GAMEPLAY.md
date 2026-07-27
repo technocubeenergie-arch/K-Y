@@ -337,11 +337,12 @@ DE TEMPS EN TEMPS (demandé par Ylonna), une VRAIE tuile part du bord
 DROIT du chemin ENTIER (comme si elle était sur la position la plus à
 droite), puis glisse SUR TOUTE LA LONGUEUR du chemin jusqu'à sa vraie
 position, pendant une durée FIXE (`config.tile.slideDurationSeconds`,
-4 secondes par défaut) bien AVANT la ligne d'impact — jamais pile dans
-les derniers instants avant d'arriver. Contrairement aux tuiles
-inclinées (purement visuelles), c'est un VRAI effet de jeu : il faut
-suivre le mouvement de la tuile pour bien viser, pas juste lire sa
-position finale à l'avance.
+4 secondes par défaut), SANS s'arrêter avant d'atteindre la ligne
+d'impact elle-même. Contrairement aux tuiles inclinées (purement
+visuelles), c'est un VRAI effet de jeu : il faut viser la tuile "peu
+importe où elle est dans son déplacement" (dixit Ylonna), en la
+suivant des yeux jusqu'au bout — pas juste lire sa position finale à
+l'avance, ni la voir se figer, déjà posée, quelques instants avant.
 
 Cette durée est délibérément FIXE, pas liée à l'écart avec la tuile
 précédente (essayé au départ, puis retiré) : Ylonna a précisé "il ne
@@ -351,19 +352,18 @@ seconde, lier la durée à cet écart compressait tout le glissement dans
 les tout derniers instants, donnant l'impression que la tuile restait
 immobile puis "sautait" d'un coup juste avant d'être atteinte.
 
-Et pourtant, `core/engine.js` n'a reçu AUCUN changement : le moteur
-compare toujours la position de la balle à `tile.getCenterX(...)`, la
-position RÉELLE et immobile de la tuile — celle-là même vers laquelle
-la tuile glisse. Le glissement est entièrement géré côté affichage
-(`render/renderer.js`, `_effectiveFlatX`) : construit pour que la tuile
-ait TOUJOURS fini de glisser jusqu'à sa position réelle un peu AVANT
-d'atteindre la ligne d'impact (`config.tile.slideLeadSeconds`, 0,3s par
-défaut) — elle doit déjà être bien en place avant même d'atterrir
-dessus, pas encore en train de glisser pile au moment du saut. Au
-moment précis où le moteur juge le contact, la tuile est de toute façon
-toujours exactement là où elle est censée être — le jeu se complique
-juste parce qu'il faut suivre son trajet à l'œil, pas parce que la
-cible bouge "après coup".
+Et pourtant, `core/engine.js` n'a reçu AUCUN changement : la balle
+continue d'atterrir exactement au moment du coup de musique, comme
+toute tuile (confirmé explicitement par Ylonna) — le moteur compare
+toujours la position de la balle à `tile.getCenterX(...)`, la position
+RÉELLE et immobile de la tuile. Le glissement est entièrement géré côté
+affichage (`render/renderer.js`, `_effectiveFlatX`) : construit pour
+que la tuile arrive à sa position réelle PILE à l'instant
+`tile.expectedTime` (l'instant du saut), sans jamais s'arrêter avant.
+Au moment précis où le moteur juge le contact, la tuile est de toute
+façon toujours exactement là où elle est censée être — le jeu se
+complique juste parce qu'il faut suivre son trajet à l'œil jusqu'au
+bout, pas parce que la cible bouge "après coup".
 
 Décidé par le même genre de "hash" que les autres variantes, avec un
 salt différent, mais JAMAIS sur une tuile déjà inclinée (demande
@@ -377,14 +377,12 @@ tuile (bord ou centre) n'a pas d'importance : glisser vers la gauche a
 toujours un sens.
 
 Réglages dans `gameConfig.js` (`tile.slidingFrequency`,
-`tile.slideDurationSeconds`, `tile.slideLeadSeconds`) :
-`slidingFrequency` contrôle à quelle fréquence ça arrive parmi les
-tuiles plates (actuellement 0,15, soit environ 1 tuile sur 7),
-`slideDurationSeconds` contrôle combien de temps dure le glissement,
-`slideLeadSeconds` contrôle de combien de temps à l'avance il doit être
-terminé. Le point de départ (bord droit du chemin) n'a pas besoin de
-réglage séparé : c'est toujours la position la plus à droite possible,
-quelle que soit la largeur du canvas.
+`tile.slideDurationSeconds`) : `slidingFrequency` contrôle à quelle
+fréquence ça arrive parmi les tuiles plates (actuellement 0,15, soit
+environ 1 tuile sur 7), `slideDurationSeconds` contrôle combien de
+temps dure le glissement. Le point de départ (bord droit du chemin)
+n'a pas besoin de réglage séparé : c'est toujours la position la plus à
+droite possible, quelle que soit la largeur du canvas.
 
 ## Que se passe-t-il à chaque "saut" (hop) ?
 
