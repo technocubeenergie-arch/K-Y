@@ -249,6 +249,29 @@
       }
     }
 
+    // Position latérale "à plat" (avant perspective) d'une tuile, à
+    // l'instant `t` : normalement fixe (`tile.getCenterX`), sauf pour
+    // une tuile glissante (voir entities/tile.js, `slidesRightToLeft`),
+    // où elle part décalée vers la droite puis glisse jusqu'à sa
+    // position réelle pile au moment où elle atteint la ligne d'impact
+    // (`tile.expectedTime`) — ce qui garantit que `core/engine.js`
+    // (qui compare toujours à `tile.getCenterX`, jamais à cette
+    // fonction) juge le contact exactement là où la tuile se trouve
+    // VRAIMENT au moment du saut, sans avoir besoin d'en savoir quoi
+    // que ce soit.
+    _effectiveFlatX(tile, t) {
+      const { config } = this;
+      const baseFlatX = tile.getCenterX(config.canvas.width, config.tile.width);
+      if (!tile.slidesRightToLeft) return baseFlatX;
+
+      const slideStart = tile.expectedTime - config.tile.slideDurationSeconds;
+      if (t <= slideStart) return baseFlatX + config.tile.slideDistancePx;
+      if (t >= tile.expectedTime) return baseFlatX;
+
+      const phase = (t - slideStart) / config.tile.slideDurationSeconds;
+      return TH.MathUtils.lerp(baseFlatX + config.tile.slideDistancePx, baseFlatX, phase);
+    }
+
     // Dessine UNE tuile (vraie ou fausse) et renvoie sa position/échelle
     // à l'écran, ou `null` si elle n'est pas visible (trop loin, ou hors
     // écran) — pour éviter de dupliquer ce calcul de projection entre
@@ -256,7 +279,7 @@
     // une vraie tuile et une fausse tuile (voir `_drawTiles`).
     _drawSingleTile(tile, t, color, minScale) {
       const { ctx, config, camera } = this;
-      const flatX = tile.getCenterX(config.canvas.width, config.tile.width);
+      const flatX = this._effectiveFlatX(tile, t);
       const { screenX, screenY, scale } = camera.project(tile.worldY, flatX, t);
 
       if (scale < minScale) return null; // trop loin pour être utile

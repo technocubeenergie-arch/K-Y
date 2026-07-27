@@ -40,6 +40,16 @@
       // Purement visuel (render/renderer.js) : la zone de contact reste
       // la même, `core/engine.js` ne lit jamais cette propriété.
       this.tiltDirection = 0;
+      // DE TEMPS EN TEMPS (voir level/levelSequencer.js,
+      // config.tile.slidingFrequency), une tuile apparaît décalée vers
+      // la droite et glisse vers sa vraie position juste avant
+      // d'atteindre la ligne d'impact (voir render/renderer.js,
+      // `_effectiveFlatX`). Un VRAI effet de jeu (il faut suivre son
+      // mouvement pour bien viser), mais qui ne change RIEN dans
+      // `core/engine.js` : au moment précis du saut, la tuile a
+      // toujours fini de glisser jusqu'à `xFraction`, sa position
+      // réelle et inchangée — la seule utilisée pour juger le contact.
+      this.slidesRightToLeft = false;
     }
 
     getCenterX(canvasWidth, tileWidth) {

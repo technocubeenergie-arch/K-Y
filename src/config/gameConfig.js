@@ -151,6 +151,26 @@
       // Force de l'inclinaison, en radians (~23°). Augmentée légèrement
       // (0,3 -> 0,4) à la demande de Ylonna.
       inclineAngle: 0.4,
+
+      // Tuiles glissantes (demandé par Ylonna) : DE TEMPS EN TEMPS, une
+      // tuile RÉELLE apparaît décalée vers la DROITE et glisse vers sa
+      // vraie position juste avant d'atteindre la ligne d'impact — un
+      // vrai effet de jeu (suivre son mouvement pour bien viser), sans
+      // aucun changement dans core/engine.js : au moment précis du
+      // saut, la tuile a toujours fini de glisser jusqu'à sa position
+      // réelle (voir render/renderer.js, `_effectiveFlatX`, et
+      // entities/tile.js). Peu importe la position de la tuile (bord ou
+      // centre) : le tirage est indépendant des autres variantes.
+      // Fraction des tuiles concernées (0 = jamais, 1 = à chaque tuile).
+      slidingFrequency: 0.15,
+      // Décalage de départ, en pixels (à l'échelle 1, comme
+      // `tile.width`) : à combien la tuile apparaît décalée vers la
+      // droite avant de commencer à glisser.
+      slideDistancePx: 90,
+      // Combien de temps (secondes) AVANT d'atteindre la ligne
+      // d'impact la tuile glisse jusqu'à sa vraie position (avant ça,
+      // elle reste immobile, déjà décalée).
+      slideDurationSeconds: 0.6,
     },
 
     // Défilement : vitesse constante (px/seconde) à laquelle le monde
