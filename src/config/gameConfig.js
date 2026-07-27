@@ -180,15 +180,13 @@
       // j'arrive, il faut que ça bouge AVANT que j'arrive" — avec des
       // tuiles souvent rapprochées de moins d'une seconde, lier la
       // durée à cet écart compressait le glissement dans les tout
-      // derniers instants). Ylonna a aussi demandé "au moins 3 fois plus
-      // vite" ET que la tuile "reste dans le chemin" (jamais au-delà du
-      // bord droit) : comme le trajet (bord droit → position réelle) et
-      // l'instant d'arrivée sont fixes, aller 3x plus vite sur cette
-      // même distance ne peut se faire qu'en réduisant cette durée —
-      // essayé un temps avec une distance de départ plus grande à la
-      // place (hors du chemin), mais Ylonna a signalé que ça faisait
-      // sortir la tuile du chemin, ce qui n'était pas voulu.
-      slideDurationSeconds: 1.3,
+      // derniers instants). Remontée à 10 secondes à la demande de
+      // Ylonna (contre 4s dans un essai précédent) : le trajet reste
+      // borné au bord droit du chemin (jamais au-delà, voir
+      // render/renderer.js, `_effectiveFlatX`), donc allonger la durée
+      // sur cette même distance fixe ralentit le glissement en échange
+      // de plus de temps d'anticipation.
+      slideDurationSeconds: 10,
     },
 
     // Défilement : vitesse constante (px/seconde) à laquelle le monde
