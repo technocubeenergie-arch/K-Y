@@ -609,17 +609,26 @@ l'écran — rien ne se voyait vraiment. `core/engine.js` (`_fail`)
 introduit maintenant un état intermédiaire, `'falling'`, entre `'playing'`
 et `'gameover'` :
 
-- `_fail()` ne passe plus l'état à `'gameover'` directement : il passe à
-  `'falling'`, appelle `ball.startFalling()` (voir `entities/ball.js` —
-  coupe le contrôle du joueur, réinitialise la vitesse de chute) et
-  calcule déjà le résumé de fin de partie (`_buildRunSummaryPayload`,
-  figé tel quel : le score ne bouge plus une fois sortie de l'état
-  `'playing'`), mais sans encore l'émettre.
+- `_fail(referenceCenterX)` ne passe plus l'état à `'gameover'`
+  directement : il passe à `'falling'`, calcule de quel côté la balle a
+  raté (`Math.sign(ball.x - referenceCenterX)` — `referenceCenterX` est
+  le centre de la tuile ratée, ou du tapis glissant quitté), appelle
+  `ball.startFalling(driftDirection)` (voir `entities/ball.js` — coupe
+  le contrôle du joueur, réinitialise la chute) et calcule déjà le
+  résumé de fin de partie (`_buildRunSummaryPayload`, figé tel quel : le
+  score ne bouge plus une fois sortie de l'état `'playing'`), mais sans
+  encore l'émettre.
 - Tant que l'état est `'falling'`, `update(dt)` appelle
-  `ball.updateFall(dt, config.ball.fallGravity)` à chaque image — une
-  simple chute libre (vitesse qui augmente sous l'effet de la gravité,
-  voir `config.ball.fallGravity`) — au lieu du traitement normal des
-  sauts.
+  `ball.updateFall(dt, config.ball.fallGravity, config.ball.fallDriftSpeed)`
+  à chaque image : une chute libre classique en Y (vitesse qui
+  augmente sous l'effet de la gravité), MAIS AUSSI un déplacement latéral
+  à vitesse constante en X, dans `driftDirection` — TOUJOURS en
+  continuant du côté où la balle avait déjà raté. Précisé par Ylonna
+  après un premier essai sans ce déplacement latéral ("faut voir la
+  balle tomber en dehors de la plaque glissante") : une chute purement
+  verticale pouvait laisser la balle tomber droit devant la tuile ratée
+  ou le tapis quitté, sans jamais paraître clairement en sortir — le
+  déplacement latéral la fait visiblement s'en écarter en tombant.
 - Une fois `config.ball.fallDurationSeconds` (0,6s) écoulées, l'état
   passe enfin à `'gameover'` et `game:over` est émis avec le résumé déjà
   calculé — c'est SEULEMENT à cet instant que l'écran "Raté !"
@@ -627,7 +636,8 @@ et `'gameover'` :
 - **Rendu** : `render/renderer.js` (`_drawBall`) dessine la balle tant
   qu'elle est vivante OU en train de tomber (`ball.isFalling`) ; pendant
   la chute, plus de rebond ni de suivi du tapis, juste
-  `ball.fallOffsetY`, qui grandit jusqu'à sortir du bas du canvas.
+  `ball.fallOffsetY` (vertical) et `ball.fallOffsetX` (latéral), qui
+  grandissent tous les deux jusqu'à sortir du canvas.
 - **Victoire (`game:complete`)** : toutes les tuiles de TOUS les niveaux
   ont été touchées avec succès (voir section précédente — terminer un
   niveau qui n'est pas le dernier ne déclenche pas cette condition,

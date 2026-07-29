@@ -43,10 +43,17 @@
       // Chute après un échec (voir core/engine.js, `_fail`) : la balle ne
       // disparaît plus instantanément, elle tombe visiblement avant que
       // l'écran d'échec ne s'affiche (demandé par Ylonna : "il faudrait
-      // que l'on voie la balle tomber").
+      // que l'on voie la balle tomber"). En plus de tomber (Y), elle
+      // continue latéralement (X) dans la direction où elle a raté —
+      // pour bien se voir tomber EN DEHORS de la tuile ou du tapis
+      // glissant, pas juste couler tout droit dessus (précisé par
+      // Ylonna après un premier essai : "faut voir la balle tomber en
+      // dehors de la plaque glissante").
       this.isFalling = false;
       this.fallVelocity = 0;
       this.fallOffsetY = 0;
+      this.fallOffsetX = 0;
+      this.fallDriftDirection = 1;
     }
 
     reset(config) {
@@ -57,6 +64,8 @@
       this.isFalling = false;
       this.fallVelocity = 0;
       this.fallOffsetY = 0;
+      this.fallOffsetX = 0;
+      this.fallDriftDirection = 1;
     }
 
     setTargetX(x) {
@@ -88,18 +97,27 @@
 
     // Démarre la chute (voir core/engine.js, `_fail`) : la balle sort du
     // contrôle du joueur et de son rebond habituel, elle tombe sous
-    // l'effet de la gravité jusqu'à sortir de l'écran.
-    startFalling() {
+    // l'effet de la gravité jusqu'à sortir de l'écran, en continuant du
+    // côté où elle a raté (`driftDirection` : -1 = vers la gauche, +1 =
+    // vers la droite — voir core/engine.js, `_fail`, qui la déduit du
+    // côté où la balle se trouvait par rapport à la tuile ou au tapis).
+    startFalling(driftDirection) {
       this.isAlive = false;
       this.isFalling = true;
       this.fallVelocity = 0;
       this.fallOffsetY = 0;
+      this.fallOffsetX = 0;
+      this.fallDriftDirection = driftDirection || 1;
     }
 
-    // gravity : accélération en px/s² (voir config.ball.fallGravity).
-    updateFall(dt, gravity) {
+    // gravity : accélération verticale en px/s² (voir
+    // config.ball.fallGravity). driftSpeed : vitesse latérale constante
+    // en px/s (voir config.ball.fallDriftSpeed), appliquée dans
+    // `fallDriftDirection`.
+    updateFall(dt, gravity, driftSpeed) {
       this.fallVelocity += gravity * dt;
       this.fallOffsetY += this.fallVelocity * dt;
+      this.fallOffsetX += driftSpeed * this.fallDriftDirection * dt;
     }
 
     updateSquash(dt) {
