@@ -87,6 +87,8 @@
 
       this.ball.update();
       this.ball.updateSquash(dt);
+      this._checkBridgeExit();
+      if (this.state !== 'playing') return;
 
       const t = this.clock.getElapsedSeconds();
       const tiles = this.sequence.tiles;
@@ -295,14 +297,44 @@
       return TH.MathUtils.clamp((t - previousTime) / interval, 0, 1);
     }
 
-    // Vrai si la balle est actuellement sur une "plateforme de liaison"
-    // (voir level/levelSequencer.js, docs/GAMEPLAY.md) : le renderer
-    // s'en sert pour ne pas faire rebondir la balle pendant qu'elle la
-    // traverse — elle roule en continu au lieu de sauter.
-    isOnBridge() {
+    // La plateforme de liaison sur laquelle la balle se trouve
+    // actuellement (voir level/levelSequencer.js, docs/GAMEPLAY.md), ou
+    // `null` si elle n'en traverse aucune en ce moment.
+    _currentBridge() {
       const t = this.clock.getElapsedSeconds();
       const bridges = this.sequence.bridges || [];
-      return bridges.some((bridge) => t >= bridge.startTime && t <= bridge.endTime);
+      return bridges.find((bridge) => t >= bridge.startTime && t <= bridge.endTime) || null;
+    }
+
+    // Vrai si la balle est actuellement sur une "plateforme de liaison" :
+    // le renderer s'en sert pour ne pas faire rebondir la balle pendant
+    // qu'elle la traverse — elle roule en continu au lieu de sauter.
+    isOnBridge() {
+      return this._currentBridge() !== null;
+    }
+
+    // Sur un tapis glissant, la balle roule en continu (voir isOnBridge())
+    // au lieu de sauter tuile par tuile : il faut donc vérifier ICI,
+    // partie par partie, qu'elle reste bien SUR la largeur du tapis —
+    // sinon aucun autre contrôle ne la rattraperait avant la tuile
+    // suivante. Si elle en sort latéralement, c'est un échec (demandé par
+    // Ylonna : "quand on sort du tapis glissant on perd").
+    _checkBridgeExit() {
+      const bridge = this._currentBridge();
+      if (!bridge) return;
+
+      // Même formule que render/renderer.js, `_drawBridges` : le tapis
+      // partage la marge des tuiles (`config.tile.width`), pas la
+      // sienne (`config.bridge.width`), qui ne sert qu'à sa largeur
+      // dessinée/jouable.
+      const margin = this.config.tile.width / 2;
+      const usableWidth = this.config.canvas.width - margin * 2;
+      const bridgeCenterX = margin + bridge.xFraction * usableWidth;
+      const halfBridge = this.config.bridge.width / 2;
+
+      if (Math.abs(this.ball.x - bridgeCenterX) > halfBridge) {
+        this._fail();
+      }
     }
 
     getElapsedSeconds() {
