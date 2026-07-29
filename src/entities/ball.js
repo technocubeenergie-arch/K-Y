@@ -39,6 +39,14 @@
       this.bounceHeight = config.ball.bounceHeight;
       this.squash = 1; // 1 = taille normale, <1 = écrasée à l'impact
       this.isAlive = true;
+
+      // Chute après un échec (voir core/engine.js, `_fail`) : la balle ne
+      // disparaît plus instantanément, elle tombe visiblement avant que
+      // l'écran d'échec ne s'affiche (demandé par Ylonna : "il faudrait
+      // que l'on voie la balle tomber").
+      this.isFalling = false;
+      this.fallVelocity = 0;
+      this.fallOffsetY = 0;
     }
 
     reset(config) {
@@ -46,6 +54,9 @@
       this.targetX = this.x;
       this.squash = 1;
       this.isAlive = true;
+      this.isFalling = false;
+      this.fallVelocity = 0;
+      this.fallOffsetY = 0;
     }
 
     setTargetX(x) {
@@ -73,6 +84,22 @@
 
     playImpactSquash() {
       this.squash = 0.72;
+    }
+
+    // Démarre la chute (voir core/engine.js, `_fail`) : la balle sort du
+    // contrôle du joueur et de son rebond habituel, elle tombe sous
+    // l'effet de la gravité jusqu'à sortir de l'écran.
+    startFalling() {
+      this.isAlive = false;
+      this.isFalling = true;
+      this.fallVelocity = 0;
+      this.fallOffsetY = 0;
+    }
+
+    // gravity : accélération en px/s² (voir config.ball.fallGravity).
+    updateFall(dt, gravity) {
+      this.fallVelocity += gravity * dt;
+      this.fallOffsetY += this.fallVelocity * dt;
     }
 
     updateSquash(dt) {

@@ -592,9 +592,42 @@ repart systématiquement du niveau 1, à vitesse normale.
 ## Conditions de victoire / d'échec
 
 - **Échec (`game:over`)** : la balle n'est pas alignée avec une tuile au
-  moment où celle-ci atteint la ligne d'impact, À N'IMPORTE quel niveau.
-  La musique s'arrête, un son d'échec joue, l'écran "Raté !" apparaît
-  avec le niveau atteint, le score et le meilleur score.
+  moment où celle-ci atteint la ligne d'impact, À N'IMPORTE quel niveau
+  (ou sort latéralement d'un tapis glissant, voir plus haut). La balle
+  tombe alors visiblement (voir "La balle tombe" ci-dessous) PENDANT
+  `config.ball.fallDurationSeconds` (0,6s) avant que l'écran "Raté !"
+  n'apparaisse — l'événement `game:over` lui-même (donc l'arrêt de la
+  musique, le son d'échec, et l'écran avec le niveau atteint, le score
+  et le meilleur score) n'est émis qu'à la fin de cette chute, pas au
+  moment du raté.
+
+### La balle tombe
+
+Demandé par Ylonna : avant, la balle disparaissait instantanément au
+moment du raté, en même temps que l'écran "Raté !" recouvrait tout
+l'écran — rien ne se voyait vraiment. `core/engine.js` (`_fail`)
+introduit maintenant un état intermédiaire, `'falling'`, entre `'playing'`
+et `'gameover'` :
+
+- `_fail()` ne passe plus l'état à `'gameover'` directement : il passe à
+  `'falling'`, appelle `ball.startFalling()` (voir `entities/ball.js` —
+  coupe le contrôle du joueur, réinitialise la vitesse de chute) et
+  calcule déjà le résumé de fin de partie (`_buildRunSummaryPayload`,
+  figé tel quel : le score ne bouge plus une fois sortie de l'état
+  `'playing'`), mais sans encore l'émettre.
+- Tant que l'état est `'falling'`, `update(dt)` appelle
+  `ball.updateFall(dt, config.ball.fallGravity)` à chaque image — une
+  simple chute libre (vitesse qui augmente sous l'effet de la gravité,
+  voir `config.ball.fallGravity`) — au lieu du traitement normal des
+  sauts.
+- Une fois `config.ball.fallDurationSeconds` (0,6s) écoulées, l'état
+  passe enfin à `'gameover'` et `game:over` est émis avec le résumé déjà
+  calculé — c'est SEULEMENT à cet instant que l'écran "Raté !"
+  apparaît (voir `ui/screens.js`).
+- **Rendu** : `render/renderer.js` (`_drawBall`) dessine la balle tant
+  qu'elle est vivante OU en train de tomber (`ball.isFalling`) ; pendant
+  la chute, plus de rebond ni de suivi du tapis, juste
+  `ball.fallOffsetY`, qui grandit jusqu'à sortir du bas du canvas.
 - **Victoire (`game:complete`)** : toutes les tuiles de TOUS les niveaux
   ont été touchées avec succès (voir section précédente — terminer un
   niveau qui n'est pas le dernier ne déclenche pas cette condition,
@@ -620,4 +653,6 @@ Toute future modification du gameplay doit continuer à respecter :
   rattrapage automatique) ;
 - un lien **direct et audible** entre la musique et le placement des
   tuiles ;
-- un échec **clair et immédiat** dès qu'une tuile est ratée.
+- un échec **clair**, déclenché DÈS qu'une tuile est ratée (aucun
+  rattrapage), même si l'écran "Raté !" lui-même n'apparaît qu'après
+  la brève chute visible de la balle (voir "La balle tombe").

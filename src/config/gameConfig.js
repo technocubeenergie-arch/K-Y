@@ -79,6 +79,17 @@
       keyboardSpeed: 350,
       // Hauteur du saut visuel entre deux tuiles (en pixels).
       bounceHeight: 128,
+
+      // Chute après un échec (demandé par Ylonna : "il faudrait que l'on
+      // voie la balle tomber" — avant, elle disparaissait d'un coup en
+      // même temps que l'écran d'échec recouvrait tout, voir
+      // core/engine.js, `_fail`). Accélération de la chute (px/s²) : à
+      // cette valeur, la balle est déjà sortie du bas du canvas bien
+      // avant la fin de `fallDurationSeconds` ci-dessous.
+      fallGravity: 1600,
+      // Durée (secondes) pendant laquelle la balle tombe avant que
+      // l'écran d'échec ne s'affiche.
+      fallDurationSeconds: 0.6,
     },
 
     // Les tuiles

@@ -24,7 +24,12 @@
       this.events = eventBus;
       this.localStore = localStore;
 
-      this.state = 'idle'; // idle | playing | paused | gameover | complete
+      this.state = 'idle'; // idle | playing | paused | falling | gameover | complete
+      // Le temps écoulé depuis le début de la chute (voir `_fail`, état
+      // 'falling') et le résumé de fin de partie déjà calculé, en
+      // attente d'être émis une fois la chute terminée.
+      this._fallElapsed = 0;
+      this._pendingGameOverPayload = null;
       this.score = 0;
       // Étoiles gagnées PENDANT LA PARTIE EN COURS (remise à zéro à chaque
       // start()). Le total cumulé, lui, vit dans localStore (voir plus bas).
@@ -83,6 +88,23 @@
     }
 
     update(dt) {
+      // La balle tombe (voir `_fail`, entities/ball.js `startFalling`)
+      // pendant `config.ball.fallDurationSeconds` avant que l'écran
+      // d'échec ne s'affiche — sinon la balle disparaissait d'un coup,
+      // en même temps que l'écran recouvrait tout, sans que rien ne se
+      // voie (demandé par Ylonna : "il faudrait que l'on voie la balle
+      // tomber").
+      if (this.state === 'falling') {
+        this.ball.updateFall(dt, this.config.ball.fallGravity);
+        this._fallElapsed += dt;
+        if (this._fallElapsed >= this.config.ball.fallDurationSeconds) {
+          this.state = 'gameover';
+          this.events.emit('game:over', this._pendingGameOverPayload);
+          this._pendingGameOverPayload = null;
+        }
+        return;
+      }
+
       if (this.state !== 'playing') return;
 
       this.ball.update();
@@ -214,10 +236,18 @@
 
     _fail() {
       if (this.state !== 'playing') return;
-      this.state = 'gameover';
-      this.ball.isAlive = false;
+      // Pas de transition directe à 'gameover' : voir `update`, état
+      // 'falling', qui laisse la balle tomber quelques instants avant
+      // d'afficher l'écran d'échec. Le score, lui, ne bouge plus après
+      // cet instant (voir `update`, la partie ne traite plus aucun saut
+      // une fois sortie de l'état 'playing') : on peut donc calculer et
+      // figer ce résumé dès maintenant, tel quel, pour l'émettre plus
+      // tard.
+      this.state = 'falling';
+      this.ball.startFalling();
       this.clock.pause();
-      this.events.emit('game:over', this._buildRunSummaryPayload());
+      this._fallElapsed = 0;
+      this._pendingGameOverPayload = this._buildRunSummaryPayload();
     }
 
     // Toutes les tuiles de TOUS les niveaux ont été touchées (la partie

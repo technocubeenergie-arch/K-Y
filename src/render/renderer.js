@@ -363,11 +363,16 @@
     _drawBall(engine) {
       const { ctx, config } = this;
       const ball = engine.ball;
-      if (!ball.isAlive) return;
+      if (!ball.isAlive && !ball.isFalling) return;
 
+      // Après un échec (voir entities/ball.js, `startFalling`), la balle
+      // tombe au lieu de simplement disparaître : plus de rebond, juste
+      // la chute qui prend le dessus sur tout le reste.
       // Sur une plateforme de liaison (voir docs/GAMEPLAY.md), la balle
       // roule en continu au lieu de sauter : pas de rebond.
-      const offsetY = engine.isOnBridge() ? 0 : ball.getBounceOffsetY(engine.getBouncePhase());
+      const offsetY = ball.isFalling
+        ? ball.fallOffsetY
+        : (engine.isOnBridge() ? 0 : ball.getBounceOffsetY(engine.getBouncePhase()));
       const y = config.hitLine.y + offsetY;
 
       ctx.save();
