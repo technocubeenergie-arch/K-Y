@@ -374,9 +374,13 @@
         ? ball.fallOffsetY
         : (engine.isOnBridge() ? 0 : ball.getBounceOffsetY(engine.getBouncePhase()));
       const y = config.hitLine.y + offsetY;
+      // Pendant la chute, la balle continue latéralement (voir
+      // entities/ball.js, `fallOffsetX`) pour bien se voir tomber EN
+      // DEHORS de la tuile ou du tapis raté, pas juste tout droit dessus.
+      const x = ball.isFalling ? ball.x + ball.fallOffsetX : ball.x;
 
       ctx.save();
-      ctx.translate(ball.x, y);
+      ctx.translate(x, y);
       ctx.scale(1 / ball.squash, ball.squash);
       ctx.fillStyle = config.ball.color;
       ctx.beginPath();

@@ -95,7 +95,7 @@
       // voie (demandé par Ylonna : "il faudrait que l'on voie la balle
       // tomber").
       if (this.state === 'falling') {
-        this.ball.updateFall(dt, this.config.ball.fallGravity);
+        this.ball.updateFall(dt, this.config.ball.fallGravity, this.config.ball.fallDriftSpeed);
         this._fallElapsed += dt;
         if (this._fallElapsed >= this.config.ball.fallDurationSeconds) {
           this.state = 'gameover';
@@ -209,7 +209,7 @@
       } else {
         tile.state = 'missed';
         this.events.emit('tile:miss', { index: tile.index });
-        this._fail();
+        this._fail(tileCenterX);
       }
     }
 
@@ -234,7 +234,14 @@
       };
     }
 
-    _fail() {
+    // `referenceCenterX` : le centre (de la tuile ratée, ou du tapis
+    // glissant quitté) par rapport auquel la balle a raté — sert à
+    // savoir de quel côté la faire tomber (voir plus bas,
+    // `ball.startFalling`) : demandé par Ylonna après un premier essai
+    // ("faut voir la balle tomber en dehors de la plaque glissante"),
+    // pour qu'elle tombe visiblement EN DEHORS de la tuile/du tapis, pas
+    // juste tout droit dessus.
+    _fail(referenceCenterX) {
       if (this.state !== 'playing') return;
       // Pas de transition directe à 'gameover' : voir `update`, état
       // 'falling', qui laisse la balle tomber quelques instants avant
@@ -244,7 +251,8 @@
       // figer ce résumé dès maintenant, tel quel, pour l'émettre plus
       // tard.
       this.state = 'falling';
-      this.ball.startFalling();
+      const driftDirection = Math.sign(this.ball.x - referenceCenterX) || 1;
+      this.ball.startFalling(driftDirection);
       this.clock.pause();
       this._fallElapsed = 0;
       this._pendingGameOverPayload = this._buildRunSummaryPayload();
@@ -363,7 +371,7 @@
       const halfBridge = this.config.bridge.width / 2;
 
       if (Math.abs(this.ball.x - bridgeCenterX) > halfBridge) {
-        this._fail();
+        this._fail(bridgeCenterX);
       }
     }
 

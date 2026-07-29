@@ -90,6 +90,14 @@
       // Durée (secondes) pendant laquelle la balle tombe avant que
       // l'écran d'échec ne s'affiche.
       fallDurationSeconds: 0.6,
+      // Vitesse latérale constante (px/s) pendant la chute, TOUJOURS du
+      // côté où la balle a raté (voir core/engine.js, `_fail`) : sans
+      // ça, la balle tombait tout droit, parfois encore visuellement
+      // au-dessus de la tuile ratée ou du tapis glissant quitté au lieu
+      // d'en sortir clairement (précisé par Ylonna après un premier
+      // essai : "faut voir la balle tomber en dehors de la plaque
+      // glissante").
+      fallDriftSpeed: 220,
     },
 
     // Les tuiles
