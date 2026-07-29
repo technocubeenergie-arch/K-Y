@@ -217,8 +217,9 @@ faire son petit saut habituel entre chaque tuile.
   `config.bridge.minGapSeconds` (0,9s par défaut — sur `phuthona.ogg`,
   la plupart des écarts valent 0,4 à 0,9s). Le résultat
   (`sequence.bridges`) est une liste à part de `tiles` : ce n'est pas
-  une tuile à toucher ou à rater, `core/engine.js` ne juge jamais rien
-  dessus.
+  une tuile à toucher ou à rater, `core/engine.js` ne la juge pas au
+  moment d'un saut — mais elle n'est pas non plus totalement ignorée
+  (voir "Sortir du tapis = perdre" plus bas).
 - **Rendu** : `render/renderer.js` (`_drawBridges`) projette les DEUX
   bouts de la plateforme (début et fin du vide) avec `camera.project`,
   et dessine un quadrilatère qui les relie — plus large qu'une tuile
@@ -231,6 +232,29 @@ faire son petit saut habituel entre chaque tuile.
 
 Réglages dans `gameConfig.js` (`bridge.minGapSeconds`, `bridge.color`,
 `bridge.width`).
+
+### Sortir du tapis = perdre
+
+Demandé par Ylonna : pendant qu'elle roule en continu sur un tapis
+glissant, la balle peut toujours se déplacer latéralement (clavier ou
+souris/tactile) — si elle sort de la LARGEUR du tapis (`config.bridge.width`),
+c'est un échec, exactement comme rater une tuile.
+
+- `core/engine.js` (`_checkBridgeExit`, appelée à chaque frame par
+  `update`, seulement quand la partie est `playing`) retrouve la
+  plateforme courante (`_currentBridge`, la même horloge que
+  `isOnBridge`), calcule son centre latéral avec **la même formule**
+  que `render/renderer.js` (`_drawBridges`) — `margin = config.tile.width / 2`,
+  centre = `margin + bridge.xFraction * (canvas.width - margin * 2)` —
+  puis compare la position de la balle à ce centre : au-delà de
+  `config.bridge.width / 2`, `this._fail()` est appelé.
+- Cette vérification est indépendante des sauts tuile par tuile
+  (`_processHop`) : sur un tapis, aucune tuile n'est "en attente", donc
+  rien d'autre ne surveillerait la position latérale de la balle avant
+  la tuile suivante sans ce contrôle dédié.
+- Hors d'un tapis (donc sur la quasi-totalité de la partie), cette
+  vérification ne fait rien : les tuiles gardent leur propre tolérance
+  (`hitZoneRatio`), jugée uniquement au moment du saut.
 
 ## Le chemin latéral des tuiles
 
