@@ -178,7 +178,14 @@
         config.tile.slidingFrequency > 0 &&
         pseudoRandom01(index, 852741) < config.tile.slidingFrequency;
 
-      const showDecoys = config.tile.decoyCount > 0 && pseudoRandom01(index, 0) < config.tile.decoyFrequency;
+      // Jamais sur une tuile déjà inclinée (demande explicite de Ylonna) :
+      // l'inclinaison penche la vraie tuile vers le centre pour bien la
+      // distinguer, les fausses tuiles à côté rendraient cette lecture
+      // confuse plutôt que de simplement brouiller le chemin.
+      const showDecoys =
+        !tile.tiltDirection &&
+        config.tile.decoyCount > 0 &&
+        pseudoRandom01(index, 0) < config.tile.decoyFrequency;
 
       if (showDecoys) {
         // Si la vraie tuile est déjà sur une des positions du bord

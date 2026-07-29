@@ -343,11 +343,20 @@ tournée en biais, penchée vers le CENTRE du chemin — purement visuel :
 zone où atterrir.
 
 Décidé par le même genre de "hash" que les fausses tuiles (voir
-plus haut), mais avec un salt différent : le tirage est complètement
-indépendant — une tuile peut être à la fois inclinée ET recevoir des
-fausses tuiles, ou ni l'une ni l'autre. Une tuile pile au CENTRE du
+plus haut), mais avec un salt différent. Une tuile pile au CENTRE du
 chemin n'est jamais inclinée : il n'y a alors pas de "vers l'intérieur"
 qui ait un sens (le centre EST déjà le milieu).
+
+JAMAIS combinée avec les fausses tuiles (demande explicite de Ylonna) :
+une tuile déjà inclinée ne reçoit jamais de fausses tuiles — l'inclinaison
+penche la vraie tuile vers le centre pour bien la distinguer du reste,
+des fausses tuiles à côté rendraient cette lecture confuse plutôt que
+de simplement brouiller le chemin (voir `level/levelSequencer.js`,
+`showDecoys`, qui vérifie `!tile.tiltDirection` avant même de tirer au
+sort). L'inverse reste vrai aussi : une tuile qui reçoit des fausses
+tuiles n'est jamais inclinée (le tirage de l'inclinaison a lieu AVANT
+celui des fausses tuiles, donc `tile.tiltDirection` est déjà fixé et
+inchangé quand on décide des fausses tuiles).
 
 Réglages dans `gameConfig.js` (`tile.inclinedFrequency`,
 `tile.inclineAngle`) : `inclinedFrequency` contrôle à quelle fréquence
